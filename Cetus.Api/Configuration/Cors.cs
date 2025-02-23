@@ -13,8 +13,7 @@ public static class Cors
                 policy
                     .AllowAnyHeader()
                     .AllowAnyMethod()
-                    .AllowAnyOrigin()
-                    .AllowCredentials();
+                    .AllowAnyOrigin();
             });
         });
     }
