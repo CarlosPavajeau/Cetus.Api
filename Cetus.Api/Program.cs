@@ -1,7 +1,8 @@
+using Cetus;
 using Cetus.Api.Configuration;
-using Cetus.Infrastructure.Persistence.EntityFramework;
+using Cetus.Application.SearchAllCategories;
+using MediatR;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
 using Serilog;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -11,6 +12,13 @@ builder.ConfigureDatabase();
 
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
+
+builder.Services.AddMediatR(configuration =>
+{
+    configuration.RegisterServicesFromAssembly(typeof(Program).Assembly);
+    configuration.RegisterServicesFromAssembly(typeof(CetusAssemblyHelper)
+        .Assembly);
+});
 
 var app = builder.Build();
 
@@ -25,18 +33,11 @@ if (app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 
-app.MapGet("/api/categories", async ([FromServices] CetusDbContext db) =>
+app.MapGet("/api/categories", async ([FromServices] IMediator mediator) =>
 {
-    try
-    {
-        var categories = await db.Categories.ToListAsync();
-        
-        return Results.Ok(categories);
-    }
-    catch (Exception e)
-    {
-        return Results.BadRequest(e);
-    }
+    var categories = await mediator.Send(new SearchAllCategoriesQuery());
+
+    return Results.Ok(categories);
 });
 
 app.Run();
