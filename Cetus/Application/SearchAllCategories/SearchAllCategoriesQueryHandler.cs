@@ -1,4 +1,3 @@
-using Cetus.Domain;
 using Cetus.Infrastructure.Persistence.EntityFramework;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
@@ -6,12 +5,17 @@ using Microsoft.EntityFrameworkCore;
 namespace Cetus.Application.SearchAllCategories;
 
 public sealed class SearchAllCategoriesQueryHandler(CetusDbContext context)
-    : IRequestHandler<SearchAllCategoriesQuery, IEnumerable<Category>>
+    : IRequestHandler<SearchAllCategoriesQuery, IEnumerable<CategoryResponse>>
 {
-    public async Task<IEnumerable<Category>> Handle(
+    public async Task<IEnumerable<CategoryResponse>> Handle(
         SearchAllCategoriesQuery request,
         CancellationToken cancellationToken)
     {
-        return await context.Categories.ToListAsync(cancellationToken);
+        var categories =
+            await context.Categories.ToListAsync(cancellationToken);
+
+        return categories.Select(c =>
+            new CategoryResponse(c.Id, c.Name, c.CreatedAt, c.UpdatedAt,
+                c.DeletedAt));
     }
 }
