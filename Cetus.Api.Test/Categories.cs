@@ -1,14 +1,11 @@
 using Cetus.Api.Test.Shared;
+using Shouldly;
 
 namespace Cetus.Api.Test;
 
-public class Categories : ApplicationContextTestCase
+public class Categories(ApplicationTestCase factory)
+    : ApplicationContextTestCase(factory)
 {
-    public Categories(ApplicationTestCase factory) : base(
-        factory)
-    {
-    }
-
     [Fact(DisplayName = "Should return a list of categories")]
     public async Task GetAll()
     {
@@ -19,6 +16,6 @@ public class Categories : ApplicationContextTestCase
         response.EnsureSuccessStatusCode();
         var content = await response.Content.ReadAsStringAsync();
 
-        Assert.NotEmpty(content);
+        content.ShouldNotBeEmpty("content != null");
     }
 }
