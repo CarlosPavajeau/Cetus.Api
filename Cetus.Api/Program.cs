@@ -25,10 +25,22 @@ if (app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 
-app.MapGet("/categories", async ([FromServices] CetusDbContext db) =>
+app.MapGet("/api/categories", async ([FromServices] CetusDbContext db) =>
 {
-    var categories = await db.Categories.ToListAsync();
-    return Results.Ok(categories);
+    try
+    {
+        var categories = await db.Categories.ToListAsync();
+        
+        return Results.Ok(categories);
+    }
+    catch (Exception e)
+    {
+        return Results.BadRequest(e);
+    }
 });
 
 app.Run();
+
+public partial class Program
+{
+}
