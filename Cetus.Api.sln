@@ -1,0 +1,30 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "apps", "apps", "{BA8BD520-0BC1-4AFB-928D-FDA5741D5831}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{C1557E47-FD5A-4925-AF05-A1A2B386BEC3}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Cetus", "Cetus\Cetus.csproj", "{16868728-A302-44DC-8EA4-F3048E4181E2}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Cetus.Api", "Cetus.Api\Cetus.Api.csproj", "{A20BA77B-3151-4A20-A667-DCB1EEB37F7F}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{16868728-A302-44DC-8EA4-F3048E4181E2} = {C1557E47-FD5A-4925-AF05-A1A2B386BEC3}
+		{A20BA77B-3151-4A20-A667-DCB1EEB37F7F} = {BA8BD520-0BC1-4AFB-928D-FDA5741D5831}
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{16868728-A302-44DC-8EA4-F3048E4181E2}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{16868728-A302-44DC-8EA4-F3048E4181E2}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{16868728-A302-44DC-8EA4-F3048E4181E2}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{16868728-A302-44DC-8EA4-F3048E4181E2}.Release|Any CPU.Build.0 = Release|Any CPU
+		{A20BA77B-3151-4A20-A667-DCB1EEB37F7F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A20BA77B-3151-4A20-A667-DCB1EEB37F7F}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{A20BA77B-3151-4A20-A667-DCB1EEB37F7F}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{A20BA77B-3151-4A20-A667-DCB1EEB37F7F}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+EndGlobal
