@@ -17,7 +17,8 @@ public sealed class CreateProductCommandHandler(CetusDbContext context)
             Description = request.Description,
             Price = request.Price,
             Stock = request.Stock,
-            CategoryId = request.CategoryId,
+            Enabled = true,
+            CategoryId = request.CategoryId
         };
 
         await context.Products.AddAsync(product, cancellationToken);
