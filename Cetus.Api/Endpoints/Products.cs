@@ -1,4 +1,5 @@
 using Cetus.Application.CreateProduct;
+using Cetus.Application.SearchAllProducts;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
 
@@ -14,6 +15,12 @@ public static class Products
             var result = await mediator.Send(command);
 
             return Results.Created($"/api/products/{result.Id}", result);
+        });
+
+        app.MapGet("/api/products", async ([FromServices] IMediator mediator) =>
+        {
+            var products = await mediator.Send(new SearchAllProductsQuery());
+            return Results.Ok(products);
         });
     }
 }
