@@ -7,6 +7,7 @@ var builder = WebApplication.CreateBuilder(args);
 
 builder.ConfigureLogging();
 builder.ConfigureDatabase();
+builder.ConfigureCors();
 
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
@@ -30,6 +31,7 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
+app.UseCors(Cors.AllowAll);
 
 app.MapCategories();
 app.MapProducts();
