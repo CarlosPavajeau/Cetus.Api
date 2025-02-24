@@ -36,6 +36,8 @@ app.UseCors(Cors.AllowAll);
 app.MapCategories();
 app.MapProducts();
 
+app.MapGet("/", () => Results.Ok());
+
 app.Run();
 
 public partial class Program;
