@@ -1,4 +1,5 @@
 using Cetus.Application.CreateProduct;
+using Cetus.Application.FindProduct;
 using Cetus.Application.SearchAllProducts;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
@@ -31,5 +32,15 @@ public class ProductsController : ControllerBase
         var products = await _mediator.Send(new SearchAllProductsQuery());
 
         return Ok(products);
+    }
+
+    [HttpGet("{id:guid}")]
+    public async Task<IActionResult> GetProduct(Guid id)
+    {
+        var product = await _mediator.Send(new FindProductQuery(id));
+
+        return product is null
+            ? NotFound()
+            : Ok(product);
     }
 }
