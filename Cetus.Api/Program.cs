@@ -1,6 +1,5 @@
 using Cetus;
 using Cetus.Api.Configuration;
-using Cetus.Api.Endpoints;
 using Serilog;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -19,6 +18,8 @@ builder.Services.AddMediatR(configuration =>
         .Assembly);
 });
 
+builder.Services.AddControllers();
+
 var app = builder.Build();
 
 app.UseSerilogRequestLogging();
@@ -33,10 +34,7 @@ if (app.Environment.IsDevelopment())
 app.UseHttpsRedirection();
 app.UseCors(Cors.AllowAll);
 
-app.MapCategories();
-app.MapProducts();
-
-app.MapGet("/", () => Results.Ok());
+app.MapControllers();
 
 app.Run();
 
