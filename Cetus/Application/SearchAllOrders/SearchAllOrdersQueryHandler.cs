@@ -16,7 +16,9 @@ public class SearchAllOrdersQueryHandler : IRequestHandler<SearchAllOrdersQuery,
     public async Task<IEnumerable<OrderResponse>> Handle(SearchAllOrdersQuery request,
         CancellationToken cancellationToken)
     {
-        var orders = await _context.Orders.ToListAsync(cancellationToken);
+        var orders = await _context.Orders
+            .OrderByDescending(o => o.CreatedAt)
+            .ToListAsync(cancellationToken);
 
         return orders.Select(order =>
             new OrderResponse(order.Id, order.Status, order.Address, order.Total, order.CreatedAt));
