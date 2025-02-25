@@ -1,4 +1,5 @@
 using Cetus.Application.CreateOrder;
+using Cetus.Application.FindOrder;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
 
@@ -20,5 +21,12 @@ public class OrdersController : ControllerBase
     {
         var result = await _mediator.Send(command);
         return Ok(result);
+    }
+
+    [HttpGet("{id:guid}")]
+    public async Task<IActionResult> GetOrder([FromRoute] Guid id)
+    {
+        var result = await _mediator.Send(new FindOrderQuery(id));
+        return result is null ? NotFound() : Ok(result);
     }
 }
