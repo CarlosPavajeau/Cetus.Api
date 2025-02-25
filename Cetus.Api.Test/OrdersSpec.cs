@@ -84,4 +84,43 @@ public class OrdersSpec(ApplicationTestCase factory) : ApplicationContextTestCas
         orderResponse.Id.ShouldBe(orderId);
         orderResponse.Status.ShouldBe(OrderStatus.Pending);
     }
+    
+    [Fact(DisplayName = "Should get all orders")]
+    public async Task ShouldGetAllOrders()
+    {
+        // Arrange
+        var newProduct =
+            new CreateProductCommand("test-find", null, 1500, 10, Guid.NewGuid());
+        var createResponse = await Client.PostAsJsonAsync("api/products", newProduct);
+
+        createResponse.EnsureSuccessStatusCode();
+
+        var product = await createResponse.DeserializeAsync<ProductResponse>();
+        product.ShouldNotBeNull();
+
+        var newCustomer = new CreateOrderCustomer("test-id", "test-name", "test-email", "test-phone", "test-address");
+        var newOrderItems = new List<CreateOrderItem>
+        {
+            new(newProduct.Name, 1, product.Price, product.Id)
+        };
+
+        var newOrder = new CreateOrderCommand("test-address", product.Price, newOrderItems, newCustomer);
+
+        var response =
+            await Client.PostAsJsonAsync("api/orders", newOrder);
+
+        response.EnsureSuccessStatusCode();
+
+        // Act
+        var getOrdersResponse = await Client.GetAsync("api/orders");
+
+        // Assert
+        getOrdersResponse.EnsureSuccessStatusCode();
+
+        var orders = await getOrdersResponse.DeserializeAsync<IEnumerable<OrderResponse>>();
+
+        var orderResponses = orders?.ToList();
+        orderResponses.ShouldNotBeNull();
+        orderResponses.ShouldNotBeEmpty();
+    }
 }
