@@ -1,3 +1,4 @@
+using Cetus.Domain;
 using Cetus.Infrastructure.Persistence.EntityFramework;
 using Microsoft.EntityFrameworkCore;
 
@@ -10,7 +11,8 @@ public static class Database
         builder.Services.AddDbContextPool<CetusDbContext>(options =>
         {
             options.UseNpgsql(
-                    builder.Configuration.GetConnectionString("CetusContext"))
+                    builder.Configuration.GetConnectionString("CetusContext"),
+                    dbContextOptionsBuilder => { dbContextOptionsBuilder.MapEnum<OrderStatus>("order_status"); })
                 .UseSnakeCaseNamingConvention();
         });
     }
