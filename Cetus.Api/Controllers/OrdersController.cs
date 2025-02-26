@@ -1,6 +1,8 @@
 using Cetus.Application.CreateOrder;
 using Cetus.Application.FindOrder;
 using Cetus.Application.SearchAllOrders;
+using Cetus.Application.UpdateOrder;
+using Cetus.Domain;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
 
@@ -36,5 +38,22 @@ public class OrdersController : ControllerBase
     {
         var result = await _mediator.Send(new SearchAllOrdersQuery());
         return Ok(result);
+    }
+    
+    [HttpPut("{id:guid}")]
+    public async Task<IActionResult> UpdateOrder([FromRoute] Guid id, [FromBody] UpdateOrderCommand command)
+    {
+        if (id != command.Id)
+        {
+            return BadRequest();
+        }
+
+        if (command.Status == OrderStatus.Pending)
+        {
+            return BadRequest();
+        }
+
+        var result = await _mediator.Send(command);
+        return result is null ? NotFound() : Ok(result);
     }
 }

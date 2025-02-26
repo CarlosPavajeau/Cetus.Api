@@ -4,6 +4,7 @@ using Cetus.Application.CreateOrder;
 using Cetus.Application.CreateProduct;
 using Cetus.Application.FindOrder;
 using Cetus.Application.SearchAllProducts;
+using Cetus.Application.UpdateOrder;
 using Cetus.Domain;
 using Shouldly;
 
@@ -122,5 +123,47 @@ public class OrdersSpec(ApplicationTestCase factory) : ApplicationContextTestCas
         var orderResponses = orders?.ToList();
         orderResponses.ShouldNotBeNull();
         orderResponses.ShouldNotBeEmpty();
+    }
+    
+    [Fact(DisplayName = "Should update an order")]
+    public async Task ShouldUpdateAnOrder()
+    {
+        // Arrange
+        var newProduct =
+            new CreateProductCommand("test-find", null, 1500, 10, Guid.NewGuid());
+        var createResponse = await Client.PostAsJsonAsync("api/products", newProduct);
+
+        createResponse.EnsureSuccessStatusCode();
+
+        var product = await createResponse.DeserializeAsync<ProductResponse>();
+        product.ShouldNotBeNull();
+
+        var newCustomer = new CreateOrderCustomer("test-id", "test-name", "test-email", "test-phone", "test-address");
+        var newOrderItems = new List<CreateOrderItem>
+        {
+            new(newProduct.Name, 1, product.Price, product.Id)
+        };
+
+        var newOrder = new CreateOrderCommand("test-address", product.Price, newOrderItems, newCustomer);
+
+        var response =
+            await Client.PostAsJsonAsync("api/orders", newOrder);
+
+        response.EnsureSuccessStatusCode();
+
+        var orderId = await response.DeserializeAsync<Guid>();
+
+        var updateOrder = new UpdateOrderCommand(orderId, OrderStatus.Delivered);
+
+        // Act
+        var updateResponse = await Client.PutAsJsonAsync($"api/orders/{orderId}", updateOrder);
+
+        // Assert
+        updateResponse.EnsureSuccessStatusCode();
+        
+        var updatedOrder = await updateResponse.DeserializeAsync<OrderResponse>();
+        
+        updatedOrder.ShouldNotBeNull();
+        updatedOrder.Status.ShouldBe(OrderStatus.Delivered);
     }
 }
