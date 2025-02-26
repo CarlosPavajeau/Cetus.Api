@@ -2,6 +2,7 @@ using System.Globalization;
 using System.Security.Cryptography;
 using System.Text;
 using Cetus.Api.Requests;
+using Cetus.Application.ApproveOrder;
 using Cetus.Application.FindOrder;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
@@ -50,10 +51,22 @@ public class WompiController : ControllerBase
                 _logger.LogWarning("Order with ID {OrderId} not found", orderId);
                 return NotFound();
             }
-            
-            // TODO: Implement the logic to update the order status based on the Wompi transaction status
 
+            if (request.Data.Transaction.Status != "APPROVED")
+            {
+                return Ok();
+            }
+
+            var orderApproved = await _mediator.Send(new ApproveOrderCommand(orderId));
+            if (!orderApproved)
+            {
+                _logger.LogWarning("Failed to approve order with ID {OrderId}", orderId);
+                return BadRequest();
+            }
+                
+            _logger.LogInformation("Order with ID {OrderId} approved", orderId);
             return Ok();
+
         }
         catch (Exception e)
         {
