@@ -28,14 +28,18 @@ public class WompiController : ControllerBase
     {
         try
         {
+            _logger.LogInformation("Received Wompi request: {Request}", request);
+            
             var hasValidChecksum = ValidateChecksum(request);
             if (!hasValidChecksum)
             {
+                _logger.LogWarning("Invalid checksum received from Wompi request");
                 return BadRequest();
             }
 
             if (!Guid.TryParse(request.Data.Transaction.Reference, out var orderId))
             {
+                _logger.LogWarning("Invalid order ID received from Wompi request");
                 return BadRequest();
             }
             
@@ -43,6 +47,7 @@ public class WompiController : ControllerBase
             
             if (order == null)
             {
+                _logger.LogWarning("Order with ID {OrderId} not found", orderId);
                 return NotFound();
             }
             
@@ -62,6 +67,7 @@ public class WompiController : ControllerBase
         var eventSecret = _configuration["Wompi:EventSecret"];
         if (string.IsNullOrEmpty(eventSecret))
         {
+            _logger.LogWarning("Wompi event secret is not configured");
             return false;
         }
 
@@ -88,6 +94,9 @@ public class WompiController : ControllerBase
 
         var computedChecksum = ComputeChecksum(stringBuilder.ToString());
         var requestChecksum = request.Signature.Checksum;
+        
+        _logger.LogInformation("Computed checksum: {ComputedChecksum}", computedChecksum);
+        _logger.LogInformation("Request checksum: {RequestChecksum}", requestChecksum);
 
         return computedChecksum == requestChecksum;
     }
