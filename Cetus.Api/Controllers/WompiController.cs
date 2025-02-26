@@ -105,7 +105,8 @@ public class WompiController : ControllerBase
     {
         var bytes = Encoding.UTF8.GetBytes(data);
         var hash = SHA256.HashData(bytes);
-        var checksum = Convert.ToBase64String(hash);
+        
+        var checksum = BitConverter.ToString(hash).Replace("-", "").ToLowerInvariant();
         return checksum;
     }
 }
