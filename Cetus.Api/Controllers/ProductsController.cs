@@ -1,6 +1,7 @@
 using Cetus.Application.CreateProduct;
 using Cetus.Application.FindProduct;
 using Cetus.Application.SearchAllProducts;
+using Cetus.Application.UpdateProduct;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
 
@@ -18,8 +19,7 @@ public class ProductsController : ControllerBase
     }
 
     [HttpPost]
-    public async Task<IActionResult> CreateProduct(
-        [FromBody] CreateProductCommand command)
+    public async Task<IActionResult> CreateProduct([FromBody] CreateProductCommand command)
     {
         var created = await _mediator.Send(command);
 
@@ -42,5 +42,20 @@ public class ProductsController : ControllerBase
         return product is null
             ? NotFound()
             : Ok(product);
+    }
+
+    [HttpPut("{id:guid}")]
+    public async Task<IActionResult> UpdateProduct(Guid id, [FromBody] UpdateProductCommand command)
+    {
+        if (id != command.Id)
+        {
+            return BadRequest();
+        }
+
+        var updated = await _mediator.Send(command);
+
+        return updated is null
+            ? NotFound()
+            : Ok(updated);
     }
 }
