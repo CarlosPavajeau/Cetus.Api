@@ -13,17 +13,27 @@ namespace Cetus.Api.Controllers;
 public class OrdersController : ControllerBase
 {
     private readonly IMediator _mediator;
+    private readonly ILogger<OrdersController> _logger;
 
-    public OrdersController(IMediator mediator)
+    public OrdersController(IMediator mediator, ILogger<OrdersController> logger)
     {
         _mediator = mediator;
+        _logger = logger;
     }
 
     [HttpPost]
     public async Task<IActionResult> CreateOrder([FromBody] CreateOrderCommand command)
     {
-        var result = await _mediator.Send(command);
-        return Ok(result);
+        try
+        {
+            var result = await _mediator.Send(command);
+            return Ok(result);
+        }
+        catch (Exception e)
+        {
+            _logger.LogError(e, "An error occurred while creating an order.");
+            return BadRequest(e.Message);
+        }
     }
 
     [HttpGet("{id:guid}")]

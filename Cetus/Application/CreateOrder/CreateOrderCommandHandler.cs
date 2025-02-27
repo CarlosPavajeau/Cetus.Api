@@ -1,3 +1,4 @@
+using System.Collections.Immutable;
 using Cetus.Domain;
 using Cetus.Infrastructure.Persistence.EntityFramework;
 using MediatR;
@@ -34,6 +35,14 @@ public sealed class CreateOrderCommandHandler : IRequestHandler<CreateOrderComma
             await _context.Customers.AddAsync(newCustomer, cancellationToken);
         }
 
+        // Validate product stocks
+        var items = request.Items.ToImmutableList();
+        var isValid = await ValidateProductStocks(items, cancellationToken);
+        if (!isValid)
+        {
+            throw new Exception("One or more products are out of stock.");
+        }
+
         // Create order
         var order = new Order
         {
@@ -50,9 +59,39 @@ public sealed class CreateOrderCommandHandler : IRequestHandler<CreateOrderComma
             }).ToList()
         };
 
+        var transaction = await _context.Database.BeginTransactionAsync(cancellationToken);
+
         await _context.Orders.AddAsync(order, cancellationToken);
+        await UpdateProductStocks(items, cancellationToken);
+
         await _context.SaveChangesAsync(cancellationToken);
+        await transaction.CommitAsync(cancellationToken);
 
         return order.Id;
+    }
+
+    private async Task<bool> ValidateProductStocks(ImmutableList<CreateOrderItem> items,
+        CancellationToken cancellationToken)
+    {
+        var productIds = items.Select(i => i.ProductId).ToList();
+        var products = await _context.Products
+            .Where(p => productIds.Contains(p.Id))
+            .ToListAsync(cancellationToken);
+
+        return products.All(p => items.Any(i => i.ProductId == p.Id && p.Stock >= i.Quantity));
+    }
+
+    private async Task UpdateProductStocks(ImmutableList<CreateOrderItem> items, CancellationToken cancellationToken)
+    {
+        var productIds = items.Select(i => i.ProductId).ToList();
+        var products = await _context.Products
+            .Where(p => productIds.Contains(p.Id))
+            .ToListAsync(cancellationToken);
+
+        foreach (var product in products)
+        {
+            var item = items.First(i => i.ProductId == product.Id);
+            product.Stock -= item.Quantity;
+        }
     }
 }
