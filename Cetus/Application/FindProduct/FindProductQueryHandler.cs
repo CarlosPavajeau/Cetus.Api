@@ -22,6 +22,6 @@ public sealed class FindProductQueryHandler : IRequestHandler<FindProductQuery, 
         return product is null
             ? null
             : new ProductResponse(product.Id, product.Name, product.Description, product.Price, product.Stock,
-                product.CreatedAt, product.UpdatedAt);
+                product.Enabled, product.CreatedAt, product.UpdatedAt);
     }
 }

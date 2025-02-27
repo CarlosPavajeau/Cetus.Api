@@ -13,11 +13,10 @@ public class SearchAllProductsQueryHandler(CetusDbContext context)
         CancellationToken cancellationToken)
     {
         var products = await context.Products
-            .Where(p => p.Enabled && p.DeletedAt == null)
+            .Where(p => p.DeletedAt == null)
             .ToListAsync(cancellationToken);
 
         return products.Select(p =>
-            new ProductResponse(p.Id, p.Name, p.Description, p.Price, p.Stock,
-                p.CreatedAt, p.UpdatedAt));
+            new ProductResponse(p.Id, p.Name, p.Description, p.Price, p.Stock, p.Enabled, p.CreatedAt, p.UpdatedAt));
     }
 }

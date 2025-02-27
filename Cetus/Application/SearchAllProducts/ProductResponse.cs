@@ -6,5 +6,6 @@ public sealed record ProductResponse(
     string? Description,
     decimal Price,
     int Stock,
+    bool Enabled,
     DateTime CreatedAt,
     DateTime UpdatedAt);

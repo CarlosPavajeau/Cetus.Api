@@ -35,6 +35,7 @@ public sealed class UpdateProductCommandHandler : IRequestHandler<UpdateProductC
             product.Description,
             product.Price,
             product.Stock,
+            product.Enabled,
             product.CreatedAt,
             product.UpdatedAt);
     }
