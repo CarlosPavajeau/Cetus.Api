@@ -1,6 +1,7 @@
 using Cetus.Application.CreateProduct;
 using Cetus.Application.FindProduct;
 using Cetus.Application.SearchAllProducts;
+using Cetus.Application.SearchAllProductsForSale;
 using Cetus.Application.UpdateProduct;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
@@ -30,6 +31,14 @@ public class ProductsController : ControllerBase
     public async Task<IActionResult> GetProducts()
     {
         var products = await _mediator.Send(new SearchAllProductsQuery());
+
+        return Ok(products);
+    }
+    
+    [HttpGet("for-sale")]
+    public async Task<IActionResult> GetProductsForSale()
+    {
+        var products = await _mediator.Send(new SearchAllProductsForSaleQuery());
 
         return Ok(products);
     }

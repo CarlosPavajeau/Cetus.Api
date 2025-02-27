@@ -51,6 +51,27 @@ public class ProductsSpec(ApplicationTestCase factory)
 
         products.ShouldNotBeEmpty();
     }
+    
+    [Fact(DisplayName = "Should return all products for sale")]
+    public async Task ShouldReturnAllProductsForSale()
+    {
+        // Arrange
+        var newProduct =
+            new CreateProductCommand("test-create", null, 1500, 10, Guid.NewGuid());
+        var createResponse = await Client.PostAsJsonAsync("api/products", newProduct);
+
+        createResponse.EnsureSuccessStatusCode();
+
+        // Act
+        var response = await Client.GetAsync("api/products/for-sale");
+
+        // Assert
+        response.EnsureSuccessStatusCode();
+
+        var products = await response.DeserializeAsync<IEnumerable<ProductResponse>>();
+
+        products.ShouldNotBeEmpty();
+    }
 
     [Fact(DisplayName = "Should return a product by id")]
     public async Task ShouldReturnAProductById()
