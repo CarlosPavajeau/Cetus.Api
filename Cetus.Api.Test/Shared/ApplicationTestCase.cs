@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.AspNetCore.TestHost;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 
@@ -25,6 +26,10 @@ public class ApplicationTestCase : WebApplicationFactory<Program>
             {
                 options.UseInMemoryDatabase("test");
                 options.UseInternalServiceProvider(serviceProvider);
+                options.ConfigureWarnings(warnings =>
+                {
+                    warnings.Ignore(InMemoryEventId.TransactionIgnoredWarning);
+                });
             });
         });
 

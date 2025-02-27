@@ -1,3 +1,4 @@
+using System.Net;
 using System.Net.Http.Json;
 using Cetus.Api.Test.Shared;
 using Cetus.Application.CreateOrder;
@@ -43,6 +44,35 @@ public class OrdersSpec(ApplicationTestCase factory) : ApplicationContextTestCas
         var order = await response.DeserializeAsync<Guid>();
 
         order.ShouldNotBe(Guid.Empty);
+    }
+
+    [Fact(DisplayName = "Should not create a new order with invalid product stock")]
+    public async Task ShouldNotCreateANewOrderWithInvalidProduct()
+    {
+        // Arrange
+        var newProduct =
+            new CreateProductCommand("test-find", null, 1500, 0, Guid.NewGuid());
+        var createResponse = await Client.PostAsJsonAsync("api/products", newProduct);
+
+        createResponse.EnsureSuccessStatusCode();
+
+        var product = await createResponse.DeserializeAsync<ProductResponse>();
+        product.ShouldNotBeNull();
+
+        var newCustomer = new CreateOrderCustomer("test-id", "test-name", "test-email", "test-phone", "test-address");
+        var newOrderItems = new List<CreateOrderItem>
+        {
+            new(newProduct.Name, 1, product.Price, product.Id)
+        };
+
+        var newOrder = new CreateOrderCommand("test-address", product.Price, newOrderItems, newCustomer);
+
+        // Act
+        var response =
+            await Client.PostAsJsonAsync("api/orders", newOrder);
+
+        // Assert
+        response.StatusCode.ShouldBe(HttpStatusCode.BadRequest);
     }
     
     [Fact(DisplayName = "Should get an order")]
