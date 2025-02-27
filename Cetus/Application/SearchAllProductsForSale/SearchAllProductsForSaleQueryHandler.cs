@@ -18,7 +18,7 @@ public class
         CancellationToken cancellationToken)
     {
         var products = await _context.Products
-            .Where(p => p.Enabled && p.DeletedAt == null)
+            .Where(p => p.DeletedAt == null && p.Enabled && p.Stock > 0)
             .ToListAsync(cancellationToken);
 
         return products.Select(p => new ProductResponse(p.Id, p.Name, p.Description, p.Price, p.Stock));
