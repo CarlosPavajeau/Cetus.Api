@@ -20,7 +20,8 @@ public class DeleteProductCommandHandler : IRequestHandler<DeleteProductCommand,
             return false;
         }
 
-        _context.Products.Remove(product);
+        product.DeletedAt = DateTime.UtcNow;
+
         await _context.SaveChangesAsync(cancellationToken);
 
         return true;
