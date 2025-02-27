@@ -1,4 +1,5 @@
 using Cetus.Application.CreateProduct;
+using Cetus.Application.DeleteProduct;
 using Cetus.Application.FindProduct;
 using Cetus.Application.SearchAllProducts;
 using Cetus.Application.SearchAllProductsForSale;
@@ -66,5 +67,15 @@ public class ProductsController : ControllerBase
         return updated is null
             ? NotFound()
             : Ok(updated);
+    }
+    
+    [HttpDelete("{id:guid}")]
+    public async Task<IActionResult> DeleteProduct(Guid id)
+    {
+        var deleted = await _mediator.Send(new DeleteProductCommand(id));
+
+        return deleted
+            ? Ok()
+            : NotFound();
     }
 }

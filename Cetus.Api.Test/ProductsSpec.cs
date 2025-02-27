@@ -139,4 +139,76 @@ public class ProductsSpec(ApplicationTestCase factory)
         updated.Price.ShouldBe(2000);
         updated.Stock.ShouldBe(20);
     }
+    
+    [Fact(DisplayName = "Should return not found when updating a product that not exists")]
+    public async Task ShouldReturnNotFoundWhenUpdatingAProductThatNotExists()
+    {
+        // Arrange
+        var id = Guid.NewGuid();
+        var updateProduct =
+            new UpdateProductCommand(id, "test-update", "test-update", 2000, 20, true);
+
+        // Act
+        var response = await Client.PutAsJsonAsync($"api/products/{id}", updateProduct);
+
+        // Assert
+        response.StatusCode.ShouldBe(HttpStatusCode.NotFound);
+    }
+    
+    [Fact(DisplayName = "Should return bad request when updating a product with different id")]
+    public async Task ShouldReturnBadRequestWhenUpdatingAProductWithDifferentId()
+    {
+        // Arrange
+        var newProduct =
+            new CreateProductCommand("test-update", null, 1500, 10, Guid.NewGuid());
+        var createResponse = await Client.PostAsJsonAsync("api/products", newProduct);
+
+        createResponse.EnsureSuccessStatusCode();
+
+        var product = await createResponse.DeserializeAsync<ProductResponse>();
+        product.ShouldNotBeNull();
+
+        var updateProduct =
+            new UpdateProductCommand(Guid.NewGuid(), "test-update", "test-update", 2000, 20, true);
+
+        // Act
+        var response = await Client.PutAsJsonAsync($"api/products/{product.Id}", updateProduct);
+
+        // Assert
+        response.StatusCode.ShouldBe(HttpStatusCode.BadRequest);
+    }
+    
+    [Fact(DisplayName = "Should delete a product")]
+    public async Task ShouldDeleteAProduct()
+    {
+        // Arrange
+        var newProduct =
+            new CreateProductCommand("test-delete", null, 1500, 10, Guid.NewGuid());
+        var createResponse = await Client.PostAsJsonAsync("api/products", newProduct);
+
+        createResponse.EnsureSuccessStatusCode();
+
+        var product = await createResponse.DeserializeAsync<ProductResponse>();
+        product.ShouldNotBeNull();
+
+        // Act
+        var response = await Client.DeleteAsync($"api/products/{product.Id}");
+
+        // Assert
+        response.EnsureSuccessStatusCode();
+        response.StatusCode.ShouldBe(HttpStatusCode.OK);
+    }
+    
+    [Fact(DisplayName = "Should return not found when deleting a product that not exists")]
+    public async Task ShouldReturnNotFoundWhenDeletingAProductThatNotExists()
+    {
+        // Arrange
+        var id = Guid.NewGuid();
+
+        // Act
+        var response = await Client.DeleteAsync($"api/products/{id}");
+
+        // Assert
+        response.StatusCode.ShouldBe(HttpStatusCode.NotFound);
+    }
 }
