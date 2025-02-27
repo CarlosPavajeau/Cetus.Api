@@ -25,7 +25,7 @@ public sealed class UpdateProductCommandHandler : IRequestHandler<UpdateProductC
         product.Description = request.Description;
         product.Price = request.Price;
         product.Stock = request.Stock;
-        product.Enabled = request.Enable;
+        product.Enabled = request.Enabled;
 
         await _dbContext.SaveChangesAsync(cancellationToken);
 

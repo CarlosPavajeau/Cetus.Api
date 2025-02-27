@@ -9,4 +9,4 @@ public sealed record UpdateProductCommand(
     string? Description,
     decimal Price,
     int Stock,
-    bool Enable) : IRequest<ProductResponse?>;
+    bool Enabled) : IRequest<ProductResponse?>;
