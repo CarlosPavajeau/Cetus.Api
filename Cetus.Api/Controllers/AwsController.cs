@@ -23,12 +23,10 @@ public class AwsController : ControllerBase
     [HttpPost("s3/presigned-url")]
     public async Task<IActionResult> GetPreSignedUrl([FromBody] CreateSignedUrlRequest request)
     {
-        var identityPoolId = _configuration["AWS:IdentityPoolId"];
         var region = _configuration["AWS:Region"];
         var bucketName = _configuration["AWS:BucketName"];
 
-        if (string.IsNullOrWhiteSpace(identityPoolId) || string.IsNullOrWhiteSpace(region) ||
-            string.IsNullOrWhiteSpace(bucketName))
+        if (string.IsNullOrWhiteSpace(region) || string.IsNullOrWhiteSpace(bucketName))
         {
             _logger.LogError("AWS configuration is missing");
             return BadRequest("AWS configuration is missing");
