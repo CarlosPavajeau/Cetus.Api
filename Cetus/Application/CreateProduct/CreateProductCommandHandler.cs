@@ -1,4 +1,4 @@
-using Cetus.Application.SearchAllProductsForSale;
+using Cetus.Application.SearchAllProducts;
 using Cetus.Domain;
 using Cetus.Infrastructure.Persistence.EntityFramework;
 using MediatR;
@@ -19,6 +19,7 @@ public sealed class CreateProductCommandHandler(CetusDbContext context)
             Price = request.Price,
             Stock = request.Stock,
             Enabled = true,
+            ImageUrl = request.ImageUrl,
             CategoryId = request.CategoryId
         };
 
@@ -30,6 +31,9 @@ public sealed class CreateProductCommandHandler(CetusDbContext context)
             product.Name,
             product.Description,
             product.Price,
-            product.Stock);
+            product.Stock,
+            product.Enabled,
+            product.CreatedAt,
+            product.UpdatedAt);
     }
 }

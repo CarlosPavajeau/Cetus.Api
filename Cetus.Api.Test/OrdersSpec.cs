@@ -18,7 +18,7 @@ public class OrdersSpec(ApplicationTestCase factory) : ApplicationContextTestCas
     {
         // Arrange 
         var newProduct =
-            new CreateProductCommand("test-find", null, 1500, 10, Guid.NewGuid());
+            new CreateProductCommand("test-find", null, 1500, 10, "image-test", Guid.NewGuid());
         var createResponse = await Client.PostAsJsonAsync("api/products", newProduct);
 
         createResponse.EnsureSuccessStatusCode();
@@ -51,7 +51,7 @@ public class OrdersSpec(ApplicationTestCase factory) : ApplicationContextTestCas
     {
         // Arrange
         var newProduct =
-            new CreateProductCommand("test-find", null, 1500, 0, Guid.NewGuid());
+            new CreateProductCommand("test-find", null, 1500, 0, "image-test", Guid.NewGuid());
         var createResponse = await Client.PostAsJsonAsync("api/products", newProduct);
 
         createResponse.EnsureSuccessStatusCode();
@@ -80,7 +80,7 @@ public class OrdersSpec(ApplicationTestCase factory) : ApplicationContextTestCas
     {
         // Arrange
         var newProduct =
-            new CreateProductCommand("test-find", null, 1500, 10, Guid.NewGuid());
+            new CreateProductCommand("test-find", null, 1500, 10, "image-test", Guid.NewGuid());
         var createResponse = await Client.PostAsJsonAsync("api/products", newProduct);
 
         createResponse.EnsureSuccessStatusCode();
@@ -121,7 +121,7 @@ public class OrdersSpec(ApplicationTestCase factory) : ApplicationContextTestCas
     {
         // Arrange
         var newProduct =
-            new CreateProductCommand("test-find", null, 1500, 10, Guid.NewGuid());
+            new CreateProductCommand("test-find", null, 1500, 10, "image-test", Guid.NewGuid());
         var createResponse = await Client.PostAsJsonAsync("api/products", newProduct);
 
         createResponse.EnsureSuccessStatusCode();
@@ -160,7 +160,7 @@ public class OrdersSpec(ApplicationTestCase factory) : ApplicationContextTestCas
     {
         // Arrange
         var newProduct =
-            new CreateProductCommand("test-find", null, 1500, 10, Guid.NewGuid());
+            new CreateProductCommand("test-find", null, 1500, 10, "image-test", Guid.NewGuid());
         var createResponse = await Client.PostAsJsonAsync("api/products", newProduct);
 
         createResponse.EnsureSuccessStatusCode();

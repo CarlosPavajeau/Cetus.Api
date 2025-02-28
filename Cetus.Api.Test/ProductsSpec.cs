@@ -17,7 +17,7 @@ public class ProductsSpec(ApplicationTestCase factory)
     {
         // Arrange
         var newProduct =
-            new CreateProductCommand("Test", null, 1500, 10, Guid.NewGuid());
+            new CreateProductCommand("Test", null, 1500, 10, "image-test", Guid.NewGuid());
 
         // Act
         var response = await Client.PostAsJsonAsync("api/products", newProduct);
@@ -36,7 +36,7 @@ public class ProductsSpec(ApplicationTestCase factory)
     {
         // Arrange
         var newProduct =
-            new CreateProductCommand("test-create", null, 1500, 10, Guid.NewGuid());
+            new CreateProductCommand("test-create", null, 1500, 10, "image-test", Guid.NewGuid());
         var createResponse = await Client.PostAsJsonAsync("api/products", newProduct);
 
         createResponse.EnsureSuccessStatusCode();
@@ -51,13 +51,13 @@ public class ProductsSpec(ApplicationTestCase factory)
 
         products.ShouldNotBeEmpty();
     }
-    
+
     [Fact(DisplayName = "Should return all products for sale")]
     public async Task ShouldReturnAllProductsForSale()
     {
         // Arrange
         var newProduct =
-            new CreateProductCommand("test-create", null, 1500, 10, Guid.NewGuid());
+            new CreateProductCommand("test-create", null, 1500, 10, "image-test", Guid.NewGuid());
         var createResponse = await Client.PostAsJsonAsync("api/products", newProduct);
 
         createResponse.EnsureSuccessStatusCode();
@@ -78,7 +78,7 @@ public class ProductsSpec(ApplicationTestCase factory)
     {
         // Arrange
         var newProduct =
-            new CreateProductCommand("test-find", null, 1500, 10, Guid.NewGuid());
+            new CreateProductCommand("test-find", null, 1500, 10, "image-test", Guid.NewGuid());
         var createResponse = await Client.PostAsJsonAsync("api/products", newProduct);
 
         createResponse.EnsureSuccessStatusCode();
@@ -97,7 +97,7 @@ public class ProductsSpec(ApplicationTestCase factory)
         productResponse.ShouldNotBeNull();
         productResponse.Id.ShouldBe(product.Id);
     }
-    
+
     [Fact(DisplayName = "Should return not found when product not exists")]
     public async Task ShouldReturnNotFoundWhenProductNotExists()
     {
@@ -110,13 +110,13 @@ public class ProductsSpec(ApplicationTestCase factory)
         // Assert
         response.StatusCode.ShouldBe(HttpStatusCode.NotFound);
     }
-    
+
     [Fact(DisplayName = "Should update a product")]
     public async Task ShouldUpdateAProduct()
     {
         // Arrange
         var newProduct =
-            new CreateProductCommand("test-update", null, 1500, 10, Guid.NewGuid());
+            new CreateProductCommand("test-update", null, 1500, 10, "image-test", Guid.NewGuid());
         var createResponse = await Client.PostAsJsonAsync("api/products", newProduct);
 
         createResponse.EnsureSuccessStatusCode();
@@ -139,7 +139,7 @@ public class ProductsSpec(ApplicationTestCase factory)
         updated.Price.ShouldBe(2000);
         updated.Stock.ShouldBe(20);
     }
-    
+
     [Fact(DisplayName = "Should return not found when updating a product that not exists")]
     public async Task ShouldReturnNotFoundWhenUpdatingAProductThatNotExists()
     {
@@ -154,13 +154,13 @@ public class ProductsSpec(ApplicationTestCase factory)
         // Assert
         response.StatusCode.ShouldBe(HttpStatusCode.NotFound);
     }
-    
+
     [Fact(DisplayName = "Should return bad request when updating a product with different id")]
     public async Task ShouldReturnBadRequestWhenUpdatingAProductWithDifferentId()
     {
         // Arrange
         var newProduct =
-            new CreateProductCommand("test-update", null, 1500, 10, Guid.NewGuid());
+            new CreateProductCommand("test-update", null, 1500, 10, "image-test", Guid.NewGuid());
         var createResponse = await Client.PostAsJsonAsync("api/products", newProduct);
 
         createResponse.EnsureSuccessStatusCode();
@@ -177,13 +177,13 @@ public class ProductsSpec(ApplicationTestCase factory)
         // Assert
         response.StatusCode.ShouldBe(HttpStatusCode.BadRequest);
     }
-    
+
     [Fact(DisplayName = "Should delete a product")]
     public async Task ShouldDeleteAProduct()
     {
         // Arrange
         var newProduct =
-            new CreateProductCommand("test-delete", null, 1500, 10, Guid.NewGuid());
+            new CreateProductCommand("test-delete", null, 1500, 10, "image-test", Guid.NewGuid());
         var createResponse = await Client.PostAsJsonAsync("api/products", newProduct);
 
         createResponse.EnsureSuccessStatusCode();
@@ -198,7 +198,7 @@ public class ProductsSpec(ApplicationTestCase factory)
         response.EnsureSuccessStatusCode();
         response.StatusCode.ShouldBe(HttpStatusCode.OK);
     }
-    
+
     [Fact(DisplayName = "Should return not found when deleting a product that not exists")]
     public async Task ShouldReturnNotFoundWhenDeletingAProductThatNotExists()
     {

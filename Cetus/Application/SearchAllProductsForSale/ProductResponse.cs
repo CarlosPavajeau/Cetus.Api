@@ -5,4 +5,5 @@ public sealed record ProductResponse(
     string Name,
     string? Description,
     decimal Price,
-    int Stock);
+    int Stock,
+    string? ImageUrl);
