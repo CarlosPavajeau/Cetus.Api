@@ -1,3 +1,4 @@
+using Cetus.Application.SearchAllProductsForSale;
 using Cetus.Domain;
 using Cetus.Infrastructure.Persistence.EntityFramework;
 using MediatR;
@@ -5,9 +6,9 @@ using MediatR;
 namespace Cetus.Application.CreateProduct;
 
 public sealed class CreateProductCommandHandler(CetusDbContext context)
-    : IRequestHandler<CreateProductCommand, Product>
+    : IRequestHandler<CreateProductCommand, ProductResponse>
 {
-    public async Task<Product> Handle(CreateProductCommand request,
+    public async Task<ProductResponse> Handle(CreateProductCommand request,
         CancellationToken cancellationToken)
     {
         var product = new Product
@@ -24,6 +25,11 @@ public sealed class CreateProductCommandHandler(CetusDbContext context)
         await context.Products.AddAsync(product, cancellationToken);
         await context.SaveChangesAsync(cancellationToken);
 
-        return product;
+        return new ProductResponse(
+            product.Id,
+            product.Name,
+            product.Description,
+            product.Price,
+            product.Stock);
     }
 }
