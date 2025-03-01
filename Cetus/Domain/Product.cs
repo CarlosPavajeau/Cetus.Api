@@ -14,8 +14,7 @@ public class Product
     public int Stock { get; set; }
     public bool Enabled { get; set; }
 
-    [MaxLength(512)]
-    public string? ImageUrl { get; set; }
+    [MaxLength(512)] public string? ImageUrl { get; set; }
 
     [Required] public Guid CategoryId { get; set; }
     public Category? Category { get; set; }
