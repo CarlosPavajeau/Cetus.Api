@@ -53,6 +53,7 @@ public sealed class CreateOrderCommandHandler : IRequestHandler<CreateOrderComma
             Items = request.Items.Select(i => new OrderItem
             {
                 ProductName = i.ProductName,
+                ImageUrl = i.ImageUrl,
                 Quantity = i.Quantity,
                 Price = i.Price,
                 ProductId = i.ProductId

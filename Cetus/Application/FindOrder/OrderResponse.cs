@@ -4,7 +4,7 @@ namespace Cetus.Application.FindOrder;
 
 public sealed record OrderCustomer(string Name, string Email, string Phone);
 
-public sealed record OrderItem(Guid Id, string ProductName, int Quantity, decimal Price);
+public sealed record OrderItem(Guid Id, string ProductName, string? ImageUrl, int Quantity, decimal Price);
 
 public sealed record OrderResponse(
     Guid Id,
@@ -23,7 +23,8 @@ public sealed record OrderResponse(
             : new OrderCustomer(order.Customer.Name, order.Customer.Email, order.Customer.Phone);
 
         var orderItems =
-            order.Items.Select(item => new OrderItem(item.Id, item.ProductName, item.Quantity, item.Price));
+            order.Items.Select(item =>
+                new OrderItem(item.Id, item.ProductName, item.ImageUrl, item.Quantity, item.Price));
 
         return new OrderResponse(order.Id, order.Status, order.Address, order.Total, orderItems, orderCustomer,
             order.CreatedAt);

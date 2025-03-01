@@ -29,7 +29,7 @@ public class OrdersSpec(ApplicationTestCase factory) : ApplicationContextTestCas
         var newCustomer = new CreateOrderCustomer("test-id", "test-name", "test-email", "test-phone", "test-address");
         var newOrderItems = new List<CreateOrderItem>
         {
-            new(newProduct.Name, 1, product.Price, product.Id)
+            new(newProduct.Name, newProduct.ImageUrl, 1, product.Price, product.Id)
         };
 
         var newOrder = new CreateOrderCommand("test-address", product.Price, newOrderItems, newCustomer);
@@ -62,7 +62,7 @@ public class OrdersSpec(ApplicationTestCase factory) : ApplicationContextTestCas
         var newCustomer = new CreateOrderCustomer("test-id", "test-name", "test-email", "test-phone", "test-address");
         var newOrderItems = new List<CreateOrderItem>
         {
-            new(newProduct.Name, 1, product.Price, product.Id)
+            new(newProduct.Name, newProduct.ImageUrl, 1, product.Price, product.Id)
         };
 
         var newOrder = new CreateOrderCommand("test-address", product.Price, newOrderItems, newCustomer);
@@ -91,7 +91,7 @@ public class OrdersSpec(ApplicationTestCase factory) : ApplicationContextTestCas
         var newCustomer = new CreateOrderCustomer("test-id", "test-name", "test-email", "test-phone", "test-address");
         var newOrderItems = new List<CreateOrderItem>
         {
-            new(newProduct.Name, 1, product.Price, product.Id)
+            new(newProduct.Name, newProduct.ImageUrl, 1, product.Price, product.Id)
         };
 
         var newOrder = new CreateOrderCommand("test-address", product.Price, newOrderItems, newCustomer);
@@ -132,7 +132,7 @@ public class OrdersSpec(ApplicationTestCase factory) : ApplicationContextTestCas
         var newCustomer = new CreateOrderCustomer("test-id", "test-name", "test-email", "test-phone", "test-address");
         var newOrderItems = new List<CreateOrderItem>
         {
-            new(newProduct.Name, 1, product.Price, product.Id)
+            new(newProduct.Name, newProduct.ImageUrl, 1, product.Price, product.Id)
         };
 
         var newOrder = new CreateOrderCommand("test-address", product.Price, newOrderItems, newCustomer);
@@ -171,7 +171,7 @@ public class OrdersSpec(ApplicationTestCase factory) : ApplicationContextTestCas
         var newCustomer = new CreateOrderCustomer("test-id", "test-name", "test-email", "test-phone", "test-address");
         var newOrderItems = new List<CreateOrderItem>
         {
-            new(newProduct.Name, 1, product.Price, product.Id)
+            new(newProduct.Name, newProduct.ImageUrl, 1, product.Price, product.Id)
         };
 
         var newOrder = new CreateOrderCommand("test-address", product.Price, newOrderItems, newCustomer);
