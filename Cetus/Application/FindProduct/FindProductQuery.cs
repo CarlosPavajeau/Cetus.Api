@@ -1,4 +1,4 @@
-using Cetus.Application.SearchAllProducts;
+using Cetus.Application.SearchAllProductsForSale;
 using MediatR;
 
 namespace Cetus.Application.FindProduct;

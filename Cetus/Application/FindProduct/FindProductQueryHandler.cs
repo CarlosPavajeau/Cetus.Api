@@ -1,4 +1,4 @@
-using Cetus.Application.SearchAllProducts;
+using Cetus.Application.SearchAllProductsForSale;
 using Cetus.Infrastructure.Persistence.EntityFramework;
 using MediatR;
 
@@ -19,9 +19,14 @@ public sealed class FindProductQueryHandler : IRequestHandler<FindProductQuery, 
         var product = await _context.Products.FindAsync([request.Id],
             cancellationToken: cancellationToken);
 
-        return product is null
-            ? null
-            : new ProductResponse(product.Id, product.Name, product.Description, product.Price, product.Stock,
-                product.Enabled, product.CreatedAt, product.UpdatedAt);
+        if (product is null) return null;
+        
+        return new ProductResponse(
+            product.Id,
+            product.Name,
+            product.Description,
+            product.Price,
+            product.Stock,
+            product.ImageUrl);
     }
 }
