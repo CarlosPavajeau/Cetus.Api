@@ -1,4 +1,5 @@
 using Cetus.Infrastructure.Persistence.EntityFramework;
+using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.AspNetCore.TestHost;
@@ -31,6 +32,9 @@ public class ApplicationTestCase : WebApplicationFactory<Program>
                     warnings.Ignore(InMemoryEventId.TransactionIgnoredWarning);
                 });
             });
+            
+            services.AddAuthentication("Test")
+                .AddScheme<AuthenticationSchemeOptions, TestAuthHandler>("Test", _ => { });
         });
 
         base.ConfigureWebHost(builder);

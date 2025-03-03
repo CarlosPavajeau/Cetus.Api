@@ -4,10 +4,12 @@ using Cetus.Application.SearchAllOrders;
 using Cetus.Application.UpdateOrder;
 using Cetus.Domain;
 using MediatR;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Cetus.Api.Controllers;
 
+[Authorize]
 [ApiController]
 [Route("api/[controller]")]
 public class OrdersController : ControllerBase
@@ -22,6 +24,7 @@ public class OrdersController : ControllerBase
     }
 
     [HttpPost]
+    [AllowAnonymous]
     public async Task<IActionResult> CreateOrder([FromBody] CreateOrderCommand command)
     {
         try
@@ -37,6 +40,7 @@ public class OrdersController : ControllerBase
     }
 
     [HttpGet("{id:guid}")]
+    [AllowAnonymous]
     public async Task<IActionResult> GetOrder([FromRoute] Guid id)
     {
         var result = await _mediator.Send(new FindOrderQuery(id));

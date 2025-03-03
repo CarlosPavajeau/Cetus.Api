@@ -5,10 +5,12 @@ using Cetus.Api.Requests;
 using Cetus.Application.ApproveOrder;
 using Cetus.Application.FindOrder;
 using MediatR;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Cetus.Api.Controllers;
 
+[Authorize]
 [ApiController]
 [Route("api/[controller]")]
 public class WompiController : ControllerBase
@@ -25,6 +27,7 @@ public class WompiController : ControllerBase
     }
 
     [HttpPost]
+    [AllowAnonymous]
     public async Task<IActionResult> Post([FromBody] WompiRequest request)
     {
         try

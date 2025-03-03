@@ -5,10 +5,12 @@ using Cetus.Application.SearchAllProducts;
 using Cetus.Application.SearchAllProductsForSale;
 using Cetus.Application.UpdateProduct;
 using MediatR;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Cetus.Api.Controllers;
 
+[Authorize]
 [ApiController]
 [Route("api/[controller]")]
 public class ProductsController : ControllerBase
@@ -37,6 +39,7 @@ public class ProductsController : ControllerBase
     }
     
     [HttpGet("for-sale")]
+    [AllowAnonymous]
     public async Task<IActionResult> GetProductsForSale()
     {
         var products = await _mediator.Send(new SearchAllProductsForSaleQuery());
@@ -45,6 +48,7 @@ public class ProductsController : ControllerBase
     }
 
     [HttpGet("{id:guid}")]
+    [AllowAnonymous]
     public async Task<IActionResult> GetProduct(Guid id)
     {
         var product = await _mediator.Send(new FindProductQuery(id));

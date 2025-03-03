@@ -1,10 +1,12 @@
 using Cetus.Application.CreateCategory;
 using Cetus.Application.SearchAllCategories;
 using MediatR;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Cetus.Api.Controllers;
 
+[Authorize]
 [ApiController]
 [Route("api/[controller]")]
 public class CategoriesController : ControllerBase
@@ -28,6 +30,7 @@ public class CategoriesController : ControllerBase
     }
 
     [HttpGet]
+    [AllowAnonymous]
     public async Task<IActionResult> GetCategories()
     {
         var categories = await _mediator.Send(new SearchAllCategoriesQuery());

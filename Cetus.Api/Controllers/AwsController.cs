@@ -3,10 +3,12 @@ using Amazon.Runtime;
 using Amazon.S3;
 using Amazon.S3.Model;
 using Cetus.Api.Requests.Aws;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Cetus.Api.Controllers;
 
+[Authorize]
 [ApiController]
 [Route("api/[controller]")]
 public class AwsController : ControllerBase
