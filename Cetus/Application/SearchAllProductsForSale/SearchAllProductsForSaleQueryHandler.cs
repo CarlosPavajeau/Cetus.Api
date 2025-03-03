@@ -21,6 +21,7 @@ public class
             .Where(p => p.DeletedAt == null && p.Enabled && p.Stock > 0)
             .ToListAsync(cancellationToken);
 
-        return products.Select(p => new ProductResponse(p.Id, p.Name, p.Description, p.Price, p.Stock, p.ImageUrl));
+        return products.Select(p =>
+            new ProductResponse(p.Id, p.Name, p.Description, p.Price, p.Stock, p.ImageUrl, p.CategoryId));
     }
 }

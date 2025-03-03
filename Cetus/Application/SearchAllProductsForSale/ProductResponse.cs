@@ -6,4 +6,5 @@ public sealed record ProductResponse(
     string? Description,
     decimal Price,
     int Stock,
-    string? ImageUrl);
+    string? ImageUrl,
+    Guid CategoryId);

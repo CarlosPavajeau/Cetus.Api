@@ -20,13 +20,14 @@ public sealed class FindProductQueryHandler : IRequestHandler<FindProductQuery, 
             cancellationToken: cancellationToken);
 
         if (product is null) return null;
-        
+
         return new ProductResponse(
             product.Id,
             product.Name,
             product.Description,
             product.Price,
             product.Stock,
-            product.ImageUrl);
+            product.ImageUrl,
+            product.CategoryId);
     }
 }
