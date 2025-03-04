@@ -17,7 +17,9 @@ public class SearchAllOrdersQueryHandler : IRequestHandler<SearchAllOrdersQuery,
         CancellationToken cancellationToken)
     {
         var orders = await _context.Orders
-            .OrderByDescending(o => o.CreatedAt)
+            .AsNoTracking()
+            .OrderByDescending(order => order.Status)
+            .ThenBy(order => order.CreatedAt)
             .ToListAsync(cancellationToken);
 
         return orders.Select(order =>

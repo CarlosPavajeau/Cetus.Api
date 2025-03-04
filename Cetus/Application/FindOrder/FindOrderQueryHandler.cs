@@ -17,6 +17,7 @@ public class FindOrderQueryHandler : IRequestHandler<FindOrderQuery, OrderRespon
     {
         var order = await _context
             .Orders
+            .AsNoTracking()
             .Include(o => o.Items)
             .Include(o => o.Customer)
             .FirstOrDefaultAsync(x => x.Id == request.Id, cancellationToken);

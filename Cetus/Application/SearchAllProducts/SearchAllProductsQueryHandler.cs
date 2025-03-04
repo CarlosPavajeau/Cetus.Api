@@ -13,6 +13,7 @@ public class SearchAllProductsQueryHandler(CetusDbContext context)
         CancellationToken cancellationToken)
     {
         var products = await context.Products
+            .AsNoTracking()
             .Where(p => p.DeletedAt == null)
             .ToListAsync(cancellationToken);
 

@@ -18,6 +18,7 @@ public class
         CancellationToken cancellationToken)
     {
         var products = await _context.Products
+            .AsNoTracking()
             .Where(p => p.DeletedAt == null && p.Enabled && p.Stock > 0)
             .ToListAsync(cancellationToken);
 
