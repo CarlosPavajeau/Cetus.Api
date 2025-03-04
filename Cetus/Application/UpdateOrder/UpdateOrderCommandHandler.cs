@@ -28,6 +28,7 @@ public sealed class UpdateOrderCommandHandler : IRequestHandler<UpdateOrderComma
         }
 
         order.Status = request.Status;
+        order.TransactionId = request.TransactionId;
 
         await _context.SaveChangesAsync(cancellationToken);
 

@@ -13,6 +13,7 @@ public sealed record OrderResponse(
     decimal Total,
     IEnumerable<OrderItem> Items,
     OrderCustomer Customer,
+    string? TransactionId,
     DateTime CreatedAt)
 
 {
@@ -27,6 +28,6 @@ public sealed record OrderResponse(
                 new OrderItem(item.Id, item.ProductName, item.ImageUrl, item.Quantity, item.Price));
 
         return new OrderResponse(order.Id, order.Status, order.Address, order.Total, orderItems, orderCustomer,
-            order.CreatedAt);
+            order.TransactionId, order.CreatedAt);
     }
 }

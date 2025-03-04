@@ -4,4 +4,4 @@ using MediatR;
 
 namespace Cetus.Application.UpdateOrder;
 
-public sealed record UpdateOrderCommand(Guid Id, OrderStatus Status) : IRequest<OrderResponse?>;
+public sealed record UpdateOrderCommand(Guid Id, OrderStatus Status, string TransactionId) : IRequest<OrderResponse?>;

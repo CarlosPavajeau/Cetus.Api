@@ -4,6 +4,7 @@ using System.Text;
 using Cetus.Api.Requests;
 using Cetus.Application.ApproveOrder;
 using Cetus.Application.FindOrder;
+using Cetus.Application.UpdateOrder;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -48,7 +49,6 @@ public class WompiController : ControllerBase
             }
             
             var order = await _mediator.Send(new FindOrderQuery(orderId));
-            
             if (order == null)
             {
                 _logger.LogWarning("Order with ID {OrderId} not found", orderId);
@@ -57,10 +57,12 @@ public class WompiController : ControllerBase
 
             if (request.Data.Transaction.Status != "APPROVED")
             {
+                await _mediator.Send(new UpdateOrderCommand(orderId, order.Status, request.Data.Transaction.Id));
+                
                 return Ok();
             }
 
-            var orderApproved = await _mediator.Send(new ApproveOrderCommand(orderId));
+            var orderApproved = await _mediator.Send(new ApproveOrderCommand(orderId, request.Data.Transaction.Id));
             if (!orderApproved)
             {
                 _logger.LogWarning("Failed to approve order with ID {OrderId}", orderId);

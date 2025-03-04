@@ -183,7 +183,7 @@ public class OrdersSpec(ApplicationTestCase factory) : ApplicationContextTestCas
 
         var orderId = await response.DeserializeAsync<Guid>();
 
-        var updateOrder = new UpdateOrderCommand(orderId, OrderStatus.Delivered);
+        var updateOrder = new UpdateOrderCommand(orderId, OrderStatus.Delivered, "test-transaction");
 
         // Act
         var updateResponse = await Client.PutAsJsonAsync($"api/orders/{orderId}", updateOrder);

@@ -22,6 +22,7 @@ public sealed class ApproveOrderCommandHandler : IRequestHandler<ApproveOrderCom
         }
 
         order.Status = OrderStatus.Paid;
+        order.TransactionId = request.TransactionId;
 
         await _context.SaveChangesAsync(cancellationToken);
 

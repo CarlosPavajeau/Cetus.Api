@@ -21,6 +21,8 @@ public class Order
     public string CustomerId { get; set; } = string.Empty;
 
     public Customer? Customer { get; set; }
+    
+    [MaxLength(256)] public string? TransactionId { get; set; }
 
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
     public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
