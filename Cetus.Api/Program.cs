@@ -1,5 +1,6 @@
 using Cetus;
 using Cetus.Api.Configuration;
+using Cetus.Api.Realtime;
 using Serilog;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -11,6 +12,7 @@ builder.ConfigureAuthentication();
 
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
+builder.Services.AddSignalR();
 
 builder.Services.AddMediatR(configuration =>
 {
@@ -39,6 +41,8 @@ app.UseHttpsRedirection();
 app.UseCors(Cors.AllowAll);
 
 app.MapControllers();
+
+app.MapHub<OrdersHub>("/api/realtime/orders").RequireCors(Cors.AllowAll);
 
 app.Run();
 

@@ -1,6 +1,7 @@
 using System.Globalization;
 using System.Security.Cryptography;
 using System.Text;
+using Cetus.Api.Realtime;
 using Cetus.Api.Requests;
 using Cetus.Application.ApproveOrder;
 using Cetus.Application.FindOrder;
@@ -8,6 +9,7 @@ using Cetus.Application.UpdateOrder;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.SignalR;
 
 namespace Cetus.Api.Controllers;
 
@@ -19,12 +21,15 @@ public class WompiController : ControllerBase
     private readonly IConfiguration _configuration;
     private readonly IMediator _mediator;
     private readonly ILogger<WompiController> _logger;
+    private readonly IHubContext<OrdersHub, IOrdersClient> _ordersHub;
 
-    public WompiController(IConfiguration configuration, IMediator mediator, ILogger<WompiController> logger)
+    public WompiController(IConfiguration configuration, IMediator mediator, ILogger<WompiController> logger,
+        IHubContext<OrdersHub, IOrdersClient> ordersHub)
     {
         _configuration = configuration;
         _mediator = mediator;
         _logger = logger;
+        _ordersHub = ordersHub;
     }
 
     [HttpPost]
@@ -34,7 +39,7 @@ public class WompiController : ControllerBase
         try
         {
             _logger.LogInformation("Received Wompi request: {Request}", request);
-            
+
             var hasValidChecksum = ValidateChecksum(request);
             if (!hasValidChecksum)
             {
@@ -47,7 +52,7 @@ public class WompiController : ControllerBase
                 _logger.LogWarning("Invalid order ID received from Wompi request");
                 return BadRequest();
             }
-            
+
             var order = await _mediator.Send(new FindOrderQuery(orderId));
             if (order == null)
             {
@@ -58,7 +63,7 @@ public class WompiController : ControllerBase
             if (request.Data.Transaction.Status != "APPROVED")
             {
                 await _mediator.Send(new UpdateOrderCommand(orderId, order.Status, request.Data.Transaction.Id));
-                
+
                 return Ok();
             }
 
@@ -68,10 +73,12 @@ public class WompiController : ControllerBase
                 _logger.LogWarning("Failed to approve order with ID {OrderId}", orderId);
                 return BadRequest();
             }
-                
-            _logger.LogInformation("Order with ID {OrderId} approved", orderId);
-            return Ok();
 
+            await _ordersHub.Clients.Group(order.Id.ToString()).ReceiveUpdatedOrder();
+
+            _logger.LogInformation("Order with ID {OrderId} approved", orderId);
+            
+            return Ok();
         }
         catch (Exception e)
         {
@@ -112,7 +119,7 @@ public class WompiController : ControllerBase
 
         var computedChecksum = ComputeChecksum(stringBuilder.ToString());
         var requestChecksum = request.Signature.Checksum;
-        
+
         _logger.LogInformation("Computed checksum: {ComputedChecksum}", computedChecksum);
         _logger.LogInformation("Request checksum: {RequestChecksum}", requestChecksum);
 
@@ -123,7 +130,7 @@ public class WompiController : ControllerBase
     {
         var bytes = Encoding.UTF8.GetBytes(data);
         var hash = SHA256.HashData(bytes);
-        
+
         var checksum = BitConverter.ToString(hash).Replace("-", "").ToLowerInvariant();
         return checksum;
     }

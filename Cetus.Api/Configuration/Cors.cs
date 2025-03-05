@@ -10,10 +10,12 @@ public static class Cors
         {
             options.AddPolicy(AllowAll, policy =>
             {
+                var allowedOrigin = builder.Configuration["AllowedOrigin"]!;
+
                 policy
+                    .WithOrigins(allowedOrigin)
                     .AllowAnyHeader()
-                    .AllowAnyMethod()
-                    .AllowAnyOrigin();
+                    .AllowAnyMethod();
             });
         });
     }

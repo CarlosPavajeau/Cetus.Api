@@ -1,3 +1,4 @@
+using Cetus.Api.Realtime;
 using Cetus.Application.CreateOrder;
 using Cetus.Application.FindOrder;
 using Cetus.Application.SearchAllOrders;
@@ -6,6 +7,7 @@ using Cetus.Domain;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.SignalR;
 
 namespace Cetus.Api.Controllers;
 
@@ -16,11 +18,14 @@ public class OrdersController : ControllerBase
 {
     private readonly IMediator _mediator;
     private readonly ILogger<OrdersController> _logger;
+    private readonly IHubContext<OrdersHub, IOrdersClient> _ordersHub;
 
-    public OrdersController(IMediator mediator, ILogger<OrdersController> logger)
+    public OrdersController(IMediator mediator, ILogger<OrdersController> logger,
+        IHubContext<OrdersHub, IOrdersClient> ordersHub)
     {
         _mediator = mediator;
         _logger = logger;
+        _ordersHub = ordersHub;
     }
 
     [HttpPost]
@@ -30,6 +35,9 @@ public class OrdersController : ControllerBase
         try
         {
             var result = await _mediator.Send(command);
+
+            await _ordersHub.Clients.All.ReceiveCreatedOrder();
+
             return Ok(result);
         }
         catch (Exception e)
@@ -53,7 +61,7 @@ public class OrdersController : ControllerBase
         var result = await _mediator.Send(new SearchAllOrdersQuery());
         return Ok(result);
     }
-    
+
     [HttpPut("{id:guid}")]
     public async Task<IActionResult> UpdateOrder([FromRoute] Guid id, [FromBody] UpdateOrderCommand command)
     {
