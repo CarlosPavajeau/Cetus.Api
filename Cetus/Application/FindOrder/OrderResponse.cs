@@ -1,3 +1,4 @@
+using System.Text;
 using Cetus.Domain;
 
 namespace Cetus.Application.FindOrder;
@@ -10,6 +11,7 @@ public sealed record OrderResponse(
     Guid Id,
     OrderStatus Status,
     string Address,
+    decimal DeliveryFee,
     decimal Total,
     IEnumerable<OrderItem> Items,
     OrderCustomer Customer,
@@ -27,7 +29,21 @@ public sealed record OrderResponse(
             order.Items.Select(item =>
                 new OrderItem(item.Id, item.ProductName, item.ImageUrl, item.Quantity, item.Price));
 
-        return new OrderResponse(order.Id, order.Status, order.Address, order.Total, orderItems, orderCustomer,
-            order.TransactionId, order.CreatedAt);
+        var address = new StringBuilder();
+        address.Append(order.Address);
+
+        if (order.City is null)
+        {
+            return new OrderResponse(order.Id, order.Status, address.ToString(), order.DeliveryFee, order.Total,
+                orderItems, orderCustomer, order.TransactionId, order.CreatedAt);
+        }
+
+        address.Append(", ");
+        address.Append(order.City.Name);
+        address.Append(" - ");
+        address.Append(order.City.State!.Name);
+
+        return new OrderResponse(order.Id, order.Status, address.ToString(), order.DeliveryFee, order.Total, orderItems,
+            orderCustomer, order.TransactionId, order.CreatedAt);
     }
 }

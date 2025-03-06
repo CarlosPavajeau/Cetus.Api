@@ -13,6 +13,8 @@ namespace Cetus.Api.Test;
 
 public class OrdersSpec(ApplicationTestCase factory) : ApplicationContextTestCase(factory)
 {
+    private readonly Guid cityId = Guid.Parse("f97957e9-d820-4858-ac26-b5d03d658370");
+
     [Fact(DisplayName = "Should create a new order")]
     public async Task ShouldCreateANewOrder()
     {
@@ -32,7 +34,7 @@ public class OrdersSpec(ApplicationTestCase factory) : ApplicationContextTestCas
             new(newProduct.Name, newProduct.ImageUrl, 1, product.Price, product.Id)
         };
 
-        var newOrder = new CreateOrderCommand("test-address", product.Price, newOrderItems, newCustomer);
+        var newOrder = new CreateOrderCommand("test-address", cityId, product.Price, newOrderItems, newCustomer);
 
         // Act
         var response =
@@ -65,7 +67,7 @@ public class OrdersSpec(ApplicationTestCase factory) : ApplicationContextTestCas
             new(newProduct.Name, newProduct.ImageUrl, 1, product.Price, product.Id)
         };
 
-        var newOrder = new CreateOrderCommand("test-address", product.Price, newOrderItems, newCustomer);
+        var newOrder = new CreateOrderCommand("test-address", cityId, product.Price, newOrderItems, newCustomer);
 
         // Act
         var response =
@@ -74,7 +76,7 @@ public class OrdersSpec(ApplicationTestCase factory) : ApplicationContextTestCas
         // Assert
         response.StatusCode.ShouldBe(HttpStatusCode.BadRequest);
     }
-    
+
     [Fact(DisplayName = "Should get an order")]
     public async Task ShouldGetAnOrder()
     {
@@ -94,7 +96,7 @@ public class OrdersSpec(ApplicationTestCase factory) : ApplicationContextTestCas
             new(newProduct.Name, newProduct.ImageUrl, 1, product.Price, product.Id)
         };
 
-        var newOrder = new CreateOrderCommand("test-address", product.Price, newOrderItems, newCustomer);
+        var newOrder = new CreateOrderCommand("test-address", cityId, product.Price, newOrderItems, newCustomer);
 
         var response =
             await Client.PostAsJsonAsync("api/orders", newOrder);
@@ -115,7 +117,7 @@ public class OrdersSpec(ApplicationTestCase factory) : ApplicationContextTestCas
         orderResponse.Id.ShouldBe(orderId);
         orderResponse.Status.ShouldBe(OrderStatus.Pending);
     }
-    
+
     [Fact(DisplayName = "Should get all orders")]
     public async Task ShouldGetAllOrders()
     {
@@ -135,7 +137,7 @@ public class OrdersSpec(ApplicationTestCase factory) : ApplicationContextTestCas
             new(newProduct.Name, newProduct.ImageUrl, 1, product.Price, product.Id)
         };
 
-        var newOrder = new CreateOrderCommand("test-address", product.Price, newOrderItems, newCustomer);
+        var newOrder = new CreateOrderCommand("test-address", cityId, product.Price, newOrderItems, newCustomer);
 
         var response =
             await Client.PostAsJsonAsync("api/orders", newOrder);
@@ -154,7 +156,7 @@ public class OrdersSpec(ApplicationTestCase factory) : ApplicationContextTestCas
         orderResponses.ShouldNotBeNull();
         orderResponses.ShouldNotBeEmpty();
     }
-    
+
     [Fact(DisplayName = "Should update an order")]
     public async Task ShouldUpdateAnOrder()
     {
@@ -174,7 +176,7 @@ public class OrdersSpec(ApplicationTestCase factory) : ApplicationContextTestCas
             new(newProduct.Name, newProduct.ImageUrl, 1, product.Price, product.Id)
         };
 
-        var newOrder = new CreateOrderCommand("test-address", product.Price, newOrderItems, newCustomer);
+        var newOrder = new CreateOrderCommand("test-address", cityId, product.Price, newOrderItems, newCustomer);
 
         var response =
             await Client.PostAsJsonAsync("api/orders", newOrder);
@@ -190,9 +192,9 @@ public class OrdersSpec(ApplicationTestCase factory) : ApplicationContextTestCas
 
         // Assert
         updateResponse.EnsureSuccessStatusCode();
-        
+
         var updatedOrder = await updateResponse.DeserializeAsync<OrderResponse>();
-        
+
         updatedOrder.ShouldNotBeNull();
         updatedOrder.Status.ShouldBe(OrderStatus.Delivered);
     }

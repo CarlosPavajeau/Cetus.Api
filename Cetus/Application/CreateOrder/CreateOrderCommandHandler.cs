@@ -48,6 +48,11 @@ public sealed class CreateOrderCommandHandler : IRequestHandler<CreateOrderComma
         {
             Id = Guid.NewGuid(),
             Address = request.Address,
+            CityId = request.CityId,
+            DeliveryFee =
+                request.CityId.ToString() == "f97957e9-d820-4858-ac26-b5d03d658370"
+                    ? 5000
+                    : 15000, // TODO: Change this to a more dynamic way, maybe a delivery fee table
             Total = request.Total,
             CustomerId = request.Customer.Id,
             Items = request.Items.Select(i => new OrderItem

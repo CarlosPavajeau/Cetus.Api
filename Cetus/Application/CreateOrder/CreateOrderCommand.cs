@@ -8,6 +8,7 @@ public sealed record CreateOrderCustomer(string Id, string Name, string Email, s
 
 public sealed record CreateOrderCommand(
     string Address,
+    Guid CityId,
     decimal Total,
     IEnumerable<CreateOrderItem> Items,
     CreateOrderCustomer Customer)

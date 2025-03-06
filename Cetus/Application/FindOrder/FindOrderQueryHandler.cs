@@ -20,6 +20,8 @@ public class FindOrderQueryHandler : IRequestHandler<FindOrderQuery, OrderRespon
             .AsNoTracking()
             .Include(o => o.Items)
             .Include(o => o.Customer)
+            .Include(o => o.City)
+            .ThenInclude(c => c!.State)
             .FirstOrDefaultAsync(x => x.Id == request.Id, cancellationToken);
 
         return order is null ? null : OrderResponse.FromOrder(order);

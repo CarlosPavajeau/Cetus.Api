@@ -18,11 +18,12 @@ public class SearchAllOrdersQueryHandler : IRequestHandler<SearchAllOrdersQuery,
     {
         var orders = await _context.Orders
             .AsNoTracking()
+            .Include(o => o.City)
+            .ThenInclude(c => c!.State)
             .OrderByDescending(order => order.Status)
             .ThenBy(order => order.CreatedAt)
             .ToListAsync(cancellationToken);
 
-        return orders.Select(order =>
-            new OrderResponse(order.Id, order.Status, order.Address, order.Total, order.CreatedAt));
+        return orders.Select(OrderResponse.FromOrder);
     }
 }
