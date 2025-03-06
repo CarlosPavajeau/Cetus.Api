@@ -19,6 +19,7 @@ public sealed class
     {
         var cities = await _context.Cities
             .Where(c => c.DeletedAt == null && c.StateId == request.Id)
+            .OrderBy(c => c.Name)
             .ToListAsync(cancellationToken);
 
         return cities.Select(c => new CityResponse(c.Id, c.Name));

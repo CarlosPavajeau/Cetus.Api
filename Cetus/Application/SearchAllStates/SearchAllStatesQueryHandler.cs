@@ -19,6 +19,7 @@ public sealed class SearchAllStatesQueryHandler : IRequestHandler<SearchAllState
         var states = await _context.States
             .AsNoTracking()
             .Where(s => s.DeletedAt == null)
+            .OrderBy(s => s.Name)
             .ToListAsync(cancellationToken);
 
         return states.Select(s => new StateResponse(s.Id, s.Name));
