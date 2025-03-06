@@ -9,6 +9,7 @@ public sealed record OrderItem(Guid Id, string ProductName, string? ImageUrl, in
 
 public sealed record OrderResponse(
     Guid Id,
+    long OrderNumber,
     OrderStatus Status,
     string Address,
     decimal DeliveryFee,
@@ -34,8 +35,17 @@ public sealed record OrderResponse(
 
         if (order.City is null)
         {
-            return new OrderResponse(order.Id, order.Status, address.ToString(), order.DeliveryFee, order.Total,
-                orderItems, orderCustomer, order.TransactionId, order.CreatedAt);
+            return new OrderResponse(
+                order.Id,
+                order.OrderNumber,
+                order.Status,
+                address.ToString(),
+                order.DeliveryFee,
+                order.Total,
+                orderItems,
+                orderCustomer,
+                order.TransactionId,
+                order.CreatedAt);
         }
 
         address.Append(", ");
@@ -43,7 +53,16 @@ public sealed record OrderResponse(
         address.Append(" - ");
         address.Append(order.City.State!.Name);
 
-        return new OrderResponse(order.Id, order.Status, address.ToString(), order.DeliveryFee, order.Total, orderItems,
-            orderCustomer, order.TransactionId, order.CreatedAt);
+        return new OrderResponse(
+            order.Id,
+            order.OrderNumber,
+            order.Status,
+            address.ToString(),
+            order.DeliveryFee,
+            order.Total,
+            orderItems,
+            orderCustomer,
+            order.TransactionId,
+            order.CreatedAt);
     }
 }

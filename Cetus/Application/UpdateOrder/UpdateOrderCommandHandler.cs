@@ -32,6 +32,6 @@ public sealed class UpdateOrderCommandHandler : IRequestHandler<UpdateOrderComma
 
         await _context.SaveChangesAsync(cancellationToken);
 
-        return new OrderResponse(order.Id, order.Status, order.Address, order.Total, order.CreatedAt);
+        return new OrderResponse(order.Id, order.OrderNumber, order.Status, order.Address, order.Total, order.CreatedAt);
     }
 }

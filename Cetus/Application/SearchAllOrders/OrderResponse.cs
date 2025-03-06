@@ -3,7 +3,13 @@ using Cetus.Domain;
 
 namespace Cetus.Application.SearchAllOrders;
 
-public sealed record OrderResponse(Guid Id, OrderStatus Status, string Address, decimal Total, DateTime CreatedAt)
+public sealed record OrderResponse(
+    Guid Id,
+    long OrderNumber,
+    OrderStatus Status,
+    string Address,
+    decimal Total,
+    DateTime CreatedAt)
 {
     public static OrderResponse FromOrder(Order order)
     {
@@ -12,7 +18,13 @@ public sealed record OrderResponse(Guid Id, OrderStatus Status, string Address, 
 
         if (order.City is null)
         {
-            return new OrderResponse(order.Id, order.Status, address.ToString(), order.Total, order.CreatedAt);
+            return new OrderResponse(
+                order.Id,
+                order.OrderNumber,
+                order.Status,
+                address.ToString(),
+                order.Total,
+                order.CreatedAt);
         }
 
         address.Append(", ");
@@ -20,6 +32,12 @@ public sealed record OrderResponse(Guid Id, OrderStatus Status, string Address, 
         address.Append(" - ");
         address.Append(order.City.State!.Name);
 
-        return new OrderResponse(order.Id, order.Status, address.ToString(), order.Total, order.CreatedAt);
+        return new OrderResponse(
+            order.Id,
+            order.OrderNumber,
+            order.Status,
+            address.ToString(),
+            order.Total,
+            order.CreatedAt);
     }
 }

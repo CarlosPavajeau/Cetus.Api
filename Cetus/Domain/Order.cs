@@ -5,6 +5,7 @@ namespace Cetus.Domain;
 public class Order
 {
     [Required] [Key] public Guid Id { get; set; }
+    public long OrderNumber { get; set; }
 
     public OrderStatus Status { get; set; } = OrderStatus.Pending;
 
