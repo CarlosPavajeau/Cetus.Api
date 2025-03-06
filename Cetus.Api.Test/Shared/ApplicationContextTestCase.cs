@@ -15,4 +15,6 @@ public class ApplicationContextTestCase : IClassFixture<ApplicationTestCase>
     {
         return _factory.CreateDefaultClient();
     }
+
+    protected IServiceProvider Services => _factory.Services;
 }

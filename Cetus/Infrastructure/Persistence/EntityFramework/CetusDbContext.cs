@@ -13,18 +13,22 @@ public class CetusDbContext(DbContextOptions<CetusDbContext> options)
     public DbSet<Customer> Customers { get; set; }
     public DbSet<Order> Orders { get; set; }
     public DbSet<OrderItem> OrderItems { get; set; }
-    
+
+    public DbSet<State> States { get; set; }
+    public DbSet<City> Cities { get; set; }
+
     private class DateTimeToUtcConverter() : ValueConverter<DateTime, DateTime>(Serialize, Deserialize)
     {
-        static Expression<Func<DateTime, DateTime>> Deserialize = 
+        static Expression<Func<DateTime, DateTime>> Deserialize =
             x => x.Kind == DateTimeKind.Unspecified ? DateTime.SpecifyKind(x, DateTimeKind.Utc) : x;
+
         static Expression<Func<DateTime, DateTime>> Serialize = x => x;
     }
 
     protected override void ConfigureConventions(ModelConfigurationBuilder configurationBuilder)
     {
         base.ConfigureConventions(configurationBuilder);
-        
+
         configurationBuilder
             .Properties<DateTime>()
             .HaveConversion<DateTimeToUtcConverter>();
