@@ -1,5 +1,6 @@
 using Cetus.Application.SearchAllOrders;
 using Cetus.Domain;
+using Cetus.Domain.Events;
 using Cetus.Infrastructure.Persistence.EntityFramework;
 using MediatR;
 
@@ -8,10 +9,12 @@ namespace Cetus.Application.UpdateOrder;
 public sealed class UpdateOrderCommandHandler : IRequestHandler<UpdateOrderCommand, OrderResponse?>
 {
     private readonly CetusDbContext _context;
+    private readonly IMediator _mediator;
 
-    public UpdateOrderCommandHandler(CetusDbContext context)
+    public UpdateOrderCommandHandler(CetusDbContext context, IMediator mediator)
     {
         _context = context;
+        _mediator = mediator;
     }
 
     public async Task<OrderResponse?> Handle(UpdateOrderCommand request, CancellationToken cancellationToken)
@@ -32,6 +35,26 @@ public sealed class UpdateOrderCommandHandler : IRequestHandler<UpdateOrderComma
 
         await _context.SaveChangesAsync(cancellationToken);
 
-        return new OrderResponse(order.Id, order.OrderNumber, order.Status, order.Address, order.Total, order.CreatedAt);
+        if (order.Status != OrderStatus.Delivered)
+        {
+            return new OrderResponse(order.Id, order.OrderNumber, order.Status, order.Address, order.Total,
+                order.CreatedAt);
+        }
+
+        var customer = await _context.Customers.FindAsync([order.CustomerId], cancellationToken);
+
+        if (customer is not null)
+        {
+            await _mediator.Publish(
+                new SentOrderEvent(
+                    new SentOrder(order.Id, order.OrderNumber, customer.Name, order.Address),
+                    customer.Email
+                ),
+                cancellationToken
+            );
+        }
+
+        return new OrderResponse(order.Id, order.OrderNumber, order.Status, order.Address, order.Total,
+            order.CreatedAt);
     }
 }
