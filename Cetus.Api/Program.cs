@@ -9,6 +9,7 @@ builder.ConfigureLogging();
 builder.ConfigureDatabase();
 builder.ConfigureCors();
 builder.ConfigureAuthentication();
+builder.ConfigureEmail();
 
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
@@ -17,8 +18,7 @@ builder.Services.AddSignalR();
 builder.Services.AddMediatR(configuration =>
 {
     configuration.RegisterServicesFromAssembly(typeof(Program).Assembly);
-    configuration.RegisterServicesFromAssembly(typeof(CetusAssemblyHelper)
-        .Assembly);
+    configuration.RegisterServicesFromAssembly(typeof(CetusAssemblyHelper).Assembly);
 });
 
 builder.Services.AddControllers();

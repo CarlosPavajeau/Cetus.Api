@@ -77,7 +77,7 @@ public class WompiController : ControllerBase
             await _ordersHub.Clients.Group(order.Id.ToString()).ReceiveUpdatedOrder();
 
             _logger.LogInformation("Order with ID {OrderId} approved", orderId);
-            
+
             return Ok();
         }
         catch (Exception e)
