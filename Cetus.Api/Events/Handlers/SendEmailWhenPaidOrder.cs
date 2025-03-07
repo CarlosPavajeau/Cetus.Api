@@ -41,7 +41,7 @@ public sealed class SendEmailWhenPaidOrder : INotificationHandler<PaidOrderEvent
 
             message.To.Add(email);
             message.Subject = subject;
-            message.TextBody = body;
+            message.HtmlBody = body;
 
             await _resend.EmailSendAsync(message);
         }
