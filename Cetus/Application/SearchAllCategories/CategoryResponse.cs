@@ -2,7 +2,7 @@ using Cetus.Domain;
 
 namespace Cetus.Application.SearchAllCategories;
 
-public sealed record class CategoryResponse(
+public sealed record CategoryResponse(
     Guid Id,
     string Name,
     DateTime CreatedAt,
