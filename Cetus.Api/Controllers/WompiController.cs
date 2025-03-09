@@ -3,9 +3,9 @@ using System.Security.Cryptography;
 using System.Text;
 using Cetus.Api.Realtime;
 using Cetus.Api.Requests;
-using Cetus.Application.ApproveOrder;
 using Cetus.Application.FindOrder;
 using Cetus.Application.UpdateOrder;
+using Cetus.Domain;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -67,8 +67,10 @@ public class WompiController : ControllerBase
                 return Ok();
             }
 
-            var orderApproved = await _mediator.Send(new ApproveOrderCommand(orderId, request.Data.Transaction.Id));
-            if (!orderApproved)
+            var orderApproved =
+                await _mediator.Send(new UpdateOrderCommand(orderId, OrderStatus.Paid, request.Data.Transaction.Id));
+
+            if (orderApproved is null)
             {
                 _logger.LogWarning("Failed to approve order with ID {OrderId}", orderId);
                 return BadRequest();

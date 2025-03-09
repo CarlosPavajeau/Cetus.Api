@@ -31,30 +31,50 @@ public sealed class UpdateOrderCommandHandler : IRequestHandler<UpdateOrderComma
         }
 
         order.Status = request.Status;
-        order.TransactionId = request.TransactionId;
+
+        if (!string.IsNullOrWhiteSpace(request.TransactionId))
+        {
+            order.TransactionId = request.TransactionId;
+        }
 
         await _context.SaveChangesAsync(cancellationToken);
 
-        if (order.Status != OrderStatus.Delivered)
+        var customer = await _context.Customers.FindAsync([order.CustomerId], cancellationToken);
+        if (customer is null)
         {
             return new OrderResponse(order.Id, order.OrderNumber, order.Status, order.Address, order.Total,
                 order.CreatedAt);
         }
 
-        var customer = await _context.Customers.FindAsync([order.CustomerId], cancellationToken);
-
-        if (customer is not null)
-        {
-            await _mediator.Publish(
-                new SentOrderEvent(
-                    new SentOrder(order.Id, order.OrderNumber, customer.Name, order.Address),
-                    customer.Email
-                ),
-                cancellationToken
-            );
-        }
+        await NotifyOrderStatusChanged(order, customer, cancellationToken);
 
         return new OrderResponse(order.Id, order.OrderNumber, order.Status, order.Address, order.Total,
             order.CreatedAt);
+    }
+
+    private async Task NotifyOrderStatusChanged(Order order, Customer customer, CancellationToken cancellationToken)
+    {
+        switch (order.Status)
+        {
+            case OrderStatus.Paid:
+                await _mediator.Publish(
+                    new PaidOrderEvent(
+                        new PaidOrder(order.Id, order.OrderNumber, customer.Name, order.Total),
+                        customer.Email
+                    ), cancellationToken);
+                break;
+            case OrderStatus.Delivered:
+                await _mediator.Publish(
+                    new SentOrderEvent(
+                        new SentOrder(order.Id, order.OrderNumber, customer.Name, order.Address),
+                        customer.Email
+                    ), cancellationToken);
+                break;
+            case OrderStatus.Pending:
+            case OrderStatus.Canceled:
+                break;
+            default:
+                throw new ArgumentOutOfRangeException(nameof(order));
+        }
     }
 }
