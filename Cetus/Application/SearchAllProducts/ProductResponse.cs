@@ -1,3 +1,5 @@
+using Cetus.Domain;
+
 namespace Cetus.Application.SearchAllProducts;
 
 public sealed record ProductResponse(
@@ -8,4 +10,17 @@ public sealed record ProductResponse(
     int Stock,
     bool Enabled,
     DateTime CreatedAt,
-    DateTime UpdatedAt);
+    DateTime UpdatedAt)
+{
+    public static ProductResponse FromProduct(Product product) =>
+        new(
+            product.Id,
+            product.Name,
+            product.Description,
+            product.Price,
+            product.Stock,
+            product.Enabled,
+            product.CreatedAt,
+            product.UpdatedAt
+        );
+}

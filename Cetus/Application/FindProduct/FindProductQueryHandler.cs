@@ -19,15 +19,6 @@ public sealed class FindProductQueryHandler : IRequestHandler<FindProductQuery, 
         var product = await _context.Products.FindAsync([request.Id],
             cancellationToken: cancellationToken);
 
-        if (product is null) return null;
-
-        return new ProductResponse(
-            product.Id,
-            product.Name,
-            product.Description,
-            product.Price,
-            product.Stock,
-            product.ImageUrl,
-            product.CategoryId);
+        return product is null ? null : ProductResponse.FromProduct(product);
     }
 }

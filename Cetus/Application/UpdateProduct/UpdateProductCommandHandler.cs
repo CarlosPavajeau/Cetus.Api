@@ -29,14 +29,6 @@ public sealed class UpdateProductCommandHandler : IRequestHandler<UpdateProductC
 
         await _dbContext.SaveChangesAsync(cancellationToken);
 
-        return new ProductResponse(
-            product.Id,
-            product.Name,
-            product.Description,
-            product.Price,
-            product.Stock,
-            product.Enabled,
-            product.CreatedAt,
-            product.UpdatedAt);
+        return ProductResponse.FromProduct(product);
     }
 }

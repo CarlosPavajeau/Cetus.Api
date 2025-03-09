@@ -42,14 +42,12 @@ public sealed class UpdateOrderCommandHandler : IRequestHandler<UpdateOrderComma
         var customer = await _context.Customers.FindAsync([order.CustomerId], cancellationToken);
         if (customer is null)
         {
-            return new OrderResponse(order.Id, order.OrderNumber, order.Status, order.Address, order.Total,
-                order.CreatedAt);
+            return OrderResponse.FromOrder(order);
         }
 
         await NotifyOrderStatusChanged(order, customer, cancellationToken);
 
-        return new OrderResponse(order.Id, order.OrderNumber, order.Status, order.Address, order.Total,
-            order.CreatedAt);
+        return OrderResponse.FromOrder(order);
     }
 
     private async Task NotifyOrderStatusChanged(Order order, Customer customer, CancellationToken cancellationToken)

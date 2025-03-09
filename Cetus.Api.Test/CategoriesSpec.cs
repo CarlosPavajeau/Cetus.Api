@@ -5,8 +5,7 @@ using Shouldly;
 
 namespace Cetus.Api.Test;
 
-public class Categories(ApplicationTestCase factory)
-    : ApplicationContextTestCase(factory)
+public class CategoriesSpec(ApplicationTestCase factory) : ApplicationContextTestCase(factory)
 {
     [Fact(DisplayName = "Should create a new category")]
     public async Task ShouldCreateANewCategory()

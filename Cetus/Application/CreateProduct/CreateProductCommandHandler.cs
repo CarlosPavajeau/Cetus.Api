@@ -8,8 +8,7 @@ namespace Cetus.Application.CreateProduct;
 public sealed class CreateProductCommandHandler(CetusDbContext context)
     : IRequestHandler<CreateProductCommand, ProductResponse>
 {
-    public async Task<ProductResponse> Handle(CreateProductCommand request,
-        CancellationToken cancellationToken)
+    public async Task<ProductResponse> Handle(CreateProductCommand request, CancellationToken cancellationToken)
     {
         var product = new Product
         {
@@ -26,14 +25,6 @@ public sealed class CreateProductCommandHandler(CetusDbContext context)
         await context.Products.AddAsync(product, cancellationToken);
         await context.SaveChangesAsync(cancellationToken);
 
-        return new ProductResponse(
-            product.Id,
-            product.Name,
-            product.Description,
-            product.Price,
-            product.Stock,
-            product.Enabled,
-            product.CreatedAt,
-            product.UpdatedAt);
+        return ProductResponse.FromProduct(product);
     }
 }

@@ -4,11 +4,9 @@ using MediatR;
 
 namespace Cetus.Application.CreateCategory;
 
-public class CreateCategoryCommandHandler(CetusDbContext context)
-    : IRequestHandler<CreateCategoryCommand, bool>
+public class CreateCategoryCommandHandler(CetusDbContext context) : IRequestHandler<CreateCategoryCommand, bool>
 {
-    public async Task<bool> Handle(CreateCategoryCommand request,
-        CancellationToken cancellationToken)
+    public async Task<bool> Handle(CreateCategoryCommand request, CancellationToken cancellationToken)
     {
         var category = new Category
         {
