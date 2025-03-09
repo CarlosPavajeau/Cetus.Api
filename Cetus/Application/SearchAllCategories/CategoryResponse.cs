@@ -1,3 +1,5 @@
+using Cetus.Domain;
+
 namespace Cetus.Application.SearchAllCategories;
 
 public sealed record class CategoryResponse(
@@ -5,4 +7,8 @@ public sealed record class CategoryResponse(
     string Name,
     DateTime CreatedAt,
     DateTime UpdatedAt,
-    DateTime? DeletedAt);
+    DateTime? DeletedAt)
+{
+    public static CategoryResponse FromCategory(Category category) =>
+        new(category.Id, category.Name, category.CreatedAt, category.UpdatedAt, category.DeletedAt);
+}

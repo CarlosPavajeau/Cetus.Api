@@ -12,8 +12,9 @@ public sealed class SearchAllCategoriesQueryHandler(CetusDbContext context)
     {
         var categories = await context.Categories
             .AsNoTracking()
+            .Where(c => c.DeletedAt == null)
             .ToListAsync(cancellationToken);
 
-        return categories.Select(c => new CategoryResponse(c.Id, c.Name, c.CreatedAt, c.UpdatedAt, c.DeletedAt));
+        return categories.Select(CategoryResponse.FromCategory);
     }
 }
