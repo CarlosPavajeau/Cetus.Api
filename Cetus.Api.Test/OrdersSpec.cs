@@ -1,6 +1,7 @@
 using System.Net;
 using System.Net.Http.Json;
 using Cetus.Api.Test.Shared;
+using Cetus.Application.CalculateOrdersInsights;
 using Cetus.Application.CreateOrder;
 using Cetus.Application.CreateProduct;
 using Cetus.Application.FindOrder;
@@ -197,5 +198,43 @@ public class OrdersSpec(ApplicationTestCase factory) : ApplicationContextTestCas
 
         updatedOrder.ShouldNotBeNull();
         updatedOrder.Status.ShouldBe(OrderStatus.Delivered);
+    }
+    
+    [Fact(DisplayName = "Should get orders insights")]
+    public async Task ShouldGetOrdersInsights()
+    {
+        // Arrange
+        var newProduct =
+            new CreateProductCommand("test-find", null, 1500, 10, "image-test", Guid.NewGuid());
+        var createResponse = await Client.PostAsJsonAsync("api/products", newProduct);
+
+        createResponse.EnsureSuccessStatusCode();
+
+        var product = await createResponse.DeserializeAsync<ProductResponse>();
+        product.ShouldNotBeNull();
+
+        var newCustomer = new CreateOrderCustomer("test-id", "test-name", "test-email", "test-phone", "test-address");
+        var newOrderItems = new List<CreateOrderItem>
+        {
+            new(newProduct.Name, newProduct.ImageUrl, 1, product.Price, product.Id)
+        };
+
+        var newOrder = new CreateOrderCommand("test-address", cityId, product.Price, newOrderItems, newCustomer);
+
+        var response =
+            await Client.PostAsJsonAsync("api/orders", newOrder);
+
+        response.EnsureSuccessStatusCode();
+
+        // Act
+        var getOrdersInsightsResponse = await Client.GetAsync("api/orders/insights");
+
+        // Assert
+        getOrdersInsightsResponse.EnsureSuccessStatusCode();
+
+        var ordersInsights = await getOrdersInsightsResponse.DeserializeAsync<OrdersInsightsResponse>();
+
+        ordersInsights.ShouldNotBeNull();
+        ordersInsights.CurrentMonthTotal.ShouldBeGreaterThan(0);
     }
 }

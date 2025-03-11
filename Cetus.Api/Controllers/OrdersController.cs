@@ -1,4 +1,5 @@
 using Cetus.Api.Realtime;
+using Cetus.Application.CalculateOrdersInsights;
 using Cetus.Application.CreateOrder;
 using Cetus.Application.FindOrder;
 using Cetus.Application.SearchAllOrders;
@@ -59,6 +60,13 @@ public class OrdersController : ControllerBase
     public async Task<IActionResult> GetOrders()
     {
         var result = await _mediator.Send(new SearchAllOrdersQuery());
+        return Ok(result);
+    }
+    
+    [HttpGet("insights")]
+    public async Task<IActionResult> GetOrdersInsights()
+    {
+        var result = await _mediator.Send(new CalculateOrdersInsightsQuery());
         return Ok(result);
     }
 
