@@ -1,5 +1,6 @@
 using Cetus;
 using Cetus.Api.Configuration;
+using Cetus.Api.Extensions;
 using Cetus.Api.Realtime;
 using Serilog;
 
@@ -39,6 +40,7 @@ app.UseAuthorization();
 
 app.UseHttpsRedirection();
 app.UseCors(Cors.AllowAll);
+app.UseMiddleware<RequestLogContextMiddleware>();
 
 app.MapControllers();
 
