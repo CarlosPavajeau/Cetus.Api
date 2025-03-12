@@ -1,60 +1,122 @@
 using System.Collections.Immutable;
 using Cetus.Domain;
 using Cetus.Infrastructure.Persistence.EntityFramework;
+using Cetus.Shared.Domain.Exceptions;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 
 namespace Cetus.Application.CreateOrder;
 
-public sealed class CreateOrderCommandHandler : IRequestHandler<CreateOrderCommand, Guid>
+internal sealed class CreateOrderCommandHandler : IRequestHandler<CreateOrderCommand, Guid>
 {
     private readonly CetusDbContext _context;
+    private readonly ILogger<CreateOrderCommandHandler> _logger;
 
-    public CreateOrderCommandHandler(CetusDbContext context)
+    public CreateOrderCommandHandler(CetusDbContext context, ILogger<CreateOrderCommandHandler> logger)
     {
-        _context = context;
+        _context = context ?? throw new ArgumentNullException(nameof(context));
+        _logger = logger ?? throw new ArgumentNullException(nameof(logger));
     }
 
     public async Task<Guid> Handle(CreateOrderCommand request, CancellationToken cancellationToken)
     {
-        // Check if customer exists otherwise create a new one
+        await using var transaction = await _context.Database.BeginTransactionAsync(cancellationToken);
+
+        try
+        {
+            var customer = await GetOrCreateCustomer(request.Customer, cancellationToken);
+
+            var items = request.Items.ToImmutableList();
+            var products = await ValidateAndGetProducts(items, cancellationToken);
+
+            var order = CreateOrderEntity(request, customer.Id);
+            await _context.Orders.AddAsync(order, cancellationToken);
+            
+            UpdateProductStocks(products, items);
+
+            await _context.SaveChangesAsync(cancellationToken);
+            await transaction.CommitAsync(cancellationToken);
+
+            _logger.LogInformation("Order {OrderId} created successfully for customer {CustomerId}",
+                order.Id, customer.Id);
+
+            return order.Id;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error creating order for customer {CustomerId}", request.Customer.Id);
+            await transaction.RollbackAsync(cancellationToken);
+            throw;
+        }
+    }
+
+    private async Task<Customer> GetOrCreateCustomer(CreateOrderCustomer orderCustomer,
+        CancellationToken cancellationToken)
+    {
         var customer = await _context.Customers
-            .FirstOrDefaultAsync(c => c.Id == request.Customer.Id, cancellationToken);
+            .FirstOrDefaultAsync(c => c.Id == orderCustomer.Id, cancellationToken);
 
-        if (customer is null)
+        if (customer is not null)
         {
-            var newCustomer = new Customer
-            {
-                Id = request.Customer.Id,
-                Name = request.Customer.Name,
-                Email = request.Customer.Email,
-                Phone = request.Customer.Phone,
-                Address = request.Customer.Address
-            };
-
-            await _context.Customers.AddAsync(newCustomer, cancellationToken);
+            return customer;
         }
 
-        // Validate product stocks
-        var items = request.Items.ToImmutableList();
-        var isValid = await ValidateProductStocks(items, cancellationToken);
-        if (!isValid)
+        customer = new Customer
         {
-            throw new Exception("One or more products are out of stock.");
+            Id = orderCustomer.Id,
+            Name = orderCustomer.Name,
+            Email = orderCustomer.Email,
+            Phone = orderCustomer.Phone,
+            Address = orderCustomer.Address
+        };
+
+        await _context.Customers.AddAsync(customer, cancellationToken);
+        _logger.LogInformation("New customer {CustomerId} created", customer.Id);
+
+        return customer;
+    }
+
+    private async Task<List<Product>> ValidateAndGetProducts(ImmutableList<CreateOrderItem> items,
+        CancellationToken cancellationToken)
+    {
+        var productIds = items.Select(i => i.ProductId).ToList();
+        var products = await _context.Products
+            .Where(p => productIds.Contains(p.Id))
+            .ToListAsync(cancellationToken);
+
+        var missingProducts = productIds.Except(products.Select(p => p.Id)).ToList();
+        if (missingProducts.Count != 0)
+        {
+            throw new ProductNotFoundException($"Products not found: {string.Join(", ", missingProducts)}");
         }
 
-        // Create order
-        var order = new Order
+        var outOfStockProducts = products
+            .Where(p => !items.Any(i => i.ProductId == p.Id && p.Stock >= i.Quantity))
+            .Select(p => p.Id)
+            .ToList();
+
+        if (outOfStockProducts.Count != 0)
+        {
+            throw new InsufficientStockException(
+                $"Insufficient stock for products: {string.Join(", ", outOfStockProducts)}");
+        }
+
+        return products;
+    }
+
+    private static Order CreateOrderEntity(CreateOrderCommand request, string customerId)
+    {
+        var deliveryFee = CalculateDeliveryFee(request.CityId);
+
+        return new Order
         {
             Id = Guid.NewGuid(),
             Address = request.Address,
             CityId = request.CityId,
-            DeliveryFee =
-                request.CityId.ToString() == "f97957e9-d820-4858-ac26-b5d03d658370"
-                    ? 5000
-                    : 15000, // TODO: Change this to a more dynamic way, maybe a delivery fee table
+            DeliveryFee = deliveryFee,
             Total = request.Total,
-            CustomerId = request.Customer.Id,
+            CustomerId = customerId,
             Items = request.Items.Select(i => new OrderItem
             {
                 ProductName = i.ProductName,
@@ -64,36 +126,16 @@ public sealed class CreateOrderCommandHandler : IRequestHandler<CreateOrderComma
                 ProductId = i.ProductId
             }).ToList()
         };
-
-        var transaction = await _context.Database.BeginTransactionAsync(cancellationToken);
-
-        await _context.Orders.AddAsync(order, cancellationToken);
-        await UpdateProductStocks(items, cancellationToken);
-
-        await _context.SaveChangesAsync(cancellationToken);
-        await transaction.CommitAsync(cancellationToken);
-
-        return order.Id;
     }
 
-    private async Task<bool> ValidateProductStocks(ImmutableList<CreateOrderItem> items,
-        CancellationToken cancellationToken)
+    private static decimal CalculateDeliveryFee(Guid cityId)
     {
-        var productIds = items.Select(i => i.ProductId).ToList();
-        var products = await _context.Products
-            .Where(p => productIds.Contains(p.Id))
-            .ToListAsync(cancellationToken);
-
-        return products.All(p => items.Any(i => i.ProductId == p.Id && p.Stock >= i.Quantity));
+        // TODO: Replace with a lookup from a delivery fee table
+        return cityId.ToString() == "f97957e9-d820-4858-ac26-b5d03d658370" ? 5000 : 15000;
     }
 
-    private async Task UpdateProductStocks(ImmutableList<CreateOrderItem> items, CancellationToken cancellationToken)
+    private static void UpdateProductStocks(List<Product> products, ImmutableList<CreateOrderItem> items)
     {
-        var productIds = items.Select(i => i.ProductId).ToList();
-        var products = await _context.Products
-            .Where(p => productIds.Contains(p.Id))
-            .ToListAsync(cancellationToken);
-
         foreach (var product in products)
         {
             var item = items.First(i => i.ProductId == product.Id);
