@@ -45,50 +45,83 @@ public class WompiController : ControllerBase
             var hasValidChecksum = ValidateChecksum(request);
             if (!hasValidChecksum)
             {
-                _logger.LogWarning("Invalid checksum received from Wompi request");
-                return BadRequest();
+                return BadRequest("Invalid checksum");
             }
 
-            if (!Guid.TryParse(request.Data.Transaction.Reference, out var orderId))
+            var hasValidOrderId = TryParseOrderId(request, out var orderId);
+            if (!hasValidOrderId)
             {
-                _logger.LogWarning("Invalid order ID received from Wompi request");
-                return BadRequest();
+                return BadRequest($"Invalid order id: {request.Data.Transaction.Reference}");
             }
 
-            var order = await _mediator.Send(new FindOrderQuery(orderId));
-            if (order == null)
+            var order = await FindOrder(orderId);
+            if (order is null)
             {
-                _logger.LogWarning("Order with ID {OrderId} not found", orderId);
-                return NotFound();
+                return NotFound($"Order with ID {orderId} not found");
             }
 
-            if (request.Data.Transaction.Status != "APPROVED")
+            var hasProcessedTransaction = await ProcessTransaction(request, orderId, order);
+            if (!hasProcessedTransaction)
             {
-                await _mediator.Send(new UpdateOrderCommand(orderId, order.Status, request.Data.Transaction.Id));
-
-                return Ok();
+                return BadRequest($"Failed to process transaction for order with ID {orderId}");
             }
 
-            var orderApproved =
-                await _mediator.Send(new UpdateOrderCommand(orderId, OrderStatus.Paid, request.Data.Transaction.Id));
+            await NotifyOrderUpdate(order.Id);
 
-            if (orderApproved is null)
-            {
-                _logger.LogWarning("Failed to approve order with ID {OrderId}", orderId);
-                return BadRequest();
-            }
-
-            await _ordersHub.Clients.Group(order.Id.ToString()).ReceiveUpdatedOrder();
-
-            _logger.LogInformation("Order with ID {OrderId} approved", orderId);
-
-            return Ok();
+            return Ok(new {Id = orderId});
         }
         catch (Exception e)
         {
             _logger.LogError(e, "An error occurred while processing the Wompi request");
-            return BadRequest();
+            return BadRequest($"An error occurred while processing the Wompi request: {e.Message}");
         }
+    }
+
+    private bool TryParseOrderId(WompiRequest request, out Guid orderId)
+    {
+        if (Guid.TryParse(request.Data.Transaction.Reference, out orderId))
+        {
+            return true;
+        }
+
+        _logger.LogWarning("Invalid order ID received from Wompi request");
+        return false;
+    }
+
+    private async Task<OrderResponse?> FindOrder(Guid orderId)
+    {
+        var order = await _mediator.Send(new FindOrderQuery(orderId));
+        if (order == null)
+        {
+            _logger.LogWarning("Order with ID {OrderId} not found", orderId);
+        }
+
+        return order;
+    }
+
+    private async Task<bool> ProcessTransaction(WompiRequest request, Guid orderId, OrderResponse order)
+    {
+        if (request.Data.Transaction.Status != "APPROVED")
+        {
+            await _mediator.Send(new UpdateOrderCommand(orderId, order.Status, request.Data.Transaction.Id));
+            return true;
+        }
+
+        var updatedOrder =
+            await _mediator.Send(new UpdateOrderCommand(orderId, OrderStatus.Paid, request.Data.Transaction.Id));
+        if (updatedOrder is null)
+        {
+            _logger.LogWarning("Failed to update order with ID {OrderId}", orderId);
+            return false;
+        }
+
+        _logger.LogInformation("Order with ID {OrderId} updated to paid", orderId);
+        return true;
+    }
+
+    private async Task NotifyOrderUpdate(Guid orderId)
+    {
+        await _ordersHub.Clients.Group(orderId.ToString()).ReceiveUpdatedOrder();
     }
 
     private bool ValidateChecksum(WompiRequest request)
@@ -124,8 +157,12 @@ public class WompiController : ControllerBase
         var computedChecksum = ComputeChecksum(stringBuilder.ToString());
         var requestChecksum = request.Signature.Checksum;
 
-        _logger.LogInformation("Computed checksum: {ComputedChecksum}", computedChecksum);
-        _logger.LogInformation("Request checksum: {RequestChecksum}", requestChecksum);
+        if (computedChecksum != requestChecksum)
+        {
+            _logger.LogWarning(
+                "Invalid checksum received from Wompi request, expected: {ExpectedChecksum}, received: {ReceivedChecksum}",
+                computedChecksum, requestChecksum);
+        }
 
         return computedChecksum == requestChecksum;
     }
