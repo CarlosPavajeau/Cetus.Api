@@ -3,11 +3,13 @@ using Cetus.Application.SearchAllCategories;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.RateLimiting;
 
 namespace Cetus.Api.Controllers;
 
 [Authorize]
 [ApiController]
+[EnableRateLimiting("fixed")]
 [Route("api/[controller]")]
 public class CategoriesController : ControllerBase
 {

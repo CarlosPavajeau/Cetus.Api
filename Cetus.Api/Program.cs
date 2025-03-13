@@ -11,6 +11,7 @@ builder.ConfigureDatabase();
 builder.ConfigureCors();
 builder.ConfigureAuthentication();
 builder.ConfigureEmail();
+builder.ConfigureRateLimit();
 
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
@@ -41,6 +42,7 @@ app.UseAuthorization();
 app.UseHttpsRedirection();
 app.UseCors(Cors.AllowAll);
 app.UseMiddleware<RequestLogContextMiddleware>();
+app.UseRateLimiter();
 
 app.MapControllers();
 

@@ -8,12 +8,14 @@ using Cetus.Domain;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.AspNetCore.SignalR;
 
 namespace Cetus.Api.Controllers;
 
 [Authorize]
 [ApiController]
+[EnableRateLimiting("fixed")]
 [Route("api/[controller]")]
 public class OrdersController : ControllerBase
 {

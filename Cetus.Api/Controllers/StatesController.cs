@@ -2,10 +2,12 @@ using Cetus.Application.SearchAllStateCities;
 using Cetus.Application.SearchAllStates;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.RateLimiting;
 
 namespace Cetus.Api.Controllers;
 
 [ApiController]
+[EnableRateLimiting("fixed")]
 [Route("api/[controller]")]
 public class StatesController : ControllerBase
 {

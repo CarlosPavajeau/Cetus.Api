@@ -5,11 +5,13 @@ using Amazon.S3.Model;
 using Cetus.Api.Requests.Aws;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.RateLimiting;
 
 namespace Cetus.Api.Controllers;
 
 [Authorize]
 [ApiController]
+[EnableRateLimiting("fixed")]
 [Route("api/[controller]")]
 public class AwsController : ControllerBase
 {
