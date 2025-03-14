@@ -6,6 +6,8 @@ namespace Cetus.Api.Events.Handlers;
 
 public class SendEmailWhenOrderSent : INotificationHandler<SentOrderEvent>
 {
+    private const string EmailSubject = "Tu pedido ha sido enviado!";
+
     private readonly IResend _resend;
     private readonly IConfiguration _configuration;
     private readonly ILogger<SendEmailWhenOrderSent> _logger;
@@ -24,30 +26,37 @@ public class SendEmailWhenOrderSent : INotificationHandler<SentOrderEvent>
 
         var messageBody = BuildMessageBody(notification);
 
-        await SendNotificationEmail(notification.CustomerEmail, "Tu pedido ha sido enviado!", messageBody);
+        await SendNotificationEmail(notification.CustomerEmail, EmailSubject, messageBody, cancellationToken);
 
         _logger.LogInformation("Email sent to {Customer} for order {OrderNumber}", notification.Order.Customer,
             notification.Order.OrderNumber);
     }
 
-    private async Task SendNotificationEmail(string email, string subject, string body)
+    private async Task SendNotificationEmail(string email, string subject, string body,
+        CancellationToken cancellationToken = default)
     {
         try
         {
+            var senderEmail = _configuration["Resend:From"]
+                              ?? throw new InvalidOperationException(
+                                  "Sender email configuration 'Resend:From' is missing");
+
             var message = new EmailMessage
             {
-                From = _configuration["Resend:From"]!
+                From = senderEmail
             };
 
             message.To.Add(email);
             message.Subject = subject;
             message.HtmlBody = body;
 
-            await _resend.EmailSendAsync(message);
+            await _resend.EmailSendAsync(message, cancellationToken);
         }
         catch (Exception e)
         {
             _logger.LogError(e, "Error sending email to {Email}: {Error}", email, e.Message);
+            // We're deliberately not rethrowing to prevent the exception from bubbling up
+            // A more sophisticated implementation might use a retry mechanism or queue
         }
     }
 
@@ -143,6 +152,7 @@ public class SendEmailWhenOrderSent : INotificationHandler<SentOrderEvent>
                      
                      <div class="footer">
                          <p>Este es un correo automático, por favor no lo respondas directamente.</p>
+                         <p>© {{DateTime.Now.Year}} - TELEDIGITAL JYA</p>
                      </div>
                  </body>
                  </html>
