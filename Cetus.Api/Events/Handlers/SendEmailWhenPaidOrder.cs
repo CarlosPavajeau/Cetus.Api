@@ -1,3 +1,4 @@
+using System.Globalization;
 using Cetus.Domain.Events;
 using MediatR;
 using Resend;
@@ -6,6 +7,9 @@ namespace Cetus.Api.Events.Handlers;
 
 public sealed class SendEmailWhenPaidOrder : INotificationHandler<PaidOrderEvent>
 {
+    private static readonly CultureInfo ColombianCulture = new("es-CO");
+    private const string EmailSubject = "¡Hemos recibido tu pago!";
+
     private readonly IResend _resend;
     private readonly IConfiguration _configuration;
     private readonly ILogger<SendEmailWhenPaidOrder> _logger;
@@ -22,37 +26,56 @@ public sealed class SendEmailWhenPaidOrder : INotificationHandler<PaidOrderEvent
         _logger.LogInformation("Sending email to {Customer} for order {OrderNumber} with total {Total}",
             notification.Order.Customer, notification.Order.OrderNumber, notification.Order.Total);
 
-        var messageBody = BuildMessageBody(notification);
+        var messageBody = BuildEmailBody(notification);
 
-        await SendNotificationEmail(notification.CustomerEmail, "Hemos recibido tu pago!", messageBody);
+        await SendNotificationEmail(
+            email: notification.CustomerEmail,
+            subject: EmailSubject,
+            body: messageBody,
+            cancellationToken: cancellationToken);
 
         _logger.LogInformation("Email sent to {Customer} for order {OrderNumber} with total {Total}",
             notification.Order.Customer, notification.Order.OrderNumber, notification.Order.Total);
     }
 
-    private async Task SendNotificationEmail(string email, string subject, string body)
+    private async Task SendNotificationEmail(string email, string subject, string body,
+        CancellationToken cancellationToken = default)
     {
+        if (string.IsNullOrEmpty(email))
+        {
+            _logger.LogWarning("Cannot send email: recipient email address is null or empty");
+            return;
+        }
+
         try
         {
+            var senderEmail = _configuration["Resend:From"]
+                              ?? throw new InvalidOperationException(
+                                  "Sender email configuration 'Resend:From' is missing");
+
             var message = new EmailMessage
             {
-                From = _configuration["Resend:From"]!
+                From = senderEmail
             };
 
             message.To.Add(email);
             message.Subject = subject;
             message.HtmlBody = body;
 
-            await _resend.EmailSendAsync(message);
+            await _resend.EmailSendAsync(message, cancellationToken);
         }
-        catch (Exception e)
+        catch (Exception ex)
         {
-            _logger.LogError(e, "Error sending email to {Email}: {Error}", email, e.Message);
+            _logger.LogError(ex, "Error sending email to {Email}: {Error}", email, ex.Message);
+            // We're deliberately not rethrowing to prevent the exception from bubbling up
+            // A more sophisticated implementation might use a retry mechanism or queue
         }
     }
 
-    private static string BuildMessageBody(PaidOrderEvent notification)
+    private static string BuildEmailBody(PaidOrderEvent notification)
     {
+        var formattedTotal = notification.Order.Total.ToString("C", ColombianCulture);
+
         return $$"""
                  <html>
                  <head>
@@ -114,16 +137,16 @@ public sealed class SendEmailWhenPaidOrder : INotificationHandler<PaidOrderEvent
                          <div class="order-details">
                              <h3>Detalles de tu pedido:</h3>
                              <p><strong>Número de pedido:</strong> #{{notification.Order.OrderNumber}}</p>
-                             <p><strong>Monto total pagado:</strong> ${{notification.Order.Total:C}}</p>
+                             <p><strong>Monto total pagado:</strong> {{formattedTotal}}</p>
                              <p><strong>Fecha:</strong> {{DateTime.Now:dd/MM/yyyy}}</p>
                          </div>
-                         
                          
                          <p>¡Gracias por confiar en nosotros!</p>
                      </div>
                      
                      <div class="footer">
                          <p>Este es un correo automático, por favor no lo respondas directamente.</p>
+                         <p>© {{DateTime.Now.Year}} - TELEDIGITAL JYA</p>
                      </div>
                  </body>
                  </html>
