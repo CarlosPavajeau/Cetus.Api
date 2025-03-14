@@ -27,6 +27,11 @@ public sealed class UpdateProductCommandHandler : IRequestHandler<UpdateProductC
         product.Stock = request.Stock;
         product.Enabled = request.Enabled;
 
+        if (request.ImageUrl is not null)
+        {
+            product.ImageUrl = request.ImageUrl;
+        }
+
         await _dbContext.SaveChangesAsync(cancellationToken);
 
         return ProductResponse.FromProduct(product);
