@@ -71,21 +71,18 @@ public class OrdersController : ControllerBase
         var result = await _mediator.Send(new CalculateOrdersInsightsQuery());
         return Ok(result);
     }
-
-    [HttpPut("{id:guid}")]
-    public async Task<IActionResult> UpdateOrder([FromRoute] Guid id, [FromBody] UpdateOrderCommand command)
+    
+    [HttpPost("{id:guid}/deliver")]
+    public async Task<IActionResult> DeliverOrder([FromRoute] Guid id)
     {
-        if (id != command.Id)
-        {
-            return BadRequest();
-        }
-
-        if (command.Status == OrderStatus.Pending)
-        {
-            return BadRequest();
-        }
-
-        var result = await _mediator.Send(command);
+        var result = await _mediator.Send(new UpdateOrderCommand(id, OrderStatus.Delivered));
+        return result is null ? NotFound() : Ok(result);
+    }
+    
+    [HttpPost("{id:guid}/cancel")]
+    public async Task<IActionResult> CancelOrder([FromRoute] Guid id)
+    {
+        var result = await _mediator.Send(new UpdateOrderCommand(id, OrderStatus.Canceled));
         return result is null ? NotFound() : Ok(result);
     }
 }

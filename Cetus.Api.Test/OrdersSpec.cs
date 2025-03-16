@@ -6,7 +6,6 @@ using Cetus.Application.CreateOrder;
 using Cetus.Application.CreateProduct;
 using Cetus.Application.FindOrder;
 using Cetus.Application.SearchAllProducts;
-using Cetus.Application.UpdateOrder;
 using Cetus.Domain;
 using Shouldly;
 
@@ -158,8 +157,8 @@ public class OrdersSpec(ApplicationTestCase factory) : ApplicationContextTestCas
         orderResponses.ShouldNotBeEmpty();
     }
 
-    [Fact(DisplayName = "Should update an order")]
-    public async Task ShouldUpdateAnOrder()
+    [Fact(DisplayName = "Should deliver an order")]
+    public async Task ShouldDeliverAnOrder()
     {
         // Arrange
         var newProduct =
@@ -186,18 +185,66 @@ public class OrdersSpec(ApplicationTestCase factory) : ApplicationContextTestCas
 
         var orderId = await response.DeserializeAsync<Guid>();
 
-        var updateOrder = new UpdateOrderCommand(orderId, OrderStatus.Delivered, "test-transaction");
-
         // Act
-        var updateResponse = await Client.PutAsJsonAsync($"api/orders/{orderId}", updateOrder);
+        var deliverOrderResponse = await Client.PostAsync($"api/orders/{orderId}/deliver", null);
 
         // Assert
-        updateResponse.EnsureSuccessStatusCode();
+        deliverOrderResponse.EnsureSuccessStatusCode();
 
-        var updatedOrder = await updateResponse.DeserializeAsync<OrderResponse>();
+        var getOrderResponse = await Client.GetAsync($"api/orders/{orderId}");
 
-        updatedOrder.ShouldNotBeNull();
-        updatedOrder.Status.ShouldBe(OrderStatus.Delivered);
+        getOrderResponse.EnsureSuccessStatusCode();
+
+        var orderResponse = await getOrderResponse.DeserializeAsync<OrderResponse>();
+
+        orderResponse.ShouldNotBeNull();
+        orderResponse.Id.ShouldBe(orderId);
+        orderResponse.Status.ShouldBe(OrderStatus.Delivered);
+    }
+    
+    [Fact(DisplayName = "Should cancel an order")]
+    public async Task ShouldCancelAnOrder()
+    {
+        // Arrange
+        var newProduct =
+            new CreateProductCommand("test-find", null, 1500, 10, "image-test", Guid.NewGuid());
+        var createResponse = await Client.PostAsJsonAsync("api/products", newProduct);
+
+        createResponse.EnsureSuccessStatusCode();
+
+        var product = await createResponse.DeserializeAsync<ProductResponse>();
+        product.ShouldNotBeNull();
+
+        var newCustomer = new CreateOrderCustomer("test-id", "test-name", "test-email", "test-phone", "test-address");
+        var newOrderItems = new List<CreateOrderItem>
+        {
+            new(newProduct.Name, newProduct.ImageUrl, 1, product.Price, product.Id)
+        };
+
+        var newOrder = new CreateOrderCommand("test-address", cityId, product.Price, newOrderItems, newCustomer);
+
+        var response =
+            await Client.PostAsJsonAsync("api/orders", newOrder);
+
+        response.EnsureSuccessStatusCode();
+
+        var orderId = await response.DeserializeAsync<Guid>();
+
+        // Act
+        var cancelOrderResponse = await Client.PostAsync($"api/orders/{orderId}/cancel", null);
+
+        // Assert
+        cancelOrderResponse.EnsureSuccessStatusCode();
+
+        var getOrderResponse = await Client.GetAsync($"api/orders/{orderId}");
+
+        getOrderResponse.EnsureSuccessStatusCode();
+
+        var orderResponse = await getOrderResponse.DeserializeAsync<OrderResponse>();
+
+        orderResponse.ShouldNotBeNull();
+        orderResponse.Id.ShouldBe(orderId);
+        orderResponse.Status.ShouldBe(OrderStatus.Canceled);
     }
     
     [Fact(DisplayName = "Should get orders insights")]
@@ -225,6 +272,12 @@ public class OrdersSpec(ApplicationTestCase factory) : ApplicationContextTestCas
             await Client.PostAsJsonAsync("api/orders", newOrder);
 
         response.EnsureSuccessStatusCode();
+        
+        var orderId = await response.DeserializeAsync<Guid>();
+        
+        var deliverOrderResponse = await Client.PostAsync($"api/orders/{orderId}/deliver", null);
+        
+        deliverOrderResponse.EnsureSuccessStatusCode();
 
         // Act
         var getOrdersInsightsResponse = await Client.GetAsync("api/orders/insights");
