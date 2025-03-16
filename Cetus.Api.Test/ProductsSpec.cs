@@ -35,8 +35,15 @@ public class ProductsSpec(ApplicationTestCase factory)
     public async Task ShouldReturnAllProducts()
     {
         // Arrange
-        var newProduct =
-            new CreateProductCommand("test-create", null, 1500, 10, "image-test", Guid.NewGuid());
+        var newProduct = new CreateProductCommand(
+            "test-create",
+            null,
+            1500,
+            10,
+            "image-test",
+            Guid.NewGuid()
+        );
+
         var createResponse = await Client.PostAsJsonAsync("api/products", newProduct);
 
         createResponse.EnsureSuccessStatusCode();
@@ -124,8 +131,15 @@ public class ProductsSpec(ApplicationTestCase factory)
         var product = await createResponse.DeserializeAsync<ProductResponse>();
         product.ShouldNotBeNull();
 
-        var updateProduct =
-            new UpdateProductCommand(product.Id, "test-update", "test-update", 2000, 20, true);
+        var updateProduct = new UpdateProductCommand(
+            product.Id,
+            "test-update",
+            "test-update",
+            2000,
+            20,
+            "image-test",
+            true
+        );
 
         // Act
         var response = await Client.PutAsJsonAsync($"api/products/{product.Id}", updateProduct);
@@ -146,7 +160,15 @@ public class ProductsSpec(ApplicationTestCase factory)
         // Arrange
         var id = Guid.NewGuid();
         var updateProduct =
-            new UpdateProductCommand(id, "test-update", "test-update", 2000, 20, true);
+            new UpdateProductCommand(
+                id,
+                "test-update",
+                "test-update",
+                2000,
+                20,
+                "image-test",
+                true
+            );
 
         // Act
         var response = await Client.PutAsJsonAsync($"api/products/{id}", updateProduct);
@@ -169,7 +191,15 @@ public class ProductsSpec(ApplicationTestCase factory)
         product.ShouldNotBeNull();
 
         var updateProduct =
-            new UpdateProductCommand(Guid.NewGuid(), "test-update", "test-update", 2000, 20, true);
+            new UpdateProductCommand(
+                Guid.NewGuid(),
+                "test-update",
+                "test-update",
+                2000,
+                20,
+                "image-test",
+                true
+            );
 
         // Act
         var response = await Client.PutAsJsonAsync($"api/products/{product.Id}", updateProduct);
