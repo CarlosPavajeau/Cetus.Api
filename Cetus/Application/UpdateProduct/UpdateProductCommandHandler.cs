@@ -27,7 +27,7 @@ public sealed class UpdateProductCommandHandler : IRequestHandler<UpdateProductC
         product.Stock = request.Stock;
         product.Enabled = request.Enabled;
 
-        if (!string.IsNullOrWhiteSpace(product.ImageUrl))
+        if (!string.IsNullOrWhiteSpace(request.ImageUrl))
         {
             product.ImageUrl = request.ImageUrl;
         }
