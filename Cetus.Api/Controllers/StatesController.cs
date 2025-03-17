@@ -1,5 +1,5 @@
-using Cetus.Application.SearchAllStateCities;
-using Cetus.Application.SearchAllStates;
+using Cetus.States.Application.SearchAll;
+using Cetus.States.Application.SearchAllCities;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.RateLimiting;

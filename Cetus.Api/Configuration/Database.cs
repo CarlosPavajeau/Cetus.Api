@@ -1,5 +1,5 @@
-using Cetus.Domain;
 using Cetus.Infrastructure.Persistence.EntityFramework;
+using Cetus.Orders.Domain;
 using Microsoft.EntityFrameworkCore;
 
 namespace Cetus.Api.Configuration;

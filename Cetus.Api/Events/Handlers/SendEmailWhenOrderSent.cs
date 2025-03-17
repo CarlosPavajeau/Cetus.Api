@@ -1,4 +1,4 @@
-using Cetus.Domain.Events;
+using Cetus.Orders.Domain.Events;
 using MediatR;
 using Resend;
 

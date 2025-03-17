@@ -1,5 +1,8 @@
 using System.Linq.Expressions;
-using Cetus.Domain;
+using Cetus.Categories.Domain;
+using Cetus.Orders.Domain;
+using Cetus.Products.Domain;
+using Cetus.States.Domain;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 

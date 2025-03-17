@@ -1,8 +1,8 @@
 using Cetus.Api.Test.Shared;
-using Cetus.Application.SearchAllStateCities;
-using Cetus.Application.SearchAllStates;
-using Cetus.Domain;
 using Cetus.Infrastructure.Persistence.EntityFramework;
+using Cetus.States.Application.SearchAll;
+using Cetus.States.Application.SearchAllCities;
+using Cetus.States.Domain;
 using Microsoft.Extensions.DependencyInjection;
 using Shouldly;
 

@@ -1,10 +1,10 @@
 using System.Net;
 using System.Net.Http.Json;
 using Cetus.Api.Test.Shared;
-using Cetus.Application.CreateProduct;
-using Cetus.Application.SearchAllProducts;
-using Cetus.Application.UpdateProduct;
-using Cetus.Domain;
+using Cetus.Products.Application.Create;
+using Cetus.Products.Application.SearchAll;
+using Cetus.Products.Application.Update;
+using Cetus.Products.Domain;
 using Shouldly;
 
 namespace Cetus.Api.Test;

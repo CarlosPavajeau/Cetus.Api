@@ -1,12 +1,12 @@
 using System.Net;
 using System.Net.Http.Json;
 using Cetus.Api.Test.Shared;
-using Cetus.Application.CalculateOrdersInsights;
-using Cetus.Application.CreateOrder;
-using Cetus.Application.CreateProduct;
-using Cetus.Application.FindOrder;
-using Cetus.Application.SearchAllProducts;
-using Cetus.Domain;
+using Cetus.Orders.Application.CalculateInsights;
+using Cetus.Orders.Application.Create;
+using Cetus.Orders.Application.Find;
+using Cetus.Orders.Domain;
+using Cetus.Products.Application.Create;
+using Cetus.Products.Application.SearchAll;
 using Shouldly;
 
 namespace Cetus.Api.Test;

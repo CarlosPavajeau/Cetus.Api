@@ -1,5 +1,5 @@
-using Cetus.Application.CreateCategory;
-using Cetus.Application.SearchAllCategories;
+using Cetus.Categories.Application.Create;
+using Cetus.Categories.Application.SearchAll;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;

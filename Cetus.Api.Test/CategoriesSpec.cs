@@ -1,6 +1,6 @@
 using System.Net.Http.Json;
 using Cetus.Api.Test.Shared;
-using Cetus.Application.CreateCategory;
+using Cetus.Categories.Application.Create;
 using Shouldly;
 
 namespace Cetus.Api.Test;

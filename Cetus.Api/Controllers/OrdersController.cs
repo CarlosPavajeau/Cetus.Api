@@ -1,10 +1,10 @@
 using Cetus.Api.Realtime;
-using Cetus.Application.CalculateOrdersInsights;
-using Cetus.Application.CreateOrder;
-using Cetus.Application.FindOrder;
-using Cetus.Application.SearchAllOrders;
-using Cetus.Application.UpdateOrder;
-using Cetus.Domain;
+using Cetus.Orders.Application.CalculateInsights;
+using Cetus.Orders.Application.Create;
+using Cetus.Orders.Application.Find;
+using Cetus.Orders.Application.SearchAll;
+using Cetus.Orders.Application.Update;
+using Cetus.Orders.Domain;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;

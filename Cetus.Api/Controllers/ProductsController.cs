@@ -1,9 +1,9 @@
-using Cetus.Application.CreateProduct;
-using Cetus.Application.DeleteProduct;
-using Cetus.Application.FindProduct;
-using Cetus.Application.SearchAllProducts;
-using Cetus.Application.SearchAllProductsForSale;
-using Cetus.Application.UpdateProduct;
+using Cetus.Products.Application.Create;
+using Cetus.Products.Application.Delete;
+using Cetus.Products.Application.Find;
+using Cetus.Products.Application.SearchAll;
+using Cetus.Products.Application.SearchForSale;
+using Cetus.Products.Application.Update;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
