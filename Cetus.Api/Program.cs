@@ -12,6 +12,7 @@ builder.ConfigureCors();
 builder.ConfigureAuthentication();
 builder.ConfigureEmail();
 builder.ConfigureRateLimit();
+builder.ConfigureCache();
 
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();

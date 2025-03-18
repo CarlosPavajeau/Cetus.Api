@@ -8,6 +8,7 @@ using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.RateLimiting;
+using Microsoft.Extensions.Caching.Hybrid;
 
 namespace Cetus.Api.Controllers;
 
@@ -18,10 +19,12 @@ namespace Cetus.Api.Controllers;
 public class ProductsController : ControllerBase
 {
     private readonly IMediator _mediator;
+    private readonly HybridCache _cache;
 
-    public ProductsController(IMediator mediator)
+    public ProductsController(IMediator mediator, HybridCache cache)
     {
         _mediator = mediator;
+        _cache = cache;
     }
 
     [HttpPost]
@@ -39,12 +42,15 @@ public class ProductsController : ControllerBase
 
         return Ok(products);
     }
-    
+
     [HttpGet("for-sale")]
     [AllowAnonymous]
     public async Task<IActionResult> GetProductsForSale()
     {
-        var products = await _mediator.Send(new SearchAllProductsForSaleQuery());
+        var products = await _cache.GetOrCreateAsync(
+            "products-for-sale",
+            async cancellationToken => await _mediator.Send(new SearchAllProductsForSaleQuery(), cancellationToken)
+        );
 
         return Ok(products);
     }
@@ -53,7 +59,10 @@ public class ProductsController : ControllerBase
     [AllowAnonymous]
     public async Task<IActionResult> GetProduct(Guid id)
     {
-        var product = await _mediator.Send(new FindProductQuery(id));
+        var product = await _cache.GetOrCreateAsync(
+            $"product-{id}",
+            async cancellationToken => await _mediator.Send(new FindProductQuery(id), cancellationToken)
+        );
 
         return product is null
             ? NotFound()
@@ -70,18 +79,29 @@ public class ProductsController : ControllerBase
 
         var updated = await _mediator.Send(command);
 
-        return updated is null
-            ? NotFound()
-            : Ok(updated);
+        if (updated is null)
+        {
+            return NotFound();
+        }
+        
+        await _cache.RemoveAsync($"product-{id}");
+        
+        return Ok(updated);
     }
-    
+
     [HttpDelete("{id:guid}")]
     public async Task<IActionResult> DeleteProduct(Guid id)
     {
         var deleted = await _mediator.Send(new DeleteProductCommand(id));
 
-        return deleted
-            ? Ok()
-            : NotFound();
+        if (!deleted)
+        {
+            return NotFound();
+        }
+
+        await _cache.RemoveAsync($"product-{id}");
+        await _cache.RemoveAsync("products-for-sale");
+
+        return Ok(new {Id = id});
     }
 }
