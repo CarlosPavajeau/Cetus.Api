@@ -46,7 +46,7 @@ public class OrdersController : ControllerBase
         catch (Exception e)
         {
             _logger.LogError(e, "An error occurred while creating an order.");
-            return BadRequest(e.Message);
+            throw;
         }
     }
 
