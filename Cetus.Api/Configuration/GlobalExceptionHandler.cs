@@ -1,3 +1,4 @@
+using System.Collections.Frozen;
 using FluentValidation;
 using Microsoft.AspNetCore.Diagnostics;
 using Microsoft.AspNetCore.Mvc;
@@ -21,7 +22,7 @@ public class GlobalExceptionHandler(ILogger<GlobalExceptionHandler> logger) : IE
             httpContext.Response.StatusCode = StatusCodes.Status400BadRequest;
             var validationErrors = fluentException.Errors
                 .Select(error => error.ErrorMessage)
-                .ToList();
+                .ToFrozenSet();
 
             problemDetails.Extensions.Add("errors", validationErrors);
         }
