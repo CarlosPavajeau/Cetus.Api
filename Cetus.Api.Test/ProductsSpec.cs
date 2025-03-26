@@ -1,7 +1,7 @@
 using System.Net;
 using System.Net.Http.Json;
 using Cetus.Api.Test.Shared;
-using Cetus.Products.Application.Create;
+using Cetus.Api.Test.Shared.Fakers;
 using Cetus.Products.Application.SearchAll;
 using Cetus.Products.Application.Update;
 using Cetus.Products.Domain;
@@ -9,15 +9,15 @@ using Shouldly;
 
 namespace Cetus.Api.Test;
 
-public class ProductsSpec(ApplicationTestCase factory)
-    : ApplicationContextTestCase(factory)
+public class ProductsSpec(ApplicationTestCase factory) : ApplicationContextTestCase(factory)
 {
+    private readonly CreateProductCommandFaker _productCommandFaker = new();
+    
     [Fact(DisplayName = "Should create a new product")]
     public async Task ShouldCreateANewProduct()
     {
         // Arrange
-        var newProduct =
-            new CreateProductCommand("Test", null, 1500, 10, "image-test", Guid.NewGuid());
+        var newProduct = _productCommandFaker.Generate();
 
         // Act
         var response = await Client.PostAsJsonAsync("api/products", newProduct);
@@ -35,14 +35,7 @@ public class ProductsSpec(ApplicationTestCase factory)
     public async Task ShouldReturnAllProducts()
     {
         // Arrange
-        var newProduct = new CreateProductCommand(
-            "test-create",
-            null,
-            1500,
-            10,
-            "image-test",
-            Guid.NewGuid()
-        );
+        var newProduct = _productCommandFaker.Generate();
 
         var createResponse = await Client.PostAsJsonAsync("api/products", newProduct);
 
@@ -63,8 +56,7 @@ public class ProductsSpec(ApplicationTestCase factory)
     public async Task ShouldReturnAllProductsForSale()
     {
         // Arrange
-        var newProduct =
-            new CreateProductCommand("test-create", null, 1500, 10, "image-test", Guid.NewGuid());
+        var newProduct = _productCommandFaker.Generate();
         var createResponse = await Client.PostAsJsonAsync("api/products", newProduct);
 
         createResponse.EnsureSuccessStatusCode();
@@ -84,8 +76,7 @@ public class ProductsSpec(ApplicationTestCase factory)
     public async Task ShouldReturnAProductById()
     {
         // Arrange
-        var newProduct =
-            new CreateProductCommand("test-find", null, 1500, 10, "image-test", Guid.NewGuid());
+        var newProduct = _productCommandFaker.Generate();
         var createResponse = await Client.PostAsJsonAsync("api/products", newProduct);
 
         createResponse.EnsureSuccessStatusCode();
@@ -122,8 +113,7 @@ public class ProductsSpec(ApplicationTestCase factory)
     public async Task ShouldUpdateAProduct()
     {
         // Arrange
-        var newProduct =
-            new CreateProductCommand("test-update", null, 1500, 10, "image-test", Guid.NewGuid());
+        var newProduct = _productCommandFaker.Generate();
         var createResponse = await Client.PostAsJsonAsync("api/products", newProduct);
 
         createResponse.EnsureSuccessStatusCode();
@@ -133,11 +123,11 @@ public class ProductsSpec(ApplicationTestCase factory)
 
         var updateProduct = new UpdateProductCommand(
             product.Id,
-            "test-update",
-            "test-update",
+            newProduct.Name,
+            newProduct.Description,
             2000,
             20,
-            "image-test",
+            newProduct.ImageUrl,
             true
         );
 
@@ -181,8 +171,7 @@ public class ProductsSpec(ApplicationTestCase factory)
     public async Task ShouldReturnBadRequestWhenUpdatingAProductWithDifferentId()
     {
         // Arrange
-        var newProduct =
-            new CreateProductCommand("test-update", null, 1500, 10, "image-test", Guid.NewGuid());
+        var newProduct = _productCommandFaker.Generate();
         var createResponse = await Client.PostAsJsonAsync("api/products", newProduct);
 
         createResponse.EnsureSuccessStatusCode();
@@ -212,8 +201,7 @@ public class ProductsSpec(ApplicationTestCase factory)
     public async Task ShouldDeleteAProduct()
     {
         // Arrange
-        var newProduct =
-            new CreateProductCommand("test-delete", null, 1500, 10, "image-test", Guid.NewGuid());
+        var newProduct = _productCommandFaker.Generate();
         var createResponse = await Client.PostAsJsonAsync("api/products", newProduct);
 
         createResponse.EnsureSuccessStatusCode();

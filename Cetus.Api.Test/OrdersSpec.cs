@@ -1,11 +1,12 @@
 using System.Net;
 using System.Net.Http.Json;
+using Bogus;
 using Cetus.Api.Test.Shared;
+using Cetus.Api.Test.Shared.Fakers;
 using Cetus.Orders.Application.CalculateInsights;
 using Cetus.Orders.Application.Create;
 using Cetus.Orders.Application.Find;
 using Cetus.Orders.Domain;
-using Cetus.Products.Application.Create;
 using Cetus.Products.Application.SearchAll;
 using Shouldly;
 
@@ -14,13 +15,15 @@ namespace Cetus.Api.Test;
 public class OrdersSpec(ApplicationTestCase factory) : ApplicationContextTestCase(factory)
 {
     private readonly Guid cityId = Guid.Parse("f97957e9-d820-4858-ac26-b5d03d658370");
+    private readonly CreateProductCommandFaker _productCommandFaker = new();
+    private readonly CreateOrderCustomerFaker _orderCustomerFaker = new();
+    private readonly Faker _faker = new();
 
     [Fact(DisplayName = "Should create a new order")]
     public async Task ShouldCreateANewOrder()
     {
         // Arrange 
-        var newProduct =
-            new CreateProductCommand("test-find", null, 1500, 10, "image-test", Guid.NewGuid());
+        var newProduct = _productCommandFaker.Generate();
         var createResponse = await Client.PostAsJsonAsync("api/products", newProduct);
 
         createResponse.EnsureSuccessStatusCode();
@@ -28,17 +31,17 @@ public class OrdersSpec(ApplicationTestCase factory) : ApplicationContextTestCas
         var product = await createResponse.DeserializeAsync<ProductResponse>();
         product.ShouldNotBeNull();
 
-        var newCustomer = new CreateOrderCustomer("test-id", "test-name", "test-email", "test-phone", "test-address");
+        var newCustomer = _orderCustomerFaker.Generate();
         var newOrderItems = new List<CreateOrderItem>
         {
             new(newProduct.Name, newProduct.ImageUrl, 1, product.Price, product.Id)
         };
 
-        var newOrder = new CreateOrderCommand("test-address", cityId, product.Price, newOrderItems, newCustomer);
+        var newOrder = new CreateOrderCommand(_faker.Address.FullAddress(), cityId, product.Price, newOrderItems,
+            newCustomer);
 
         // Act
-        var response =
-            await Client.PostAsJsonAsync("api/orders", newOrder);
+        var response = await Client.PostAsJsonAsync("api/orders", newOrder);
 
         // Assert
         response.EnsureSuccessStatusCode();
@@ -52,8 +55,7 @@ public class OrdersSpec(ApplicationTestCase factory) : ApplicationContextTestCas
     public async Task ShouldNotCreateANewOrderWithInvalidProduct()
     {
         // Arrange
-        var newProduct =
-            new CreateProductCommand("test-find", null, 1500, 0, "image-test", Guid.NewGuid());
+        var newProduct = _productCommandFaker.WithStock(1).Generate();
         var createResponse = await Client.PostAsJsonAsync("api/products", newProduct);
 
         createResponse.EnsureSuccessStatusCode();
@@ -61,17 +63,17 @@ public class OrdersSpec(ApplicationTestCase factory) : ApplicationContextTestCas
         var product = await createResponse.DeserializeAsync<ProductResponse>();
         product.ShouldNotBeNull();
 
-        var newCustomer = new CreateOrderCustomer("test-id", "test-name", "test-email", "test-phone", "test-address");
+        var newCustomer = _orderCustomerFaker.Generate();
         var newOrderItems = new List<CreateOrderItem>
         {
-            new(newProduct.Name, newProduct.ImageUrl, 1, product.Price, product.Id)
+            new(newProduct.Name, newProduct.ImageUrl, 10, product.Price, product.Id)
         };
 
-        var newOrder = new CreateOrderCommand("test-address", cityId, product.Price, newOrderItems, newCustomer);
+        var newOrder =
+            new CreateOrderCommand(_faker.Address.FullAddress(), cityId, product.Price, newOrderItems, newCustomer);
 
         // Act
-        var response =
-            await Client.PostAsJsonAsync("api/orders", newOrder);
+        var response = await Client.PostAsJsonAsync("api/orders", newOrder);
 
         // Assert
         response.StatusCode.ShouldBe(HttpStatusCode.BadRequest);
@@ -81,8 +83,7 @@ public class OrdersSpec(ApplicationTestCase factory) : ApplicationContextTestCas
     public async Task ShouldGetAnOrder()
     {
         // Arrange
-        var newProduct =
-            new CreateProductCommand("test-find", null, 1500, 10, "image-test", Guid.NewGuid());
+        var newProduct = _productCommandFaker.Generate();
         var createResponse = await Client.PostAsJsonAsync("api/products", newProduct);
 
         createResponse.EnsureSuccessStatusCode();
@@ -90,16 +91,16 @@ public class OrdersSpec(ApplicationTestCase factory) : ApplicationContextTestCas
         var product = await createResponse.DeserializeAsync<ProductResponse>();
         product.ShouldNotBeNull();
 
-        var newCustomer = new CreateOrderCustomer("test-id", "test-name", "test-email", "test-phone", "test-address");
+        var newCustomer = _orderCustomerFaker.Generate();
         var newOrderItems = new List<CreateOrderItem>
         {
             new(newProduct.Name, newProduct.ImageUrl, 1, product.Price, product.Id)
         };
 
-        var newOrder = new CreateOrderCommand("test-address", cityId, product.Price, newOrderItems, newCustomer);
+        var newOrder =
+            new CreateOrderCommand(_faker.Address.FullAddress(), cityId, product.Price, newOrderItems, newCustomer);
 
-        var response =
-            await Client.PostAsJsonAsync("api/orders", newOrder);
+        var response = await Client.PostAsJsonAsync("api/orders", newOrder);
 
         response.EnsureSuccessStatusCode();
 
@@ -122,8 +123,7 @@ public class OrdersSpec(ApplicationTestCase factory) : ApplicationContextTestCas
     public async Task ShouldGetAllOrders()
     {
         // Arrange
-        var newProduct =
-            new CreateProductCommand("test-find", null, 1500, 10, "image-test", Guid.NewGuid());
+        var newProduct = _productCommandFaker.Generate();
         var createResponse = await Client.PostAsJsonAsync("api/products", newProduct);
 
         createResponse.EnsureSuccessStatusCode();
@@ -131,16 +131,16 @@ public class OrdersSpec(ApplicationTestCase factory) : ApplicationContextTestCas
         var product = await createResponse.DeserializeAsync<ProductResponse>();
         product.ShouldNotBeNull();
 
-        var newCustomer = new CreateOrderCustomer("test-id", "test-name", "test-email", "test-phone", "test-address");
+        var newCustomer = _orderCustomerFaker.Generate();
         var newOrderItems = new List<CreateOrderItem>
         {
             new(newProduct.Name, newProduct.ImageUrl, 1, product.Price, product.Id)
         };
 
-        var newOrder = new CreateOrderCommand("test-address", cityId, product.Price, newOrderItems, newCustomer);
+        var newOrder =
+            new CreateOrderCommand(_faker.Address.FullAddress(), cityId, product.Price, newOrderItems, newCustomer);
 
-        var response =
-            await Client.PostAsJsonAsync("api/orders", newOrder);
+        var response = await Client.PostAsJsonAsync("api/orders", newOrder);
 
         response.EnsureSuccessStatusCode();
 
@@ -161,8 +161,7 @@ public class OrdersSpec(ApplicationTestCase factory) : ApplicationContextTestCas
     public async Task ShouldDeliverAnOrder()
     {
         // Arrange
-        var newProduct =
-            new CreateProductCommand("test-find", null, 1500, 10, "image-test", Guid.NewGuid());
+        var newProduct = _productCommandFaker.Generate();
         var createResponse = await Client.PostAsJsonAsync("api/products", newProduct);
 
         createResponse.EnsureSuccessStatusCode();
@@ -170,16 +169,16 @@ public class OrdersSpec(ApplicationTestCase factory) : ApplicationContextTestCas
         var product = await createResponse.DeserializeAsync<ProductResponse>();
         product.ShouldNotBeNull();
 
-        var newCustomer = new CreateOrderCustomer("test-id", "test-name", "test-email", "test-phone", "test-address");
+        var newCustomer = _orderCustomerFaker.Generate();
         var newOrderItems = new List<CreateOrderItem>
         {
             new(newProduct.Name, newProduct.ImageUrl, 1, product.Price, product.Id)
         };
 
-        var newOrder = new CreateOrderCommand("test-address", cityId, product.Price, newOrderItems, newCustomer);
+        var newOrder =
+            new CreateOrderCommand(_faker.Address.FullAddress(), cityId, product.Price, newOrderItems, newCustomer);
 
-        var response =
-            await Client.PostAsJsonAsync("api/orders", newOrder);
+        var response = await Client.PostAsJsonAsync("api/orders", newOrder);
 
         response.EnsureSuccessStatusCode();
 
@@ -201,13 +200,12 @@ public class OrdersSpec(ApplicationTestCase factory) : ApplicationContextTestCas
         orderResponse.Id.ShouldBe(orderId);
         orderResponse.Status.ShouldBe(OrderStatus.Delivered);
     }
-    
+
     [Fact(DisplayName = "Should cancel an order")]
     public async Task ShouldCancelAnOrder()
     {
         // Arrange
-        var newProduct =
-            new CreateProductCommand("test-find", null, 1500, 10, "image-test", Guid.NewGuid());
+        var newProduct = _productCommandFaker.Generate();
         var createResponse = await Client.PostAsJsonAsync("api/products", newProduct);
 
         createResponse.EnsureSuccessStatusCode();
@@ -215,16 +213,16 @@ public class OrdersSpec(ApplicationTestCase factory) : ApplicationContextTestCas
         var product = await createResponse.DeserializeAsync<ProductResponse>();
         product.ShouldNotBeNull();
 
-        var newCustomer = new CreateOrderCustomer("test-id", "test-name", "test-email", "test-phone", "test-address");
+        var newCustomer = _orderCustomerFaker.Generate();
         var newOrderItems = new List<CreateOrderItem>
         {
             new(newProduct.Name, newProduct.ImageUrl, 1, product.Price, product.Id)
         };
 
-        var newOrder = new CreateOrderCommand("test-address", cityId, product.Price, newOrderItems, newCustomer);
+        var newOrder =
+            new CreateOrderCommand(_faker.Address.FullAddress(), cityId, product.Price, newOrderItems, newCustomer);
 
-        var response =
-            await Client.PostAsJsonAsync("api/orders", newOrder);
+        var response = await Client.PostAsJsonAsync("api/orders", newOrder);
 
         response.EnsureSuccessStatusCode();
 
@@ -246,13 +244,12 @@ public class OrdersSpec(ApplicationTestCase factory) : ApplicationContextTestCas
         orderResponse.Id.ShouldBe(orderId);
         orderResponse.Status.ShouldBe(OrderStatus.Canceled);
     }
-    
+
     [Fact(DisplayName = "Should get orders insights")]
     public async Task ShouldGetOrdersInsights()
     {
         // Arrange
-        var newProduct =
-            new CreateProductCommand("test-find", null, 1500, 10, "image-test", Guid.NewGuid());
+        var newProduct = _productCommandFaker.Generate();
         var createResponse = await Client.PostAsJsonAsync("api/products", newProduct);
 
         createResponse.EnsureSuccessStatusCode();
@@ -260,23 +257,23 @@ public class OrdersSpec(ApplicationTestCase factory) : ApplicationContextTestCas
         var product = await createResponse.DeserializeAsync<ProductResponse>();
         product.ShouldNotBeNull();
 
-        var newCustomer = new CreateOrderCustomer("test-id", "test-name", "test-email", "test-phone", "test-address");
+        var newCustomer = _orderCustomerFaker.Generate();
         var newOrderItems = new List<CreateOrderItem>
         {
             new(newProduct.Name, newProduct.ImageUrl, 1, product.Price, product.Id)
         };
 
-        var newOrder = new CreateOrderCommand("test-address", cityId, product.Price, newOrderItems, newCustomer);
+        var newOrder =
+            new CreateOrderCommand(_faker.Address.FullAddress(), cityId, product.Price, newOrderItems, newCustomer);
 
-        var response =
-            await Client.PostAsJsonAsync("api/orders", newOrder);
+        var response = await Client.PostAsJsonAsync("api/orders", newOrder);
 
         response.EnsureSuccessStatusCode();
-        
+
         var orderId = await response.DeserializeAsync<Guid>();
-        
+
         var deliverOrderResponse = await Client.PostAsync($"api/orders/{orderId}/deliver", null);
-        
+
         deliverOrderResponse.EnsureSuccessStatusCode();
 
         // Act
