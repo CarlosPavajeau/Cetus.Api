@@ -1,7 +1,9 @@
 using Cetus;
 using Cetus.Api.Configuration;
+using Cetus.Api.Configuration.Validators;
 using Cetus.Api.Extensions;
 using Cetus.Api.Realtime;
+using FluentValidation;
 using Serilog;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -22,9 +24,15 @@ builder.Services.AddMediatR(configuration =>
 {
     configuration.RegisterServicesFromAssembly(typeof(Program).Assembly);
     configuration.RegisterServicesFromAssembly(typeof(CetusAssemblyHelper).Assembly);
+    configuration.AddOpenBehavior(typeof(ValidationBehavior<,>));
 });
 
+builder.Services.AddValidatorsFromAssembly(typeof(CetusAssemblyHelper).Assembly);
+
 builder.Services.AddControllers();
+
+builder.Services.AddExceptionHandler<GlobalExceptionHandler>();
+builder.Services.AddProblemDetails();
 
 var app = builder.Build();
 
@@ -44,6 +52,7 @@ app.UseHttpsRedirection();
 app.UseCors(Cors.AllowAll);
 app.UseMiddleware<RequestLogContextMiddleware>();
 app.UseRateLimiter();
+app.UseExceptionHandler();
 
 app.MapControllers();
 

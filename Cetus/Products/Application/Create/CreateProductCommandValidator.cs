@@ -1,0 +1,38 @@
+using FluentValidation;
+
+namespace Cetus.Products.Application.Create;
+
+public sealed class CreateProductCommandValidator : AbstractValidator<CreateProductCommand>
+{
+    public CreateProductCommandValidator()
+    {
+        RuleFor(x => x.Name)
+            .NotNull()
+            .NotEmpty()
+            .WithMessage("El nombre del producto es requerido.");
+
+        RuleFor(x => x.Price)
+            .NotNull()
+            .NotEmpty()
+            .WithMessage("El precio del producto es requerido.")
+            .GreaterThan(0)
+            .WithMessage("El precio del producto debe ser mayor a 0.");
+
+        RuleFor(x => x.Stock)
+            .NotNull()
+            .NotEmpty()
+            .WithMessage("La cantidad en stock del producto es requerida.")
+            .GreaterThan(0)
+            .WithMessage("La cantidad en stock del producto debe ser mayor a 0.");
+
+        RuleFor(x => x.ImageUrl)
+            .NotNull()
+            .NotEmpty()
+            .WithMessage("La URL de la imagen del producto es requerida.");
+
+        RuleFor(x => x.CategoryId)
+            .NotNull()
+            .NotEmpty()
+            .WithMessage("El identificador de la categoría del producto es requerido.");
+    }
+}
