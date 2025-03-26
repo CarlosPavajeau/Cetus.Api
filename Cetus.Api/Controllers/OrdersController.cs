@@ -5,6 +5,7 @@ using Cetus.Orders.Application.Find;
 using Cetus.Orders.Application.SearchAll;
 using Cetus.Orders.Application.Update;
 using Cetus.Orders.Domain;
+using FluentValidation;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -46,7 +47,13 @@ public class OrdersController : ControllerBase
         catch (Exception e)
         {
             _logger.LogError(e, "An error occurred while creating an order.");
-            throw;
+            
+            if (e is ValidationException)
+            {
+                throw;
+            }
+
+            return BadRequest(e.Message);
         }
     }
 
