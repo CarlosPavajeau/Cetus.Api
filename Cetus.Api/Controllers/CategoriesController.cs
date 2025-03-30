@@ -4,6 +4,7 @@ using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.RateLimiting;
+using Microsoft.Extensions.Caching.Hybrid;
 
 namespace Cetus.Api.Controllers;
 
@@ -14,10 +15,12 @@ namespace Cetus.Api.Controllers;
 public class CategoriesController : ControllerBase
 {
     private readonly IMediator _mediator;
+    private readonly HybridCache _cache;
 
-    public CategoriesController(IMediator mediator)
+    public CategoriesController(IMediator mediator, HybridCache cache)
     {
         _mediator = mediator;
+        _cache = cache;
     }
 
     [HttpPost]
@@ -25,16 +28,21 @@ public class CategoriesController : ControllerBase
     {
         var created = await _mediator.Send(command);
 
-        if (created) return Ok();
+        if (!created) return BadRequest();
 
-        return BadRequest();
+        await _cache.RemoveAsync("categories");
+
+        return Ok();
     }
 
     [HttpGet]
     [AllowAnonymous]
     public async Task<IActionResult> GetCategories()
     {
-        var categories = await _mediator.Send(new SearchAllCategoriesQuery());
+        var categories = await _cache.GetOrCreateAsync(
+            "categories",
+            async cancellationToken => await _mediator.Send(new SearchAllCategoriesQuery(), cancellationToken)
+        );
 
         return Ok(categories);
     }
