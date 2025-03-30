@@ -19,20 +19,32 @@ namespace Cetus.Api.Controllers;
 public class ProductsController : ControllerBase
 {
     private readonly IMediator _mediator;
+    private readonly ILogger<ProductsController> _logger;
     private readonly HybridCache _cache;
 
-    public ProductsController(IMediator mediator, HybridCache cache)
+    public ProductsController(IMediator mediator, HybridCache cache, ILogger<ProductsController> logger)
     {
         _mediator = mediator;
         _cache = cache;
+        _logger = logger;
     }
 
     [HttpPost]
     public async Task<IActionResult> CreateProduct([FromBody] CreateProductCommand command)
     {
-        var created = await _mediator.Send(command);
+        try
+        {
+            var created = await _mediator.Send(command);
+            
+            await _cache.RemoveAsync("products-for-sale");
 
-        return Ok(created);
+            return Ok(created);
+        }
+        catch (Exception e)
+        {
+            _logger.LogError(e, "An error occurred while creating a product.");
+            return BadRequest(e.Message);
+        }
     }
 
     [HttpGet]
