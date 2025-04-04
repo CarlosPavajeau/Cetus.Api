@@ -1,5 +1,7 @@
 using Cetus.Categories.Application.Create;
+using Cetus.Categories.Application.Delete;
 using Cetus.Categories.Application.SearchAll;
+using Cetus.Categories.Application.Update;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -45,5 +47,31 @@ public class CategoriesController : ControllerBase
         );
 
         return Ok(categories);
+    }
+
+    [HttpPut("{id:guid}")]
+    public async Task<IActionResult> UpdateCategory(Guid id, [FromBody] UpdateCategoryCommand command)
+    {
+        if (id != command.Id) return BadRequest();
+
+        var updated = await _mediator.Send(command);
+
+        if (!updated) return BadRequest();
+
+        await _cache.RemoveAsync("categories");
+
+        return Ok();
+    }
+    
+    [HttpDelete("{id:guid}")]
+    public async Task<IActionResult> DeleteCategory(Guid id)
+    {
+        var deleted = await _mediator.Send(new DeleteCategoryCommand(id));
+
+        if (!deleted) return BadRequest();
+
+        await _cache.RemoveAsync("categories");
+
+        return Ok();
     }
 }
