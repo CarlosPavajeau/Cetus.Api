@@ -20,7 +20,8 @@ internal sealed class DeleteCategoryCommandHandler : IRequestHandler<DeleteCateg
             return false;
         }
 
-        _context.Categories.Remove(category);
+        category.DeletedAt = DateTime.UtcNow;
+        
         await _context.SaveChangesAsync(cancellationToken);
 
         return true;
