@@ -29,10 +29,10 @@ public sealed class UpdateProductCommandValidator : AbstractValidator<UpdateProd
             .WithMessage("La cantidad en stock del producto es requerida.")
             .GreaterThan(0)
             .WithMessage("La cantidad en stock del producto debe ser mayor a 0.");
-
-        RuleFor(x => x.ImageUrl)
+        
+        RuleFor(x => x.CategoryId)
             .NotNull()
             .NotEmpty()
-            .WithMessage("La URL de la imagen del producto es requerida.");
+            .WithMessage("El identificador de la categoría del producto es requerido.");
     }
 }

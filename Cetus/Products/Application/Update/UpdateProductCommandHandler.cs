@@ -25,6 +25,7 @@ internal sealed class UpdateProductCommandHandler : IRequestHandler<UpdateProduc
         product.Description = request.Description;
         product.Price = request.Price;
         product.Stock = request.Stock;
+        product.CategoryId = request.CategoryId;
         product.Enabled = request.Enabled;
 
         if (!string.IsNullOrWhiteSpace(request.ImageUrl))

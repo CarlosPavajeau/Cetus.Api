@@ -12,7 +12,7 @@ namespace Cetus.Api.Test;
 public class ProductsSpec(ApplicationTestCase factory) : ApplicationContextTestCase(factory)
 {
     private readonly CreateProductCommandFaker _productCommandFaker = new();
-    
+
     [Fact(DisplayName = "Should create a new product")]
     public async Task ShouldCreateANewProduct()
     {
@@ -128,6 +128,7 @@ public class ProductsSpec(ApplicationTestCase factory) : ApplicationContextTestC
             2000,
             20,
             newProduct.ImageUrl,
+            newProduct.CategoryId,
             true
         );
 
@@ -157,6 +158,7 @@ public class ProductsSpec(ApplicationTestCase factory) : ApplicationContextTestC
                 2000,
                 20,
                 "image-test",
+                Guid.NewGuid(),
                 true
             );
 
@@ -187,6 +189,7 @@ public class ProductsSpec(ApplicationTestCase factory) : ApplicationContextTestC
                 2000,
                 20,
                 "image-test",
+                Guid.NewGuid(),
                 true
             );
 
