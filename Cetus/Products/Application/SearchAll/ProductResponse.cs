@@ -8,6 +8,7 @@ public sealed record ProductResponse(
     string? Description,
     decimal Price,
     int Stock,
+    Guid CategoryId,
     bool Enabled,
     DateTime CreatedAt,
     DateTime UpdatedAt)
@@ -19,6 +20,7 @@ public sealed record ProductResponse(
             product.Description,
             product.Price,
             product.Stock,
+            product.CategoryId,
             product.Enabled,
             product.CreatedAt,
             product.UpdatedAt
