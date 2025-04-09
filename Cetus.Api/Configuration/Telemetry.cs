@@ -1,4 +1,6 @@
 using Azure.Monitor.OpenTelemetry.AspNetCore;
+using OpenTelemetry;
+using OpenTelemetry.Logs;
 using OpenTelemetry.Metrics;
 using OpenTelemetry.Trace;
 
@@ -12,9 +14,11 @@ public static class Telemetry
         {
             logging.IncludeFormattedMessage = true;
             logging.IncludeScopes = true;
+
+            logging.AddOtlpExporter();
         });
 
-        builder.Services.AddOpenTelemetry()
+        var otel = builder.Services.AddOpenTelemetry()
             .WithMetrics(metrics =>
             {
                 metrics
@@ -34,7 +38,12 @@ public static class Telemetry
 
         if (!string.IsNullOrEmpty(builder.Configuration["APPLICATIONINSIGHTS_CONNECTION_STRING"]))
         {
-            builder.Services.AddOpenTelemetry().UseAzureMonitor();
+            otel.UseAzureMonitor();
+        }
+
+        if (!string.IsNullOrEmpty(builder.Configuration["APPLICATIONINSIGHTS_CONNECTION_STRING"]))
+        {
+            otel.UseOtlpExporter();
         }
     }
 }
