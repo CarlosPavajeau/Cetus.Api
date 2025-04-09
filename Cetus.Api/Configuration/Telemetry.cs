@@ -41,7 +41,7 @@ public static class Telemetry
             otel.UseAzureMonitor();
         }
 
-        if (!string.IsNullOrEmpty(builder.Configuration["APPLICATIONINSIGHTS_CONNECTION_STRING"]))
+        if (!string.IsNullOrEmpty(builder.Configuration["OTEL_EXPORTER_OTLP_ENDPOINT"]))
         {
             otel.UseOtlpExporter();
         }
