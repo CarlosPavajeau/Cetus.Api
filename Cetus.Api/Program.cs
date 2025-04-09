@@ -15,6 +15,7 @@ builder.ConfigureAuthentication();
 builder.ConfigureEmail();
 builder.ConfigureRateLimit();
 builder.ConfigureCache();
+builder.ConfigureTelemetry();
 
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
