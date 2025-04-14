@@ -73,9 +73,9 @@ public class OrdersController : ControllerBase
     }
     
     [HttpGet("insights")]
-    public async Task<IActionResult> GetOrdersInsights()
+    public async Task<IActionResult> GetOrdersInsights([FromQuery] string Month)
     {
-        var result = await _mediator.Send(new CalculateOrdersInsightsQuery());
+        var result = await _mediator.Send(new CalculateOrdersInsightsQuery(Month));
         return Ok(result);
     }
     

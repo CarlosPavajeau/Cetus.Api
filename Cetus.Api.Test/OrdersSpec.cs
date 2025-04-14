@@ -1,3 +1,4 @@
+using System.Globalization;
 using System.Net;
 using System.Net.Http.Json;
 using Bogus;
@@ -277,7 +278,8 @@ public class OrdersSpec(ApplicationTestCase factory) : ApplicationContextTestCas
         deliverOrderResponse.EnsureSuccessStatusCode();
 
         // Act
-        var getOrdersInsightsResponse = await Client.GetAsync("api/orders/insights");
+        var month = DateTime.Now.ToString("MMMM", CultureInfo.InvariantCulture);
+        var getOrdersInsightsResponse = await Client.GetAsync($"api/orders/insights?month={month}");
 
         // Assert
         getOrdersInsightsResponse.EnsureSuccessStatusCode();
