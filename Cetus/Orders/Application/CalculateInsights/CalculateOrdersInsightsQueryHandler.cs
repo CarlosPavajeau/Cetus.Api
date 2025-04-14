@@ -24,23 +24,35 @@ internal sealed class
         if (!DateTime.TryParseExact(request.Month, "MMMM", CultureInfo.InvariantCulture, DateTimeStyles.None,
                 out var date))
         {
-            return new OrdersInsightsResponse(0, 0);
+            return new OrdersInsightsResponse(0, 0, 0, 0);
         }
-        
-        var currentMonthTotal = await _context.Orders
-            .AsNoTracking()
-            .Where(order => order.CreatedAt.Month == date.Month && order.Status == OrderStatus.Delivered)
-            .SumAsync(order => order.Total, cancellationToken);
 
-        var itemsPerMonth = await _context.Orders
+        var month = date.Month;
+        
+        var allOrdersQuery = _context.Orders
             .AsNoTracking()
-            .Include(o => o.Items)
-            .Where(order => order.CreatedAt.Month == date.Month && order.Status == OrderStatus.Delivered)
+            .Where(order => order.CreatedAt.Month == month);
+        
+        var completedOrdersQuery = allOrdersQuery
+            .Where(order => order.Status == OrderStatus.Delivered);
+        
+        var allOrdersCount = await allOrdersQuery.CountAsync(cancellationToken);
+        
+        var completedOrdersCount = await completedOrdersQuery.CountAsync(cancellationToken);
+        
+        var currentMonthTotalRevenue = await completedOrdersQuery
+            .SumAsync(order => order.Total, cancellationToken);
+        
+        var itemsInCompletedOrders = await completedOrdersQuery
             .SelectMany(order => order.Items)
             .CountAsync(cancellationToken);
+        
+        var currentMonthTotalCost = itemsInCompletedOrders * CostPerItem;
 
-        var currentMonthCost = itemsPerMonth * CostPerItem;
-
-        return new OrdersInsightsResponse(currentMonthTotal, currentMonthCost);
+        return new OrdersInsightsResponse(
+            currentMonthTotalRevenue,
+            currentMonthTotalCost,
+            allOrdersCount,
+            completedOrdersCount);
     }
 }
