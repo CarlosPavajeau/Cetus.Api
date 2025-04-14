@@ -11,6 +11,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.AspNetCore.SignalR;
+using Microsoft.Extensions.Caching.Hybrid;
 
 namespace Cetus.Api.Controllers;
 
@@ -23,13 +24,15 @@ public class OrdersController : ControllerBase
     private readonly IMediator _mediator;
     private readonly ILogger<OrdersController> _logger;
     private readonly IHubContext<OrdersHub, IOrdersClient> _ordersHub;
+    private readonly HybridCache _cache;
 
     public OrdersController(IMediator mediator, ILogger<OrdersController> logger,
-        IHubContext<OrdersHub, IOrdersClient> ordersHub)
+        IHubContext<OrdersHub, IOrdersClient> ordersHub, HybridCache cache)
     {
         _mediator = mediator;
         _logger = logger;
         _ordersHub = ordersHub;
+        _cache = cache;
     }
 
     [HttpPost]
@@ -75,7 +78,16 @@ public class OrdersController : ControllerBase
     [HttpGet("insights")]
     public async Task<IActionResult> GetOrdersInsights([FromQuery] string Month)
     {
-        var result = await _mediator.Send(new CalculateOrdersInsightsQuery(Month));
+        var result = await _cache.GetOrCreateAsync(
+            $"orders-insights-{Month}",
+            async cancellationToken => await _mediator.Send(new CalculateOrdersInsightsQuery(Month), cancellationToken),
+            new HybridCacheEntryOptions
+            {
+                Expiration = TimeSpan.FromMinutes(5),
+                LocalCacheExpiration = TimeSpan.FromMinutes(5),
+            }
+        );
+        
         return Ok(result);
     }
     
