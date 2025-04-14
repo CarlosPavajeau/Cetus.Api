@@ -7,6 +7,7 @@ using Cetus.Api.Test.Shared.Fakers;
 using Cetus.Orders.Application.CalculateInsights;
 using Cetus.Orders.Application.Create;
 using Cetus.Orders.Application.Find;
+using Cetus.Orders.Application.Summary;
 using Cetus.Orders.Domain;
 using Cetus.Products.Application.SearchAll;
 using Shouldly;
@@ -288,5 +289,48 @@ public class OrdersSpec(ApplicationTestCase factory) : ApplicationContextTestCas
 
         ordersInsights.ShouldNotBeNull();
         ordersInsights.CurrentMonthTotal.ShouldBeGreaterThan(0);
+    }
+    
+    [Fact(DisplayName = "Should get orders summary")]
+    public async Task ShouldGetOrdersSummary()
+    {
+        // Arrange
+        var newProduct = _productCommandFaker.Generate();
+        var createResponse = await Client.PostAsJsonAsync("api/products", newProduct);
+
+        createResponse.EnsureSuccessStatusCode();
+
+        var product = await createResponse.DeserializeAsync<ProductResponse>();
+        product.ShouldNotBeNull();
+
+        var newCustomer = _orderCustomerFaker.Generate();
+        var newOrderItems = new List<CreateOrderItem>
+        {
+            new(newProduct.Name, newProduct.ImageUrl, 1, product.Price, product.Id)
+        };
+
+        var newOrder =
+            new CreateOrderCommand(_faker.Address.FullAddress(), cityId, product.Price, newOrderItems, newCustomer);
+
+        var response = await Client.PostAsJsonAsync("api/orders", newOrder);
+
+        response.EnsureSuccessStatusCode();
+
+        var orderId = await response.DeserializeAsync<Guid>();
+
+        var deliverOrderResponse = await Client.PostAsync($"api/orders/{orderId}/deliver", null);
+
+        deliverOrderResponse.EnsureSuccessStatusCode();
+
+        // Act
+        var month = DateTime.Now.ToString("MMMM", CultureInfo.InvariantCulture);
+        var getOrdersSummaryResponse = await Client.GetAsync($"api/orders/summary?month={month}");
+
+        // Assert
+        getOrdersSummaryResponse.EnsureSuccessStatusCode();
+
+        var ordersSummary = await getOrdersSummaryResponse.DeserializeAsync<IEnumerable<OrderSummaryResponse>>();
+
+        ordersSummary.ShouldNotBeNull().ShouldNotBeEmpty();
     }
 }

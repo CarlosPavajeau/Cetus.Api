@@ -3,6 +3,7 @@ using Cetus.Orders.Application.CalculateInsights;
 using Cetus.Orders.Application.Create;
 using Cetus.Orders.Application.Find;
 using Cetus.Orders.Application.SearchAll;
+using Cetus.Orders.Application.Summary;
 using Cetus.Orders.Application.Update;
 using Cetus.Orders.Domain;
 using FluentValidation;
@@ -50,7 +51,7 @@ public class OrdersController : ControllerBase
         catch (Exception e)
         {
             _logger.LogError(e, "An error occurred while creating an order.");
-            
+
             if (e is ValidationException)
             {
                 throw;
@@ -74,7 +75,7 @@ public class OrdersController : ControllerBase
         var result = await _mediator.Send(new SearchAllOrdersQuery());
         return Ok(result);
     }
-    
+
     [HttpGet("insights")]
     public async Task<IActionResult> GetOrdersInsights([FromQuery] string Month)
     {
@@ -87,17 +88,33 @@ public class OrdersController : ControllerBase
                 LocalCacheExpiration = TimeSpan.FromMinutes(5),
             }
         );
-        
+
         return Ok(result);
     }
-    
+
+    [HttpGet("summary")]
+    public async Task<IActionResult> GetOrdersSummary([FromQuery] string Month)
+    {
+        var result = await _cache.GetOrCreateAsync(
+            $"orders-summary-{Month}",
+            async cancellationToken => await _mediator.Send(new GetOrdersSummaryQuery(Month), cancellationToken),
+            new HybridCacheEntryOptions
+            {
+                Expiration = TimeSpan.FromMinutes(5),
+                LocalCacheExpiration = TimeSpan.FromMinutes(5),
+            }
+        );
+
+        return Ok(result);
+    }
+
     [HttpPost("{id:guid}/deliver")]
     public async Task<IActionResult> DeliverOrder([FromRoute] Guid id)
     {
         var result = await _mediator.Send(new UpdateOrderCommand(id, OrderStatus.Delivered));
         return result is null ? NotFound() : Ok(result);
     }
-    
+
     [HttpPost("{id:guid}/cancel")]
     public async Task<IActionResult> CancelOrder([FromRoute] Guid id)
     {
