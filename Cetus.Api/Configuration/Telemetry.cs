@@ -14,7 +14,7 @@ public static class Telemetry
             logging.IncludeScopes = true;
         });
 
-        builder.Services.AddOpenTelemetry()
+        var otel = builder.Services.AddOpenTelemetry()
             .WithMetrics(metrics =>
             {
                 metrics
@@ -26,7 +26,11 @@ public static class Telemetry
                 tracing
                     .AddAspNetCoreInstrumentation()
                     .AddHttpClientInstrumentation();
-            })
-            .UseAzureMonitor();
+            });
+
+        if (!string.IsNullOrEmpty(builder.Configuration["APPLICATIONINSIGHTS_CONNECTION_STRING"]))
+        {
+            otel.UseAzureMonitor();
+        }
     }
 }
