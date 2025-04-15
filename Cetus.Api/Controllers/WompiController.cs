@@ -40,7 +40,7 @@ public class WompiController : ControllerBase
     {
         try
         {
-            _logger.LogInformation("Received Wompi request: {Request}", request);
+            _logger.LogInformation("Received Wompi request: {@Request}", request);
 
             var hasValidChecksum = ValidateChecksum(request);
             if (!hasValidChecksum)
@@ -51,6 +51,7 @@ public class WompiController : ControllerBase
             var hasValidOrderId = TryParseOrderId(request, out var orderId);
             if (!hasValidOrderId)
             {
+                _logger.LogWarning("Invalid order ID received from Wompi request: {OrderId}", request.Data.Transaction.Reference);
                 return BadRequest($"Invalid order id: {request.Data.Transaction.Reference}");
             }
 
@@ -77,15 +78,9 @@ public class WompiController : ControllerBase
         }
     }
 
-    private bool TryParseOrderId(WompiRequest request, out Guid orderId)
+    private static bool TryParseOrderId(WompiRequest request, out Guid orderId)
     {
-        if (Guid.TryParse(request.Data.Transaction.Reference, out orderId))
-        {
-            return true;
-        }
-
-        _logger.LogWarning("Invalid order ID received from Wompi request");
-        return false;
+        return Guid.TryParse(request.Data.Transaction.Reference, out orderId);
     }
 
     private async Task<OrderResponse?> FindOrder(Guid orderId)
