@@ -6,7 +6,7 @@ namespace Cetus.Api.Configuration;
 
 public static class Database
 {
-    public static void ConfigureDatabase(this WebApplicationBuilder builder)
+    public static WebApplicationBuilder AddDatabase(this WebApplicationBuilder builder)
     {
         builder.Services.AddDbContextPool<CetusDbContext>(options =>
         {
@@ -15,5 +15,7 @@ public static class Database
                     dbContextOptionsBuilder => { dbContextOptionsBuilder.MapEnum<OrderStatus>("order_status"); })
                 .UseSnakeCaseNamingConvention();
         });
+
+        return builder;
     }
 }

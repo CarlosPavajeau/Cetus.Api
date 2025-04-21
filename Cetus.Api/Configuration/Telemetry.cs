@@ -6,7 +6,7 @@ namespace Cetus.Api.Configuration;
 
 public static class Telemetry
 {
-    public static void ConfigureTelemetry(this WebApplicationBuilder builder)
+    public static void AddTelemetry(this WebApplicationBuilder builder)
     {
         builder.Logging.AddOpenTelemetry(logging =>
         {

@@ -8,14 +8,14 @@ using Serilog;
 
 var builder = WebApplication.CreateBuilder(args);
 
-builder.ConfigureLogging();
-builder.ConfigureDatabase();
-builder.ConfigureCors();
-builder.ConfigureAuthentication();
-builder.ConfigureEmail();
-builder.ConfigureRateLimit();
-builder.ConfigureCache();
-builder.ConfigureTelemetry();
+builder.AddLogging()
+    .AddDatabase()
+    .AddCors()
+    .AddAuthentication()
+    .AddEmail()
+    .AddRateLimit()
+    .AddCache()
+    .AddTelemetry();
 
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
@@ -34,6 +34,8 @@ builder.Services.AddControllers();
 
 builder.Services.AddExceptionHandler<GlobalExceptionHandler>();
 builder.Services.AddProblemDetails();
+
+builder.Services.AddApplicationInsightsTelemetry();
 
 var app = builder.Build();
 

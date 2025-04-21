@@ -4,7 +4,7 @@ namespace Cetus.Api.Configuration;
 
 public static class Email
 {
-    public static void ConfigureEmail(this WebApplicationBuilder builder)
+    public static WebApplicationBuilder AddEmail(this WebApplicationBuilder builder)
     {
         builder.Services.AddOptions();
         builder.Services.AddHttpClient<ResendClient>();
@@ -15,5 +15,7 @@ public static class Email
         });
 
         builder.Services.AddTransient<IResend, ResendClient>();
+
+        return builder;
     }
 }

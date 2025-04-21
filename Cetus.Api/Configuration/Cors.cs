@@ -4,7 +4,7 @@ public static class Cors
 {
     public const string AllowAll = "AllowAll";
 
-    public static void ConfigureCors(this WebApplicationBuilder builder)
+    public static WebApplicationBuilder AddCors(this WebApplicationBuilder builder)
     {
         builder.Services.AddCors(options =>
         {
@@ -18,5 +18,7 @@ public static class Cors
                     .AllowAnyMethod();
             });
         });
+
+        return builder;
     }
 }

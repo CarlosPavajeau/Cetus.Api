@@ -4,7 +4,7 @@ namespace Cetus.Api.Configuration;
 
 public static class RateLimit
 {
-    public static void ConfigureRateLimit(this WebApplicationBuilder builder)
+    public static WebApplicationBuilder AddRateLimit(this WebApplicationBuilder builder)
     {
         builder.Services.AddRateLimiter(options =>
         {
@@ -20,5 +20,7 @@ public static class RateLimit
                     })
             );
         });
+
+        return builder;
     }
 }

@@ -4,7 +4,7 @@ namespace Cetus.Api.Configuration;
 
 public static class Authentication
 {
-    public static void ConfigureAuthentication(this WebApplicationBuilder builder)
+    public static WebApplicationBuilder AddAuthentication(this WebApplicationBuilder builder)
     {
         builder.Services.AddAuthentication(ClerkAuthenticationDefaults.AuthenticationScheme)
             .AddClerkAuthentication(options =>
@@ -12,5 +12,7 @@ public static class Authentication
                 options.Authority = builder.Configuration["Clerk:Authority"]!;
                 options.AuthorizedParty = builder.Configuration["Clerk:AuthorizedParty"]!;
             });
+
+        return builder;
     }
 }
