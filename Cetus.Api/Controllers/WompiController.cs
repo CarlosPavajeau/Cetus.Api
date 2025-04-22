@@ -51,7 +51,8 @@ public class WompiController : ControllerBase
             var hasValidOrderId = TryParseOrderId(request, out var orderId);
             if (!hasValidOrderId)
             {
-                _logger.LogWarning("Invalid order ID received from Wompi request: {OrderId}", request.Data.Transaction.Reference);
+                _logger.LogWarning("Invalid order ID received from Wompi request: {OrderId}",
+                    request.Data.Transaction.Reference);
                 return BadRequest($"Invalid order id: {request.Data.Transaction.Reference}");
             }
 
@@ -124,7 +125,8 @@ public class WompiController : ControllerBase
         var eventSecret = _configuration["Wompi:EventSecret"];
         if (string.IsNullOrEmpty(eventSecret))
         {
-            _logger.LogWarning("Wompi event secret is not configured");
+            _logger.LogWarning("Wompi event secret is not configured for environment: {Environment}",
+                Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT"));
             return false;
         }
 
