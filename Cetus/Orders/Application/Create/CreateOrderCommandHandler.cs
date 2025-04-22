@@ -94,16 +94,26 @@ internal sealed class CreateOrderCommandHandler : IRequestHandler<CreateOrderCom
 
         var outOfStockProducts = products
             .Where(p => !items.Any(i => i.ProductId == p.Id && p.Stock >= i.Quantity))
-            .Select(p => p.Id)
+            .Select(p => new {p.Id, p.Stock})
             .ToList();
 
-        if (outOfStockProducts.Count != 0)
+        if (outOfStockProducts.Count == 0)
         {
-            throw new InsufficientStockException(
-                $"Insufficient stock for products: {string.Join(", ", outOfStockProducts)}");
+            return products;
         }
-
-        return products;
+        
+        var outOfStockProductsDetails = outOfStockProducts
+            .Select(p => $"{p.Id} (stock: {p.Stock})")
+            .ToList();
+            
+        var requestedProducts = items
+            .Where(i => outOfStockProducts.Any(p => p.Id == i.ProductId))
+            .Select(i => $"{i.ProductId} (requested: {i.Quantity})")
+            .ToList();
+            
+        throw new InsufficientStockException(
+            $"Insufficient stock for products: {string.Join(", ", outOfStockProductsDetails)}. " +
+            $"Requested quantities: {string.Join(", ", requestedProducts)}");
     }
 
     private static Order CreateOrderEntity(CreateOrderCommand request, string customerId)
