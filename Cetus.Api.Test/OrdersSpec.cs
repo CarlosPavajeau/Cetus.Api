@@ -7,6 +7,7 @@ using Cetus.Api.Test.Shared.Fakers;
 using Cetus.Orders.Application.CalculateInsights;
 using Cetus.Orders.Application.Create;
 using Cetus.Orders.Application.Find;
+using Cetus.Orders.Application.FindDeliveryFee;
 using Cetus.Orders.Application.Summary;
 using Cetus.Orders.Domain;
 using Cetus.Products.Application.SearchAll;
@@ -332,5 +333,20 @@ public class OrdersSpec(ApplicationTestCase factory) : ApplicationContextTestCas
         var ordersSummary = await getOrdersSummaryResponse.DeserializeAsync<IEnumerable<OrderSummaryResponse>>();
 
         ordersSummary.ShouldNotBeNull().ShouldNotBeEmpty();
+    }
+    
+    [Fact(DisplayName = "Should get delivery fee")]
+    public async Task ShouldGetDeliveryFee()
+    {
+        // Act
+        var getDeliveryFeeResponse = await Client.GetAsync($"api/orders/delivery-fee/{cityId}");
+
+        // Assert
+        getDeliveryFeeResponse.EnsureSuccessStatusCode();
+
+        var deliveryFee = await getDeliveryFeeResponse.DeserializeAsync<DeliveryFeeResponse>();
+
+        deliveryFee.ShouldNotBeNull();
+        deliveryFee.Fee.ShouldBe(DeliveryFeeResponse.Empty.Fee);
     }
 }

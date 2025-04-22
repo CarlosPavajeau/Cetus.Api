@@ -2,6 +2,7 @@ using Cetus.Api.Realtime;
 using Cetus.Orders.Application.CalculateInsights;
 using Cetus.Orders.Application.Create;
 using Cetus.Orders.Application.Find;
+using Cetus.Orders.Application.FindDeliveryFee;
 using Cetus.Orders.Application.SearchAll;
 using Cetus.Orders.Application.Summary;
 using Cetus.Orders.Application.Update;
@@ -105,6 +106,18 @@ public class OrdersController : ControllerBase
             }
         );
 
+        return Ok(result);
+    }
+    
+    [HttpGet("delivery-fee/{cityId:guid}")]
+    [AllowAnonymous]
+    public async Task<IActionResult> GetDeliveryFee([FromRoute] Guid cityId)
+    {
+        var result = await _cache.GetOrCreateAsync(
+            $"delivery-fee-{cityId}",
+            async cancellationToken => await _mediator.Send(new FindDeliveryFeeQuery(cityId), cancellationToken)
+        );
+        
         return Ok(result);
     }
 

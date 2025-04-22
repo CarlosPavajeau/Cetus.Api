@@ -19,6 +19,8 @@ public class CetusDbContext(DbContextOptions<CetusDbContext> options)
 
     public DbSet<State> States { get; set; }
     public DbSet<City> Cities { get; set; }
+    
+    public DbSet<DeliveryFee> DeliveryFees { get; set; }
 
     private class DateTimeToUtcConverter() : ValueConverter<DateTime, DateTime>(Serialize, Deserialize)
     {
