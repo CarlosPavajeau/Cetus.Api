@@ -26,7 +26,7 @@ public class WompiControllerSpec(ApplicationTestCase factory) : ApplicationConte
     public async Task ShouldProcessApprovedWompiTransaction()
     {
         // Arrange - Create a product
-        var newProduct = _productCommandFaker.Generate();
+        var newProduct = _productCommandFaker.WithStock(100).Generate();
         var createProductResponse = await Client.PostAsJsonAsync("api/products", newProduct);
         createProductResponse.EnsureSuccessStatusCode();
         var product = await createProductResponse.DeserializeAsync<ProductResponse>();
@@ -65,7 +65,7 @@ public class WompiControllerSpec(ApplicationTestCase factory) : ApplicationConte
     public async Task ShouldProcessNonApprovedWompiTransaction()
     {
         // Arrange - Create a product
-        var newProduct = _productCommandFaker.Generate();
+        var newProduct = _productCommandFaker.WithStock(100).Generate();
         var createProductResponse = await Client.PostAsJsonAsync("api/products", newProduct);
         createProductResponse.EnsureSuccessStatusCode();
         var product = await createProductResponse.DeserializeAsync<ProductResponse>();
@@ -104,7 +104,7 @@ public class WompiControllerSpec(ApplicationTestCase factory) : ApplicationConte
     public async Task ShouldRejectWompiRequestWithInvalidChecksum()
     {
         // Arrange - Create a product and order
-        var newProduct = _productCommandFaker.Generate();
+        var newProduct = _productCommandFaker.WithStock(100).Generate();
         var createProductResponse = await Client.PostAsJsonAsync("api/products", newProduct);
         createProductResponse.EnsureSuccessStatusCode();
         var product = await createProductResponse.DeserializeAsync<ProductResponse>();
