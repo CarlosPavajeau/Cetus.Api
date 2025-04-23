@@ -1,4 +1,4 @@
-CREATE TABLE delivery_fee
+CREATE TABLE delivery_fees
 (
     id              UUID PRIMARY KEY,
     fee             DECIMAL   NOT NULL DEFAULT 0,
