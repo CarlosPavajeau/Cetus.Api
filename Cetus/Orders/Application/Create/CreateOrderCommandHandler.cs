@@ -1,5 +1,6 @@
 using System.Collections.Immutable;
 using Cetus.Infrastructure.Persistence.EntityFramework;
+using Cetus.Orders.Application.FindDeliveryFee;
 using Cetus.Orders.Domain;
 using Cetus.Products.Domain;
 using Cetus.Shared.Domain.Exceptions;
@@ -12,12 +13,14 @@ namespace Cetus.Orders.Application.Create;
 internal sealed class CreateOrderCommandHandler : IRequestHandler<CreateOrderCommand, Guid>
 {
     private readonly CetusDbContext _context;
+    private readonly IMediator _mediator;
     private readonly ILogger<CreateOrderCommandHandler> _logger;
 
-    public CreateOrderCommandHandler(CetusDbContext context, ILogger<CreateOrderCommandHandler> logger)
+    public CreateOrderCommandHandler(CetusDbContext context, ILogger<CreateOrderCommandHandler> logger, IMediator mediator)
     {
         _context = context ?? throw new ArgumentNullException(nameof(context));
         _logger = logger ?? throw new ArgumentNullException(nameof(logger));
+        _mediator = mediator;
     }
 
     public async Task<Guid> Handle(CreateOrderCommand request, CancellationToken cancellationToken)
@@ -31,7 +34,7 @@ internal sealed class CreateOrderCommandHandler : IRequestHandler<CreateOrderCom
             var items = request.Items.ToImmutableList();
             var products = await ValidateAndGetProducts(items, cancellationToken);
 
-            var order = CreateOrderEntity(request, customer.Id);
+            var order = await CreateOrderEntity(request, customer.Id);
             await _context.Orders.AddAsync(order, cancellationToken);
             
             UpdateProductStocks(products, items);
@@ -116,9 +119,9 @@ internal sealed class CreateOrderCommandHandler : IRequestHandler<CreateOrderCom
             $"Requested quantities: {string.Join(", ", requestedProducts)}");
     }
 
-    private static Order CreateOrderEntity(CreateOrderCommand request, string customerId)
+    private async Task<Order> CreateOrderEntity(CreateOrderCommand request, string customerId)
     {
-        var deliveryFee = CalculateDeliveryFee(request.CityId);
+        var deliveryFee = await CalculateDeliveryFee(request.CityId);
 
         return new Order
         {
@@ -139,10 +142,10 @@ internal sealed class CreateOrderCommandHandler : IRequestHandler<CreateOrderCom
         };
     }
 
-    private static decimal CalculateDeliveryFee(Guid cityId)
+    private async Task<decimal> CalculateDeliveryFee(Guid cityId)
     {
-        // TODO: Replace with a lookup from a delivery fee table
-        return cityId.ToString() == "f97957e9-d820-4858-ac26-b5d03d658370" ? 5000 : 15000;
+        var deliveryFee = await _mediator.Send(new FindDeliveryFeeQuery(cityId));
+        return deliveryFee.Fee;
     }
 
     private static void UpdateProductStocks(List<Product> products, ImmutableList<CreateOrderItem> items)
