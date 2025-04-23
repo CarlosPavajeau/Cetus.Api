@@ -13,3 +13,9 @@ CREATE TABLE delivery_fee
 -- Create index for better performance
 CREATE INDEX idx_delivery_fee_city ON delivery_fee (city_id);
 CREATE INDEX idx_delivery_fee_organization ON delivery_fee (organization_id);
+
+CREATE TRIGGER update_delivery_fee_updated_at
+    BEFORE UPDATE
+    ON delivery_fee
+    FOR EACH ROW
+    EXECUTE FUNCTION update_updated_at_column();
