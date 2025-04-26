@@ -121,7 +121,7 @@ public class OrdersController : ControllerBase
         return Ok(result);
     }
     
-    [HttpGet("delivery-fee/{cityId:guid}")]
+    [HttpGet("delivery-fees/{cityId:guid}")]
     [AllowAnonymous]
     public async Task<IActionResult> GetDeliveryFee([FromRoute] Guid cityId)
     {

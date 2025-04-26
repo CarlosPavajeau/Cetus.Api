@@ -382,7 +382,7 @@ public class OrdersSpec(ApplicationTestCase factory) : ApplicationContextTestCas
     public async Task ShouldGetDeliveryFee()
     {
         // Act
-        var getDeliveryFeeResponse = await Client.GetAsync($"api/orders/delivery-fee/{cityId}");
+        var getDeliveryFeeResponse = await Client.GetAsync($"api/orders/delivery-fees/{cityId}");
 
         // Assert
         getDeliveryFeeResponse.EnsureSuccessStatusCode();
