@@ -2,6 +2,7 @@ using Cetus.Api.Realtime;
 using Cetus.Orders.Application.CalculateInsights;
 using Cetus.Orders.Application.Create;
 using Cetus.Orders.Application.DeliveryFees.Find;
+using Cetus.Orders.Application.DeliveryFees.SearchAll;
 using Cetus.Orders.Application.Find;
 using Cetus.Orders.Application.SearchAll;
 using Cetus.Orders.Application.Summary;
@@ -104,6 +105,17 @@ public class OrdersController : ControllerBase
                 Expiration = TimeSpan.FromMinutes(5),
                 LocalCacheExpiration = TimeSpan.FromMinutes(5),
             }
+        );
+
+        return Ok(result);
+    }
+    
+    [HttpGet("delivery-fees")]
+    public async Task<IActionResult> GetDeliveryFees()
+    {
+        var result = await _cache.GetOrCreateAsync(
+            "delivery-fees",
+            async cancellationToken => await _mediator.Send(new SearchAllDeliveryFeesQuery(), cancellationToken)
         );
 
         return Ok(result);

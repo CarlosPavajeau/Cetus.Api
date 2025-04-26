@@ -27,12 +27,9 @@ public class ApplicationTestCase : WebApplicationFactory<Program>
             {
                 options.UseInMemoryDatabase("test");
                 options.UseInternalServiceProvider(serviceProvider);
-                options.ConfigureWarnings(warnings =>
-                {
-                    warnings.Ignore(InMemoryEventId.TransactionIgnoredWarning);
-                });
+                options.ConfigureWarnings(warnings => { warnings.Ignore(InMemoryEventId.TransactionIgnoredWarning); });
             });
-            
+
             services.AddAuthentication("Test")
                 .AddScheme<AuthenticationSchemeOptions, TestAuthHandler>("Test", _ => { });
         });

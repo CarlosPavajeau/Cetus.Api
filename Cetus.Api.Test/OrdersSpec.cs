@@ -4,6 +4,7 @@ using System.Net.Http.Json;
 using Bogus;
 using Cetus.Api.Test.Shared;
 using Cetus.Api.Test.Shared.Fakers;
+using Cetus.Infrastructure.Persistence.EntityFramework;
 using Cetus.Orders.Application.CalculateInsights;
 using Cetus.Orders.Application.Create;
 using Cetus.Orders.Application.DeliveryFees.Find;
@@ -11,6 +12,8 @@ using Cetus.Orders.Application.Find;
 using Cetus.Orders.Application.Summary;
 using Cetus.Orders.Domain;
 using Cetus.Products.Application.SearchAll;
+using Cetus.States.Domain;
+using Microsoft.Extensions.DependencyInjection;
 using Shouldly;
 
 namespace Cetus.Api.Test;
@@ -333,6 +336,46 @@ public class OrdersSpec(ApplicationTestCase factory) : ApplicationContextTestCas
         var ordersSummary = await getOrdersSummaryResponse.DeserializeAsync<IEnumerable<OrderSummaryResponse>>();
 
         ordersSummary.ShouldNotBeNull().ShouldNotBeEmpty();
+    }
+    
+    [Fact(DisplayName = "Should get all delivery fees")]
+    public async Task ShouldGetAllDeliveryFees()
+    {
+        // Arrange
+        var city = new City
+        {
+            Id = cityId,
+            Name = "Test City",
+            State = new State
+            {
+                Id = Guid.NewGuid(),
+                Name = "Test State"
+            }
+        };
+        
+        var deliveryFee = new DeliveryFee
+        {
+            Id = Guid.NewGuid(),
+            CityId = cityId,
+            City = city,
+            Fee = 100,
+            CreatedAt = DateTime.UtcNow,
+            UpdatedAt = DateTime.UtcNow
+        };
+
+        var db = Services.GetRequiredService<CetusDbContext>();
+        await db.DeliveryFees.AddAsync(deliveryFee);
+        await db.SaveChangesAsync();
+        
+        // Act
+        var getDeliveryFeesResponse = await Client.GetAsync("api/orders/delivery-fees");
+
+        // Assert
+        getDeliveryFeesResponse.EnsureSuccessStatusCode();
+
+        var deliveryFees = await getDeliveryFeesResponse.DeserializeAsync<IEnumerable<DeliveryFeeResponse>>();
+
+        deliveryFees.ShouldNotBeNull().ShouldNotBeEmpty();
     }
     
     [Fact(DisplayName = "Should get delivery fee")]
