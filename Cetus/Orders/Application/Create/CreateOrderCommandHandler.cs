@@ -1,6 +1,6 @@
 using System.Collections.Immutable;
 using Cetus.Infrastructure.Persistence.EntityFramework;
-using Cetus.Orders.Application.FindDeliveryFee;
+using Cetus.Orders.Application.DeliveryFee.Find;
 using Cetus.Orders.Domain;
 using Cetus.Products.Domain;
 using Cetus.Shared.Domain.Exceptions;

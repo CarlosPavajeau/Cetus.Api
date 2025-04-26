@@ -1,5 +1,5 @@
 using MediatR;
 
-namespace Cetus.Orders.Application.FindDeliveryFee;
+namespace Cetus.Orders.Application.DeliveryFee.Find;
 
 public sealed record FindDeliveryFeeQuery(Guid CityId) : IRequest<DeliveryFeeResponse>;

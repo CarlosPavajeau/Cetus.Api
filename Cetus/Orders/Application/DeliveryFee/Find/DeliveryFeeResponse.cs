@@ -1,4 +1,4 @@
-namespace Cetus.Orders.Application.FindDeliveryFee;
+namespace Cetus.Orders.Application.DeliveryFee.Find;
 
 public record DeliveryFeeResponse(Guid Id, decimal Fee)
 {
