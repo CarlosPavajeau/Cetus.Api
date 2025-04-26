@@ -6,7 +6,7 @@ using Cetus.Api.Test.Shared;
 using Cetus.Api.Test.Shared.Fakers;
 using Cetus.Orders.Application.CalculateInsights;
 using Cetus.Orders.Application.Create;
-using Cetus.Orders.Application.DeliveryFee.Find;
+using Cetus.Orders.Application.DeliveryFees.Find;
 using Cetus.Orders.Application.Find;
 using Cetus.Orders.Application.Summary;
 using Cetus.Orders.Domain;

@@ -2,7 +2,7 @@ using Cetus.Infrastructure.Persistence.EntityFramework;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 
-namespace Cetus.Orders.Application.DeliveryFee.Find;
+namespace Cetus.Orders.Application.DeliveryFees.Find;
 
 internal sealed class FindDeliveryFeeQueryHandler(CetusDbContext context)
     : IRequestHandler<FindDeliveryFeeQuery, DeliveryFeeResponse>
