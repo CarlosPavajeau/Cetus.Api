@@ -1,6 +1,7 @@
 using Cetus.Api.Realtime;
 using Cetus.Orders.Application.CalculateInsights;
 using Cetus.Orders.Application.Create;
+using Cetus.Orders.Application.DeliveryFees.Create;
 using Cetus.Orders.Application.DeliveryFees.Find;
 using Cetus.Orders.Application.DeliveryFees.SearchAll;
 using Cetus.Orders.Application.Find;
@@ -107,6 +108,13 @@ public class OrdersController : ControllerBase
             }
         );
 
+        return Ok(result);
+    }
+    
+    [HttpPost("delivery-fees")]
+    public async Task<IActionResult> CreateDeliveryFee([FromBody] CreateDeliveryFeeCommand command)
+    {
+        var result = await _mediator.Send(command);
         return Ok(result);
     }
     
