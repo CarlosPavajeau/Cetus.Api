@@ -115,6 +115,9 @@ public class OrdersController : ControllerBase
     public async Task<IActionResult> CreateDeliveryFee([FromBody] CreateDeliveryFeeCommand command)
     {
         var result = await _mediator.Send(command);
+        
+        await _cache.RemoveAsync("delivery-fees");
+        
         return Ok(result);
     }
     
