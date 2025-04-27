@@ -22,6 +22,8 @@ namespace Cetus.Api.Test;
 public class OrdersSpec(ApplicationTestCase factory) : ApplicationContextTestCase(factory)
 {
     private readonly Guid cityId = Guid.Parse("f97957e9-d820-4858-ac26-b5d03d658370");
+    private const decimal DeliveryFee = 100m;
+    
     private readonly CreateProductCommandFaker _productCommandFaker = new();
     private readonly CreateOrderCustomerFaker _orderCustomerFaker = new();
     private readonly Faker _faker = new();
@@ -377,7 +379,7 @@ public class OrdersSpec(ApplicationTestCase factory) : ApplicationContextTestCas
             Id = Guid.NewGuid(),
             CityId = cityId,
             City = city,
-            Fee = 100,
+            Fee = DeliveryFee,
             CreatedAt = DateTime.UtcNow,
             UpdatedAt = DateTime.UtcNow
         };
@@ -409,6 +411,6 @@ public class OrdersSpec(ApplicationTestCase factory) : ApplicationContextTestCas
         var deliveryFee = await getDeliveryFeeResponse.DeserializeAsync<DeliveryFeeResponse>();
 
         deliveryFee.ShouldNotBeNull();
-        deliveryFee.Fee.ShouldBe(DeliveryFeeResponse.Empty.Fee);
+        deliveryFee.Fee.ShouldBe(DeliveryFee);
     }
 }

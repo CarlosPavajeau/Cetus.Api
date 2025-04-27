@@ -22,4 +22,10 @@ public sealed class CreateProductCommandFaker : Faker<CreateProductCommand>
         RuleFor(x => x.Stock, stock);
         return this;
     }
+
+    public CreateProductCommandFaker WithCategoryId(Guid categoryId)
+    {
+        RuleFor(x => x.CategoryId, categoryId);
+        return this;
+    }
 }

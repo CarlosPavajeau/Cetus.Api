@@ -2,15 +2,19 @@ using System.Net;
 using System.Net.Http.Json;
 using Cetus.Api.Test.Shared;
 using Cetus.Api.Test.Shared.Fakers;
+using Cetus.Categories.Domain;
+using Cetus.Infrastructure.Persistence.EntityFramework;
 using Cetus.Products.Application.SearchAll;
 using Cetus.Products.Application.Update;
 using Cetus.Products.Domain;
+using Microsoft.Extensions.DependencyInjection;
 using Shouldly;
 
 namespace Cetus.Api.Test;
 
 public class ProductsSpec(ApplicationTestCase factory) : ApplicationContextTestCase(factory)
 {
+    private readonly Guid categoryId = Guid.Parse("f97957e9-d820-4858-ac26-b5d03d658370");
     private readonly CreateProductCommandFaker _productCommandFaker = new();
 
     [Fact(DisplayName = "Should create a new product")]
@@ -76,7 +80,18 @@ public class ProductsSpec(ApplicationTestCase factory) : ApplicationContextTestC
     public async Task ShouldReturnAProductById()
     {
         // Arrange
-        var newProduct = _productCommandFaker.Generate();
+        var category = new Category
+        {
+            Id = categoryId,
+            Name = "Category Test",
+            CreatedAt = DateTime.UtcNow
+        };
+        
+        var db = Services.GetRequiredService<CetusDbContext>();
+        await db.Categories.AddAsync(category);
+        await db.SaveChangesAsync();
+        
+        var newProduct = _productCommandFaker.WithCategoryId(categoryId).Generate();
         var createResponse = await Client.PostAsJsonAsync("api/products", newProduct);
 
         createResponse.EnsureSuccessStatusCode();
