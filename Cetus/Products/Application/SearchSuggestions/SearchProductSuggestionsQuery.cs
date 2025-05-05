@@ -3,4 +3,4 @@ using MediatR;
 
 namespace Cetus.Products.Application.SearchSuggestions;
 
-public sealed record SearchProductSuggestionsQuery(Guid ProductId, Guid CategoryId) : IRequest<IEnumerable<ProductResponse>>;
+public sealed record SearchProductSuggestionsQuery(Guid ProductId) : IRequest<IEnumerable<ProductResponse>>;

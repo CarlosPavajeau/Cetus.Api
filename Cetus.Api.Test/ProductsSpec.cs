@@ -157,7 +157,7 @@ public class ProductsSpec(ApplicationTestCase factory) : ApplicationContextTestC
 
         // Act
         var response =
-            await Client.GetAsync($"api/products/suggestions?productId={product.Id}&categoryId={category.Id}");
+            await Client.GetAsync($"api/products/suggestions?productId={product.Id}");
 
         // Assert
         response.EnsureSuccessStatusCode();

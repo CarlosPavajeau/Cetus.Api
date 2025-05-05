@@ -84,16 +84,16 @@ public class ProductsController : ControllerBase
 
     [HttpGet("suggestions")]
     [AllowAnonymous]
-    public async Task<IActionResult> GetProductSuggestions([FromQuery] Guid productId, [FromQuery] Guid categoryId)
+    public async Task<IActionResult> GetProductSuggestions([FromQuery] Guid productId)
     {
-        if (productId == Guid.Empty || categoryId == Guid.Empty)
+        if (productId == Guid.Empty)
         {
             return BadRequest("Product ID and Category ID are required.");
         }
 
         var suggestions = await _cache.GetOrCreateAsync(
-            $"suggestions-{productId}-{categoryId}",
-            async cancellationToken => await _mediator.Send(new SearchProductSuggestionsQuery(productId, categoryId),
+            $"suggestions-{productId}",
+            async cancellationToken => await _mediator.Send(new SearchProductSuggestionsQuery(productId),
                 cancellationToken),
             new HybridCacheEntryOptions
             {

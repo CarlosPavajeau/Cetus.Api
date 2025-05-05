@@ -17,11 +17,22 @@ internal sealed class SearchProductSuggestionsQueryHandler : IRequestHandler<Sea
     public async Task<IEnumerable<ProductResponse>> Handle(SearchProductSuggestionsQuery request,
         CancellationToken cancellationToken)
     {
-        // Select only 5 random products in the same category but not the same product
+        var category = await _context.Products
+            .AsNoTracking()
+            .Where(p => p.Id == request.ProductId)
+            .Select(p => p.CategoryId)
+            .FirstOrDefaultAsync(cancellationToken);
+        
+        if (category == Guid.Empty)
+        {
+            return [];
+        }
+        
+        // Select only 3 random products in the same category but not the same product
         var products = await _context.Products
-            .Where(p => p.CategoryId == request.CategoryId && p.Id != request.ProductId)
+            .Where(p => p.CategoryId == category && p.Id != request.ProductId)
             .OrderBy(_ => Guid.NewGuid())
-            .Take(5)
+            .Take(3)
             .ToListAsync(cancellationToken);
 
         return products.Select(ProductResponse.FromProduct);
