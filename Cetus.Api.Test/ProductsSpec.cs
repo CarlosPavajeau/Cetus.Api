@@ -86,11 +86,11 @@ public class ProductsSpec(ApplicationTestCase factory) : ApplicationContextTestC
             Name = "Category Test",
             CreatedAt = DateTime.UtcNow
         };
-        
+
         var db = Services.GetRequiredService<CetusDbContext>();
         await db.Categories.AddAsync(category);
         await db.SaveChangesAsync();
-        
+
         var newProduct = _productCommandFaker.WithCategoryId(categoryId).Generate();
         var createResponse = await Client.PostAsJsonAsync("api/products", newProduct);
 
@@ -122,6 +122,49 @@ public class ProductsSpec(ApplicationTestCase factory) : ApplicationContextTestC
 
         // Assert
         response.StatusCode.ShouldBe(HttpStatusCode.NotFound);
+    }
+
+    [Fact(DisplayName = "Should return product suggestions")]
+    public async Task ShouldReturnProductSuggestions()
+    {
+        // Arrange
+        var category = new Category
+        {
+            Id = Guid.NewGuid(),
+            Name = "Category Test 2",
+            CreatedAt = DateTime.UtcNow
+        };
+
+        var db = Services.GetRequiredService<CetusDbContext>();
+        await db.Categories.AddAsync(category);
+        await db.SaveChangesAsync();
+
+        var newProduct = _productCommandFaker.WithCategoryId(category.Id).Generate();
+        var createResponse = await Client.PostAsJsonAsync("api/products", newProduct);
+
+        createResponse.EnsureSuccessStatusCode();
+
+        var product = await createResponse.DeserializeAsync<ProductResponse>();
+        product.ShouldNotBeNull();
+        
+        newProduct = _productCommandFaker.WithCategoryId(category.Id).Generate();
+        createResponse = await Client.PostAsJsonAsync("api/products", newProduct);
+        
+        createResponse.EnsureSuccessStatusCode();
+        
+        product = await createResponse.DeserializeAsync<ProductResponse>();
+        product.ShouldNotBeNull();
+
+        // Act
+        var response =
+            await Client.GetAsync($"api/products/suggestions?productId={product.Id}&categoryId={category.Id}");
+
+        // Assert
+        response.EnsureSuccessStatusCode();
+
+        var suggestions = await response.DeserializeAsync<IEnumerable<ProductResponse>>();
+
+        suggestions.ShouldNotBeEmpty();
     }
 
     [Fact(DisplayName = "Should update a product")]

@@ -3,6 +3,7 @@ using Cetus.Products.Application.Delete;
 using Cetus.Products.Application.Find;
 using Cetus.Products.Application.SearchAll;
 using Cetus.Products.Application.SearchForSale;
+using Cetus.Products.Application.SearchSuggestions;
 using Cetus.Products.Application.Update;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
@@ -35,7 +36,7 @@ public class ProductsController : ControllerBase
         try
         {
             var created = await _mediator.Send(command);
-            
+
             await _cache.RemoveAsync("products-for-sale");
 
             return Ok(created);
@@ -81,6 +82,28 @@ public class ProductsController : ControllerBase
             : Ok(product);
     }
 
+    [HttpGet("suggestions")]
+    public async Task<IActionResult> GetProductSuggestions([FromQuery] Guid productId, [FromQuery] Guid categoryId)
+    {
+        if (productId == Guid.Empty || categoryId == Guid.Empty)
+        {
+            return BadRequest("Product ID and Category ID are required.");
+        }
+
+        var suggestions = await _cache.GetOrCreateAsync(
+            $"suggestions-{productId}-{categoryId}",
+            async cancellationToken => await _mediator.Send(new SearchProductSuggestionsQuery(productId, categoryId),
+                cancellationToken),
+            new HybridCacheEntryOptions
+            {
+                Expiration = TimeSpan.FromHours(2),
+                LocalCacheExpiration = TimeSpan.FromHours(2),
+            }
+        );
+
+        return Ok(suggestions);
+    }
+
     [HttpPut("{id:guid}")]
     public async Task<IActionResult> UpdateProduct(Guid id, [FromBody] UpdateProductCommand command)
     {
@@ -95,9 +118,9 @@ public class ProductsController : ControllerBase
         {
             return NotFound();
         }
-        
+
         await _cache.RemoveAsync($"product-{id}");
-        
+
         return Ok(updated);
     }
 
