@@ -83,6 +83,7 @@ public class ProductsController : ControllerBase
     }
 
     [HttpGet("suggestions")]
+    [AllowAnonymous]
     public async Task<IActionResult> GetProductSuggestions([FromQuery] Guid productId, [FromQuery] Guid categoryId)
     {
         if (productId == Guid.Empty || categoryId == Guid.Empty)
