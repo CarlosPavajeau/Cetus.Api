@@ -60,7 +60,21 @@ public class ProductsSpec(ApplicationTestCase factory) : ApplicationContextTestC
     public async Task ShouldReturnAllProductsForSale()
     {
         // Arrange
-        var newProduct = _productCommandFaker.Generate();
+        var category = new Category
+        {
+            Id = Guid.NewGuid(),
+            Name = "Category Test 2",
+            CreatedAt = DateTime.UtcNow
+        };
+
+        var db = Services.GetRequiredService<CetusDbContext>();
+        await db.Categories.AddAsync(category);
+        await db.SaveChangesAsync();
+        
+        var newProduct = _productCommandFaker
+            .WithCategoryId(category.Id)
+            .Generate();
+        
         var createResponse = await Client.PostAsJsonAsync("api/products", newProduct);
 
         createResponse.EnsureSuccessStatusCode();
