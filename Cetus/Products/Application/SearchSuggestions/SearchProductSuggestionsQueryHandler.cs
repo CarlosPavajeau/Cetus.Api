@@ -19,6 +19,7 @@ internal sealed class SearchProductSuggestionsQueryHandler : IRequestHandler<Sea
     {
         var category = await _context.Products
             .AsNoTracking()
+            .Include(x => x.Category)
             .Where(p => p.Id == request.ProductId)
             .Select(p => p.CategoryId)
             .FirstOrDefaultAsync(cancellationToken);

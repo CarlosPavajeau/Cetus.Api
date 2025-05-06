@@ -9,7 +9,8 @@ public sealed record ProductResponse(
     decimal Price,
     int Stock,
     string? ImageUrl,
-    Guid CategoryId)
+    Guid CategoryId,
+    string? Category)
 {
     public static ProductResponse FromProduct(Product product) =>
         new(
@@ -19,6 +20,7 @@ public sealed record ProductResponse(
             product.Price,
             product.Stock,
             product.ImageUrl,
-            product.CategoryId
+            product.CategoryId,
+            product.Category?.Name
         );
 }

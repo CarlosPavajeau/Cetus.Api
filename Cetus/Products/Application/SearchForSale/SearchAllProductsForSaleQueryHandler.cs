@@ -19,6 +19,7 @@ internal class
     {
         var products = await _context.Products
             .AsNoTracking()
+            .Include(x => x.Category)
             .Where(p => p.DeletedAt == null && p.Enabled && p.Stock > 0)
             .ToListAsync(cancellationToken);
 
