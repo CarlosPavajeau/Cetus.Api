@@ -31,6 +31,8 @@ internal sealed class SearchProductSuggestionsQueryHandler : IRequestHandler<Sea
         
         // Select only 3 random products in the same category but not the same product
         var products = await _context.Products
+            .AsNoTracking()
+            .Include(x => x.Category)
             .Where(p => p.DeletedAt == null && p.Enabled && p.Stock > 0)
             .Where(p => p.CategoryId == category && p.Id != request.ProductId)
             .OrderBy(_ => Guid.NewGuid())
