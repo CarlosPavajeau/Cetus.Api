@@ -2,6 +2,7 @@ using System.Collections.Immutable;
 using Cetus.Infrastructure.Persistence.EntityFramework;
 using Cetus.Orders.Application.DeliveryFees.Find;
 using Cetus.Orders.Domain;
+using Cetus.Orders.Domain.Events;
 using Cetus.Products.Domain;
 using Cetus.Shared.Domain.Exceptions;
 using MediatR;
@@ -16,7 +17,8 @@ internal sealed class CreateOrderCommandHandler : IRequestHandler<CreateOrderCom
     private readonly IMediator _mediator;
     private readonly ILogger<CreateOrderCommandHandler> _logger;
 
-    public CreateOrderCommandHandler(CetusDbContext context, ILogger<CreateOrderCommandHandler> logger, IMediator mediator)
+    public CreateOrderCommandHandler(CetusDbContext context, ILogger<CreateOrderCommandHandler> logger,
+        IMediator mediator)
     {
         _context = context ?? throw new ArgumentNullException(nameof(context));
         _logger = logger ?? throw new ArgumentNullException(nameof(logger));
@@ -36,7 +38,7 @@ internal sealed class CreateOrderCommandHandler : IRequestHandler<CreateOrderCom
 
             var order = await CreateOrderEntity(request, customer.Id);
             await _context.Orders.AddAsync(order, cancellationToken);
-            
+
             UpdateProductStocks(products, items);
 
             await _context.SaveChangesAsync(cancellationToken);
@@ -44,6 +46,11 @@ internal sealed class CreateOrderCommandHandler : IRequestHandler<CreateOrderCom
 
             _logger.LogInformation("Order {OrderId} created successfully for customer {CustomerId}",
                 order.Id, customer.Id);
+
+            await _mediator.Publish(
+                new OrderCreatedEvent(new OrderCreated(order.Id, order.OrderNumber)),
+                cancellationToken
+            );
 
             return order.Id;
         }
@@ -104,16 +111,16 @@ internal sealed class CreateOrderCommandHandler : IRequestHandler<CreateOrderCom
         {
             return products;
         }
-        
+
         var outOfStockProductsDetails = outOfStockProducts
             .Select(p => $"{p.Id} (stock: {p.Stock})")
             .ToList();
-            
+
         var requestedProducts = items
             .Where(i => outOfStockProducts.Any(p => p.Id == i.ProductId))
             .Select(i => $"{i.ProductId} (requested: {i.Quantity})")
             .ToList();
-            
+
         throw new InsufficientStockException(
             $"Insufficient stock for products: {string.Join(", ", outOfStockProductsDetails)}. " +
             $"Requested quantities: {string.Join(", ", requestedProducts)}");
