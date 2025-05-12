@@ -7,6 +7,8 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
+using Moq;
+using Resend;
 
 namespace Cetus.Api.Test.Shared;
 
@@ -32,6 +34,14 @@ public class ApplicationTestCase : WebApplicationFactory<Program>
 
             services.AddAuthentication("Test")
                 .AddScheme<AuthenticationSchemeOptions, TestAuthHandler>("Test", _ => { });
+
+            // Mock IResend
+            var resendMock = new Mock<IResend>();
+            resendMock.Setup(r => r.EmailSendAsync(It.IsAny<EmailMessage>(), It.IsAny<CancellationToken>()))
+                .ReturnsAsync(new ResendResponse<Guid>(Guid.Empty, null));
+
+            services.RemoveAll<IResend>();
+            services.AddSingleton(resendMock.Object);
         });
 
         base.ConfigureWebHost(builder);
