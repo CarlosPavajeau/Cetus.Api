@@ -8,7 +8,7 @@
     </PropertyGroup>
 
     <ItemGroup>
-        <PackageReference Include="AWSSDK.S3" Version="4.0.0.4" />
+        <PackageReference Include="AWSSDK.S3" Version="4.0.0.5" />
         <PackageReference Include="Azure.Monitor.OpenTelemetry.AspNetCore" Version="1.3.0" />
         <PackageReference Include="Clerk.Net.AspNetCore.Security" Version="1.0.0" />
         <PackageReference Include="EFCore.NamingConventions" Version="9.0.0" />
