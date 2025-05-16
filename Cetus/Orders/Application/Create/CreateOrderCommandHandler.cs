@@ -1,6 +1,7 @@
 using System.Collections.Immutable;
 using Cetus.Infrastructure.Persistence.EntityFramework;
 using Cetus.Orders.Application.DeliveryFees.Find;
+using Cetus.Orders.Application.SearchAll;
 using Cetus.Orders.Domain;
 using Cetus.Orders.Domain.Events;
 using Cetus.Products.Domain;
@@ -11,7 +12,7 @@ using Microsoft.Extensions.Logging;
 
 namespace Cetus.Orders.Application.Create;
 
-internal sealed class CreateOrderCommandHandler : IRequestHandler<CreateOrderCommand, Guid>
+internal sealed class CreateOrderCommandHandler : IRequestHandler<CreateOrderCommand, OrderResponse>
 {
     private readonly CetusDbContext _context;
     private readonly IMediator _mediator;
@@ -25,7 +26,7 @@ internal sealed class CreateOrderCommandHandler : IRequestHandler<CreateOrderCom
         _mediator = mediator;
     }
 
-    public async Task<Guid> Handle(CreateOrderCommand request, CancellationToken cancellationToken)
+    public async Task<OrderResponse> Handle(CreateOrderCommand request, CancellationToken cancellationToken)
     {
         await using var transaction = await _context.Database.BeginTransactionAsync(cancellationToken);
 
@@ -52,7 +53,7 @@ internal sealed class CreateOrderCommandHandler : IRequestHandler<CreateOrderCom
                 cancellationToken
             );
 
-            return order.Id;
+            return OrderResponse.FromOrder(order);
         }
         catch (Exception ex)
         {

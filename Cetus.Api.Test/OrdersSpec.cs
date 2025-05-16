@@ -55,9 +55,9 @@ public class OrdersSpec(ApplicationTestCase factory) : ApplicationContextTestCas
         // Assert
         response.EnsureSuccessStatusCode();
 
-        var order = await response.DeserializeAsync<Guid>();
+        var order = await response.DeserializeAsync<OrderResponse>();
 
-        order.ShouldNotBe(Guid.Empty);
+        order.ShouldNotBeNull();
     }
 
     [Fact(DisplayName = "Should not create a new order with invalid product stock")]
@@ -113,10 +113,11 @@ public class OrdersSpec(ApplicationTestCase factory) : ApplicationContextTestCas
 
         response.EnsureSuccessStatusCode();
 
-        var orderId = await response.DeserializeAsync<Guid>();
+        var orderId = await response.DeserializeAsync<OrderResponse>();
+        orderId.ShouldNotBeNull();
 
         // Act
-        var getOrderResponse = await Client.GetAsync($"api/orders/{orderId}");
+        var getOrderResponse = await Client.GetAsync($"api/orders/{orderId.Id}");
 
         // Assert
         getOrderResponse.EnsureSuccessStatusCode();
@@ -124,7 +125,7 @@ public class OrdersSpec(ApplicationTestCase factory) : ApplicationContextTestCas
         var orderResponse = await getOrderResponse.DeserializeAsync<OrderResponse>();
 
         orderResponse.ShouldNotBeNull();
-        orderResponse.Id.ShouldBe(orderId);
+        orderResponse.Id.ShouldBe(orderId.Id);
         orderResponse.Status.ShouldBe(OrderStatus.Pending);
     }
 
@@ -191,22 +192,23 @@ public class OrdersSpec(ApplicationTestCase factory) : ApplicationContextTestCas
 
         response.EnsureSuccessStatusCode();
 
-        var orderId = await response.DeserializeAsync<Guid>();
+        var orderId = await response.DeserializeAsync<OrderResponse>();
+        orderId.ShouldNotBeNull();
 
         // Act
-        var deliverOrderResponse = await Client.PostAsync($"api/orders/{orderId}/deliver", null);
+        var deliverOrderResponse = await Client.PostAsync($"api/orders/{orderId.Id}/deliver", null);
 
         // Assert
         deliverOrderResponse.EnsureSuccessStatusCode();
 
-        var getOrderResponse = await Client.GetAsync($"api/orders/{orderId}");
+        var getOrderResponse = await Client.GetAsync($"api/orders/{orderId.Id}");
 
         getOrderResponse.EnsureSuccessStatusCode();
 
         var orderResponse = await getOrderResponse.DeserializeAsync<OrderResponse>();
 
         orderResponse.ShouldNotBeNull();
-        orderResponse.Id.ShouldBe(orderId);
+        orderResponse.Id.ShouldBe(orderId.Id);
         orderResponse.Status.ShouldBe(OrderStatus.Delivered);
     }
 
@@ -235,22 +237,23 @@ public class OrdersSpec(ApplicationTestCase factory) : ApplicationContextTestCas
 
         response.EnsureSuccessStatusCode();
 
-        var orderId = await response.DeserializeAsync<Guid>();
+        var orderId = await response.DeserializeAsync<OrderResponse>();
+        orderId.ShouldNotBeNull();
 
         // Act
-        var cancelOrderResponse = await Client.PostAsync($"api/orders/{orderId}/cancel", null);
+        var cancelOrderResponse = await Client.PostAsync($"api/orders/{orderId.Id}/cancel", null);
 
         // Assert
         cancelOrderResponse.EnsureSuccessStatusCode();
 
-        var getOrderResponse = await Client.GetAsync($"api/orders/{orderId}");
+        var getOrderResponse = await Client.GetAsync($"api/orders/{orderId.Id}");
 
         getOrderResponse.EnsureSuccessStatusCode();
 
         var orderResponse = await getOrderResponse.DeserializeAsync<OrderResponse>();
 
         orderResponse.ShouldNotBeNull();
-        orderResponse.Id.ShouldBe(orderId);
+        orderResponse.Id.ShouldBe(orderId.Id);
         orderResponse.Status.ShouldBe(OrderStatus.Canceled);
     }
 
@@ -279,9 +282,10 @@ public class OrdersSpec(ApplicationTestCase factory) : ApplicationContextTestCas
 
         response.EnsureSuccessStatusCode();
 
-        var orderId = await response.DeserializeAsync<Guid>();
+        var orderId = await response.DeserializeAsync<OrderResponse>();
+        orderId.ShouldNotBeNull();
 
-        var deliverOrderResponse = await Client.PostAsync($"api/orders/{orderId}/deliver", null);
+        var deliverOrderResponse = await Client.PostAsync($"api/orders/{orderId.Id}/deliver", null);
 
         deliverOrderResponse.EnsureSuccessStatusCode();
 
@@ -323,9 +327,10 @@ public class OrdersSpec(ApplicationTestCase factory) : ApplicationContextTestCas
 
         response.EnsureSuccessStatusCode();
 
-        var orderId = await response.DeserializeAsync<Guid>();
+        var orderId = await response.DeserializeAsync<OrderResponse>();
+        orderId.ShouldNotBeNull();
 
-        var deliverOrderResponse = await Client.PostAsync($"api/orders/{orderId}/deliver", null);
+        var deliverOrderResponse = await Client.PostAsync($"api/orders/{orderId.Id}/deliver", null);
 
         deliverOrderResponse.EnsureSuccessStatusCode();
 

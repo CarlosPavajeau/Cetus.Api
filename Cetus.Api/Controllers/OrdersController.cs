@@ -47,7 +47,7 @@ public class OrdersController : ControllerBase
         {
             var result = await _mediator.Send(command);
 
-            await _ordersHub.Clients.All.ReceiveCreatedOrder();
+            await _ordersHub.Clients.All.ReceiveCreatedOrder(result);
 
             return Ok(result);
         }
@@ -110,17 +110,17 @@ public class OrdersController : ControllerBase
 
         return Ok(result);
     }
-    
+
     [HttpPost("delivery-fees")]
     public async Task<IActionResult> CreateDeliveryFee([FromBody] CreateDeliveryFeeCommand command)
     {
         var result = await _mediator.Send(command);
-        
+
         await _cache.RemoveAsync("delivery-fees");
-        
+
         return Ok(result);
     }
-    
+
     [HttpGet("delivery-fees")]
     public async Task<IActionResult> GetDeliveryFees()
     {
@@ -131,7 +131,7 @@ public class OrdersController : ControllerBase
 
         return Ok(result);
     }
-    
+
     [HttpGet("delivery-fees/{cityId:guid}")]
     [AllowAnonymous]
     public async Task<IActionResult> GetDeliveryFee([FromRoute] Guid cityId)
@@ -140,7 +140,7 @@ public class OrdersController : ControllerBase
             $"delivery-fee-{cityId}",
             async cancellationToken => await _mediator.Send(new FindDeliveryFeeQuery(cityId), cancellationToken)
         );
-        
+
         return Ok(result);
     }
 

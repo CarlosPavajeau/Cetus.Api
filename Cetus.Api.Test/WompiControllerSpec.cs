@@ -41,11 +41,11 @@ public class WompiControllerSpec(ApplicationTestCase factory) : ApplicationConte
         var newOrder = new CreateOrderCommand(_faker.Address.FullAddress(), cityId, product.Price, newOrderItems, newCustomer);
         var createOrderResponse = await Client.PostAsJsonAsync("api/orders", newOrder);
         createOrderResponse.EnsureSuccessStatusCode();
-        var orderId = await createOrderResponse.DeserializeAsync<Guid>();
-        orderId.ShouldNotBe(Guid.Empty);
+        var orderId = await createOrderResponse.DeserializeAsync<OrderResponse>();
+        orderId.ShouldNotBeNull();
 
         // Arrange - Create a Wompi request
-        var wompiRequest = CreateWompiRequest(orderId, "APPROVED", product.Price * 100);
+        var wompiRequest = CreateWompiRequest(orderId.Id, "APPROVED", product.Price * 100);
 
         // Act
         var response = await Client.PostAsJsonAsync("api/wompi", wompiRequest);
@@ -54,7 +54,7 @@ public class WompiControllerSpec(ApplicationTestCase factory) : ApplicationConte
         response.EnsureSuccessStatusCode();
         
         // Verify order status was updated
-        var getOrderResponse = await Client.GetAsync($"api/orders/{orderId}");
+        var getOrderResponse = await Client.GetAsync($"api/orders/{orderId.Id}");
         getOrderResponse.EnsureSuccessStatusCode();
         var orderResponse = await getOrderResponse.DeserializeAsync<OrderResponse>();
         orderResponse.ShouldNotBeNull();
@@ -80,11 +80,11 @@ public class WompiControllerSpec(ApplicationTestCase factory) : ApplicationConte
         var newOrder = new CreateOrderCommand(_faker.Address.FullAddress(), cityId, product.Price, newOrderItems, newCustomer);
         var createOrderResponse = await Client.PostAsJsonAsync("api/orders", newOrder);
         createOrderResponse.EnsureSuccessStatusCode();
-        var orderId = await createOrderResponse.DeserializeAsync<Guid>();
-        orderId.ShouldNotBe(Guid.Empty);
+        var orderId = await createOrderResponse.DeserializeAsync<OrderResponse>();
+        orderId.ShouldNotBeNull();
 
         // Arrange - Create a Wompi request with DECLINED status
-        var wompiRequest = CreateWompiRequest(orderId, "DECLINED", product.Price * 100);
+        var wompiRequest = CreateWompiRequest(orderId.Id, "DECLINED", product.Price * 100);
 
         // Act
         var response = await Client.PostAsJsonAsync("api/wompi", wompiRequest);
@@ -93,7 +93,7 @@ public class WompiControllerSpec(ApplicationTestCase factory) : ApplicationConte
         response.EnsureSuccessStatusCode();
         
         // Verify order status remains Pending
-        var getOrderResponse = await Client.GetAsync($"api/orders/{orderId}");
+        var getOrderResponse = await Client.GetAsync($"api/orders/{orderId.Id}");
         getOrderResponse.EnsureSuccessStatusCode();
         var orderResponse = await getOrderResponse.DeserializeAsync<OrderResponse>();
         orderResponse.ShouldNotBeNull();
@@ -118,20 +118,21 @@ public class WompiControllerSpec(ApplicationTestCase factory) : ApplicationConte
         var newOrder = new CreateOrderCommand(_faker.Address.FullAddress(), cityId, product.Price, newOrderItems, newCustomer);
         var createOrderResponse = await Client.PostAsJsonAsync("api/orders", newOrder);
         createOrderResponse.EnsureSuccessStatusCode();
-        var orderId = await createOrderResponse.DeserializeAsync<Guid>();
+        var orderId = await createOrderResponse.DeserializeAsync<OrderResponse>();
+        orderId.ShouldNotBeNull();
 
         // Arrange - Create a Wompi request with invalid checksum
         var wompiRequest = new WompiRequest(
             "transaction.updated",
             new WompiData(new WompiTransaction(
                 "123456",
-                orderId.ToString(),
+                orderId.Id.ToString(),
                 "APPROVED", 
                 product.Price * 100
             )),
             "test",
             new WompiSignature(
-                new[] { "transaction.id", "transaction.status", "transaction.amount_in_cents", "transaction.reference" },
+                ["transaction.id", "transaction.status", "transaction.amount_in_cents", "transaction.reference"],
                 "invalid_checksum"
             ),
             DateTimeOffset.UtcNow.ToUnixTimeSeconds()
@@ -171,7 +172,7 @@ public class WompiControllerSpec(ApplicationTestCase factory) : ApplicationConte
             )),
             "test",
             new WompiSignature(
-                new[] { "transaction.id", "transaction.status", "transaction.amount_in_cents", "transaction.reference" },
+                ["transaction.id", "transaction.status", "transaction.amount_in_cents", "transaction.reference"],
                 ComputeValidChecksum("123456", "not-a-guid", "APPROVED", "1000", DateTimeOffset.UtcNow.ToUnixTimeSeconds())
             ),
             DateTimeOffset.UtcNow.ToUnixTimeSeconds()

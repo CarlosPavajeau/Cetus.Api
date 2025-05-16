@@ -1,3 +1,4 @@
+using Cetus.Orders.Application.SearchAll;
 using MediatR;
 
 namespace Cetus.Orders.Application.Create;
@@ -12,4 +13,4 @@ public sealed record CreateOrderCommand(
     decimal Total,
     IEnumerable<CreateOrderItem> Items,
     CreateOrderCustomer Customer)
-    : IRequest<Guid>;
+    : IRequest<OrderResponse>;
