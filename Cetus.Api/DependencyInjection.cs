@@ -9,10 +9,18 @@ public static class DependencyInjection
         services.AddEndpointsApiExplorer();
         services.AddSwaggerGen();
 
+        services.AddEndpointsApiExplorer();
+        services.AddSignalR();
         services.AddControllers();
 
         services.AddExceptionHandler<GlobalExceptionHandler>();
         services.AddProblemDetails();
+
+        services.AddRouting(options =>
+        {
+            options.LowercaseUrls = true;
+            options.LowercaseQueryStrings = true;
+        });
 
         return services;
     }
