@@ -1,7 +1,7 @@
 using Cetus;
 using Cetus.Api.Configuration;
 using Cetus.Api.Configuration.Validators;
-using Cetus.Api.Extensions;
+using Cetus.Api.Middleware;
 using Cetus.Api.Realtime;
 using FluentValidation;
 using Serilog;
@@ -58,7 +58,7 @@ app.UseAuthorization();
 
 app.UseHttpsRedirection();
 app.UseCors(Cors.AllowAll);
-app.UseMiddleware<RequestLogContextMiddleware>();
+app.UseMiddleware<RequestContextLoggingMiddleware>();
 app.UseRateLimiter();
 app.UseExceptionHandler();
 
