@@ -1,16 +1,17 @@
 using System.Globalization;
 using System.Security.Cryptography;
 using System.Text;
+using Application.Abstractions.Messaging;
+using Application.Orders.SearchAll;
+using Application.Orders.Update;
 using Cetus.Api.Realtime;
 using Cetus.Api.Requests;
-using Cetus.Orders.Application.Find;
-using Cetus.Orders.Application.Update;
-using Cetus.Orders.Domain;
-using MediatR;
+using Domain.Orders;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.AspNetCore.SignalR;
+using SharedKernel;
 
 namespace Cetus.Api.Controllers;
 
@@ -21,17 +22,17 @@ namespace Cetus.Api.Controllers;
 public class WompiController : ControllerBase
 {
     private readonly IConfiguration _configuration;
-    private readonly IMediator _mediator;
     private readonly ILogger<WompiController> _logger;
     private readonly IHubContext<OrdersHub, IOrdersClient> _ordersHub;
+    private readonly ICommandHandler<UpdateOrderCommand, OrderResponse> handler;
 
-    public WompiController(IConfiguration configuration, IMediator mediator, ILogger<WompiController> logger,
-        IHubContext<OrdersHub, IOrdersClient> ordersHub)
+    public WompiController(IConfiguration configuration, ILogger<WompiController> logger,
+        IHubContext<OrdersHub, IOrdersClient> ordersHub, ICommandHandler<UpdateOrderCommand, OrderResponse> handler)
     {
         _configuration = configuration;
-        _mediator = mediator;
         _logger = logger;
         _ordersHub = ordersHub;
+        this.handler = handler;
     }
 
     [HttpPost]
@@ -56,19 +57,13 @@ public class WompiController : ControllerBase
                 return BadRequest($"Invalid order id: {request.Data.Transaction.Reference}");
             }
 
-            var order = await FindOrder(orderId);
-            if (order is null)
-            {
-                return NotFound($"Order with ID {orderId} not found");
-            }
-
-            var hasProcessedTransaction = await ProcessTransaction(request, orderId, order);
+            var hasProcessedTransaction = await ProcessTransaction(request, orderId);
             if (!hasProcessedTransaction)
             {
                 return BadRequest($"Failed to process transaction for order with ID {orderId}");
             }
 
-            await NotifyOrderUpdate(order.Id);
+            await NotifyOrderUpdate(orderId);
 
             return Ok(new {Id = orderId});
         }
@@ -84,28 +79,22 @@ public class WompiController : ControllerBase
         return Guid.TryParse(request.Data.Transaction.Reference, out orderId);
     }
 
-    private async Task<OrderResponse?> FindOrder(Guid orderId)
+    private async Task<bool> ProcessTransaction(WompiRequest request, Guid orderId)
     {
-        var order = await _mediator.Send(new FindOrderQuery(orderId));
-        if (order == null)
-        {
-            _logger.LogWarning("Order with ID {OrderId} not found", orderId);
-        }
-
-        return order;
-    }
-
-    private async Task<bool> ProcessTransaction(WompiRequest request, Guid orderId, OrderResponse order)
-    {
+        UpdateOrderCommand command;
+        Result<OrderResponse> result;
         if (request.Data.Transaction.Status != "APPROVED")
         {
-            await _mediator.Send(new UpdateOrderCommand(orderId, order.Status, request.Data.Transaction.Id));
-            return true;
+            command = new UpdateOrderCommand(orderId, OrderStatus.Pending, request.Data.Transaction.Id);
+            result = await handler.Handle(command, CancellationToken.None);
+
+            return result.IsSuccess;
         }
 
-        var updatedOrder =
-            await _mediator.Send(new UpdateOrderCommand(orderId, OrderStatus.Paid, request.Data.Transaction.Id));
-        if (updatedOrder is null)
+        command = new UpdateOrderCommand(orderId, OrderStatus.Paid, request.Data.Transaction.Id);
+        result = await handler.Handle(command, CancellationToken.None);
+
+        if (result.IsFailure)
         {
             _logger.LogWarning("Failed to update order with ID {OrderId}", orderId);
             return false;
