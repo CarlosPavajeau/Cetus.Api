@@ -6,6 +6,7 @@ using Domain.Products;
 using Domain.States;
 using Infrastructure.DomainEvents;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Storage;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using SharedKernel;
 
@@ -68,6 +69,11 @@ public sealed class ApplicationDbContext(
         await PublishDomainEventsAsync();
 
         return result;
+    }
+
+    public Task<IDbContextTransaction> BeginTransactionAsync(CancellationToken cancellationToken = default)
+    {
+        return Database.BeginTransactionAsync(cancellationToken);
     }
 
     private async Task PublishDomainEventsAsync()

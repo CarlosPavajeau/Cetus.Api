@@ -3,6 +3,7 @@ using Domain.Orders;
 using Domain.Products;
 using Domain.States;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Storage;
 
 namespace Application.Abstractions.Data;
 
@@ -20,4 +21,6 @@ public interface IApplicationDbContext
     DbSet<City> Cities { get; }
 
     Task<int> SaveChangesAsync(CancellationToken cancellationToken = default);
+    
+    Task<IDbContextTransaction> BeginTransactionAsync(CancellationToken cancellationToken = default);
 }
