@@ -15,4 +15,22 @@ public static class OrderErrors
             "Orders.ProductsNotFound",
             $"The following products were not found: {string.Join(", ", productIds)}"
         );
+
+    public static Error NotFound(Guid orderId) =>
+        Error.NotFound(
+            "Orders.NotFound",
+            $"Order with ID {orderId} was not found."
+        );
+
+    public static Error InvalidStatusTransition(OrderStatus currentStatus, OrderStatus newStatus) =>
+        Error.Problem(
+            "Orders.InvalidStatusTransition",
+            $"Cannot transition order from {currentStatus} to {newStatus}."
+        );
+
+    public static Error CustomerNotFound(string customerId) =>
+        Error.NotFound(
+            "Orders.CustomerNotFound",
+            $"Customer with ID {customerId} was not found."
+        );
 }
