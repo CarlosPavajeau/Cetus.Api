@@ -1,41 +1,36 @@
 using System.Globalization;
-using Cetus.Orders.Domain.Events;
-using MediatR;
+using Domain.Orders;
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Logging;
 using Resend;
+using SharedKernel;
 
-namespace Cetus.Api.Events.Handlers;
+namespace Application.Orders.Update;
 
-public sealed class SendEmailWhenPaidOrder : INotificationHandler<PaidOrderEvent>
+internal sealed class PaidOrderDomainEventHandler(
+    IResend resend,
+    IConfiguration configuration,
+    ILogger<PaidOrderDomainEventHandler> logger
+) : IDomainEventHandler<PaidOrderDomainEvent>
 {
     private static readonly CultureInfo ColombianCulture = new("es-CO");
     private const string EmailSubject = "¡Hemos recibido tu pago!";
 
-    private readonly IResend _resend;
-    private readonly IConfiguration _configuration;
-    private readonly ILogger<SendEmailWhenPaidOrder> _logger;
-
-    public SendEmailWhenPaidOrder(ILogger<SendEmailWhenPaidOrder> logger, IResend resend, IConfiguration configuration)
+    public async Task Handle(PaidOrderDomainEvent domainEvent, CancellationToken cancellationToken)
     {
-        _logger = logger;
-        _resend = resend;
-        _configuration = configuration;
-    }
+        logger.LogInformation("Sending email to {Customer} for order {OrderNumber} with total {Total}",
+            domainEvent.Order.Customer, domainEvent.Order.OrderNumber, domainEvent.Order.Total);
 
-    public async Task Handle(PaidOrderEvent notification, CancellationToken cancellationToken)
-    {
-        _logger.LogInformation("Sending email to {Customer} for order {OrderNumber} with total {Total}",
-            notification.Order.Customer, notification.Order.OrderNumber, notification.Order.Total);
-
-        var messageBody = BuildEmailBody(notification);
+        var messageBody = BuildEmailBody(domainEvent.Order);
 
         await SendNotificationEmail(
-            email: notification.CustomerEmail,
+            email: domainEvent.Order.CustomerEmail,
             subject: EmailSubject,
             body: messageBody,
             cancellationToken: cancellationToken);
 
-        _logger.LogInformation("Email sent to {Customer} for order {OrderNumber} with total {Total}",
-            notification.Order.Customer, notification.Order.OrderNumber, notification.Order.Total);
+        logger.LogInformation("Email sent to {Customer} for order {OrderNumber} with total {Total}",
+            domainEvent.Order.Customer, domainEvent.Order.OrderNumber, domainEvent.Order.Total);
     }
 
     private async Task SendNotificationEmail(string email, string subject, string body,
@@ -43,13 +38,13 @@ public sealed class SendEmailWhenPaidOrder : INotificationHandler<PaidOrderEvent
     {
         if (string.IsNullOrEmpty(email))
         {
-            _logger.LogWarning("Cannot send email: recipient email address is null or empty");
+            logger.LogWarning("Cannot send email: recipient email address is null or empty");
             return;
         }
 
         try
         {
-            var senderEmail = _configuration["Resend:From"]
+            var senderEmail = configuration["Resend:From"]
                               ?? throw new InvalidOperationException(
                                   "Sender email configuration 'Resend:From' is missing");
 
@@ -62,19 +57,19 @@ public sealed class SendEmailWhenPaidOrder : INotificationHandler<PaidOrderEvent
             message.Subject = subject;
             message.HtmlBody = body;
 
-            await _resend.EmailSendAsync(message, cancellationToken);
+            await resend.EmailSendAsync(message, cancellationToken);
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error sending email to {Email}: {Error}", email, ex.Message);
+            logger.LogError(ex, "Error sending email to {Email}: {Error}", email, ex.Message);
             // We're deliberately not rethrowing to prevent the exception from bubbling up
             // A more sophisticated implementation might use a retry mechanism or queue
         }
     }
 
-    private static string BuildEmailBody(PaidOrderEvent notification)
+    private static string BuildEmailBody(PaidOrder order)
     {
-        var formattedTotal = notification.Order.Total.ToString("C", ColombianCulture);
+        var formattedTotal = order.Total.ToString("C", ColombianCulture);
 
         return $$"""
                  <html>
@@ -130,13 +125,13 @@ public sealed class SendEmailWhenPaidOrder : INotificationHandler<PaidOrderEvent
                      </div>
                      
                      <div class="content">
-                         <p>Hola <strong>{{notification.Order.Customer}}</strong>,</p>
+                         <p>Hola <strong>{{order.Customer}}</strong>,</p>
                          
                          <p>¡Excelentes noticias! Hemos recibido tu pago correctamente. Estamos procesando tu pedido y te notificaremos cuando sea enviado.</p>
                          
                          <div class="order-details">
                              <h3>Detalles de tu pedido:</h3>
-                             <p><strong>Número de pedido:</strong> #{{notification.Order.OrderNumber}}</p>
+                             <p><strong>Número de pedido:</strong> #{{order.OrderNumber}}</p>
                              <p><strong>Monto total pagado:</strong> {{formattedTotal}}</p>
                              <p><strong>Fecha:</strong> {{DateTime.Now:dd/MM/yyyy}}</p>
                          </div>

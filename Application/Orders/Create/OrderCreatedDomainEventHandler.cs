@@ -1,32 +1,25 @@
-using Cetus.Orders.Domain.Events;
-using MediatR;
+using Domain.Orders;
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Logging;
 using Resend;
+using SharedKernel;
 
-namespace Cetus.Api.Events.Handlers;
+namespace Application.Orders.Create;
 
-public sealed class SendEmailWhenOrderIsCreated : INotificationHandler<OrderCreatedEvent>
+internal sealed class OrderCreatedDomainEventHandler(
+    IResend resend,
+    IConfiguration configuration,
+    ILogger<OrderCreatedDomainEventHandler> logger
+) : IDomainEventHandler<OrderCreatedDomainEvent>
 {
     private const string EmailSubject = "Nuevo pedido creado!";
 
-    private readonly IResend _resend;
-    private readonly IConfiguration _configuration;
-    private readonly ILogger<SendEmailWhenOrderIsCreated> _logger;
-
-    public SendEmailWhenOrderIsCreated(IResend resend, IConfiguration configuration,
-        ILogger<SendEmailWhenOrderIsCreated> logger)
+    public async Task Handle(OrderCreatedDomainEvent domainEvent, CancellationToken cancellationToken)
     {
-        _resend = resend;
-        _configuration = configuration;
-        _logger = logger;
-    }
+        logger.LogInformation("Sending notification email to admin for order {OrderId}", domainEvent.Id);
 
-    public async Task Handle(OrderCreatedEvent notification, CancellationToken cancellationToken)
-    {
-        _logger.LogInformation("Sending notification email to admin for order {OrderNumber}",
-            notification.Order.OrderNumber);
-
-        var messageBody = BuildMessageBody(notification);
-        var notificationEmail = _configuration["Notification:Email"];
+        var messageBody = BuildMessageBody(domainEvent);
+        var notificationEmail = configuration["Notification:Email"];
         if (string.IsNullOrEmpty(notificationEmail))
         {
             throw new InvalidOperationException("Notification email configuration 'Notification:Email' is missing");
@@ -34,8 +27,7 @@ public sealed class SendEmailWhenOrderIsCreated : INotificationHandler<OrderCrea
 
         await SendNotificationEmail(notificationEmail, EmailSubject, messageBody, cancellationToken);
 
-        _logger.LogInformation("Notification email sent to admin for order {OrderNumber}",
-            notification.Order.OrderNumber);
+        logger.LogInformation("Notification email sent to admin for order {OrderId}", domainEvent.Id);
     }
 
     private async Task SendNotificationEmail(string email, string subject, string body,
@@ -43,7 +35,7 @@ public sealed class SendEmailWhenOrderIsCreated : INotificationHandler<OrderCrea
     {
         try
         {
-            var senderEmail = _configuration["Resend:From"]
+            var senderEmail = configuration["Resend:From"]
                               ?? throw new InvalidOperationException(
                                   "Sender email configuration 'Resend:From' is missing");
 
@@ -56,15 +48,15 @@ public sealed class SendEmailWhenOrderIsCreated : INotificationHandler<OrderCrea
             message.Subject = subject;
             message.HtmlBody = body;
 
-            await _resend.EmailSendAsync(message, cancellationToken);
+            await resend.EmailSendAsync(message, cancellationToken);
         }
         catch (Exception e)
         {
-            _logger.LogError(e, "Error sending email to {Email}: {Error}", email, e.Message);
+            logger.LogError(e, "Error sending email to {Email}: {Error}", email, e.Message);
         }
     }
 
-    private static string BuildMessageBody(OrderCreatedEvent notification)
+    private static string BuildMessageBody(OrderCreatedDomainEvent notification)
     {
         return $$"""
                  <html>
@@ -89,7 +81,7 @@ public sealed class SendEmailWhenOrderIsCreated : INotificationHandler<OrderCrea
                  <body>
                      <div class="container">
                          <h1>Nuevo pedido creado!</h1>
-                         <p>Se ha creado un nuevo pedido con el número de orden {{notification.Order.OrderNumber}}.</p>
+                         <p>Se ha creado un nuevo pedido con el número de orden {{notification.Id}}.</p>
                      </div>
                  </body>
                  </html>

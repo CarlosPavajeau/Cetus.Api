@@ -1,35 +1,30 @@
-using Cetus.Orders.Domain.Events;
-using MediatR;
+using Domain.Orders;
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Logging;
 using Resend;
+using SharedKernel;
 
-namespace Cetus.Api.Events.Handlers;
+namespace Application.Orders.Update;
 
-public class SendEmailWhenOrderSent : INotificationHandler<SentOrderEvent>
+internal sealed class SentOrderDomainEventHandler(
+    IResend resend,
+    IConfiguration configuration,
+    ILogger<SentOrderDomainEventHandler> logger
+) : IDomainEventHandler<SentOrderDomainEvent>
 {
     private const string EmailSubject = "Tu pedido ha sido enviado!";
 
-    private readonly IResend _resend;
-    private readonly IConfiguration _configuration;
-    private readonly ILogger<SendEmailWhenOrderSent> _logger;
-
-    public SendEmailWhenOrderSent(IResend resend, IConfiguration configuration, ILogger<SendEmailWhenOrderSent> logger)
+    public async Task Handle(SentOrderDomainEvent domainEvent, CancellationToken cancellationToken)
     {
-        _resend = resend;
-        _configuration = configuration;
-        _logger = logger;
-    }
+        logger.LogInformation("Sending email to {Customer} for order {OrderNumber}", domainEvent.Order.Customer,
+            domainEvent.Order.OrderNumber);
 
-    public async Task Handle(SentOrderEvent notification, CancellationToken cancellationToken)
-    {
-        _logger.LogInformation("Sending email to {Customer} for order {OrderNumber}", notification.Order.Customer,
-            notification.Order.OrderNumber);
+        var messageBody = BuildMessageBody(domainEvent.Order);
 
-        var messageBody = BuildMessageBody(notification);
+        await SendNotificationEmail(domainEvent.Order.CustomerEmail, EmailSubject, messageBody, cancellationToken);
 
-        await SendNotificationEmail(notification.CustomerEmail, EmailSubject, messageBody, cancellationToken);
-
-        _logger.LogInformation("Email sent to {Customer} for order {OrderNumber}", notification.Order.Customer,
-            notification.Order.OrderNumber);
+        logger.LogInformation("Email sent to {Customer} for order {OrderNumber}", domainEvent.Order.Customer,
+            domainEvent.Order.OrderNumber);
     }
 
     private async Task SendNotificationEmail(string email, string subject, string body,
@@ -37,7 +32,7 @@ public class SendEmailWhenOrderSent : INotificationHandler<SentOrderEvent>
     {
         try
         {
-            var senderEmail = _configuration["Resend:From"]
+            var senderEmail = configuration["Resend:From"]
                               ?? throw new InvalidOperationException(
                                   "Sender email configuration 'Resend:From' is missing");
 
@@ -50,17 +45,17 @@ public class SendEmailWhenOrderSent : INotificationHandler<SentOrderEvent>
             message.Subject = subject;
             message.HtmlBody = body;
 
-            await _resend.EmailSendAsync(message, cancellationToken);
+            await resend.EmailSendAsync(message, cancellationToken);
         }
         catch (Exception e)
         {
-            _logger.LogError(e, "Error sending email to {Email}: {Error}", email, e.Message);
+            logger.LogError(e, "Error sending email to {Email}: {Error}", email, e.Message);
             // We're deliberately not rethrowing to prevent the exception from bubbling up
             // A more sophisticated implementation might use a retry mechanism or queue
         }
     }
 
-    private static string BuildMessageBody(SentOrderEvent notification)
+    private static string BuildMessageBody(SentOrder order)
     {
         return $$"""
                  <html>
@@ -134,9 +129,9 @@ public class SendEmailWhenOrderSent : INotificationHandler<SentOrderEvent>
                      </div>
                      
                      <div class="content">
-                         <p>Hola <strong>{{notification.Order.Customer}}</strong>,</p>
+                         <p>Hola <strong>{{order.Customer}}</strong>,</p>
                          
-                         <p>¡Buenas noticias! Tu pedido #{{notification.Order.OrderNumber}} ha sido completado y está en camino.</p>
+                         <p>¡Buenas noticias! Tu pedido #{{order.OrderNumber}} ha sido completado y está en camino.</p>
                          
                          <div class="shipping-icon">
                          </div>
@@ -144,7 +139,7 @@ public class SendEmailWhenOrderSent : INotificationHandler<SentOrderEvent>
                          <div class="shipping-details">
                              <h3>Información de envío:</h3>
                              <p><strong>Fecha de envío:</strong> {{DateTime.Now:dd/MM/yyyy}}</p>
-                             <p><strong>Dirección de entrega:</strong> {{notification.Order.Address}}</p>
+                             <p><strong>Dirección de entrega:</strong> {{order.Address}}</p>
                          </div>
                          
                          <p>¡Esperamos que disfrutes tu compra!</p>
