@@ -1,4 +1,4 @@
-using Cetus.Orders.Application.SearchAll;
+using Application.Orders.SearchAll;
 using Microsoft.AspNetCore.SignalR;
 
 namespace Cetus.Api.Realtime;

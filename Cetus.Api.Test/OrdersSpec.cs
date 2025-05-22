@@ -1,19 +1,19 @@
 using System.Globalization;
 using System.Net;
 using System.Net.Http.Json;
+using Application.Abstractions.Data;
+using Application.Orders.CalculateInsights;
+using Application.Orders.Create;
+using Application.Orders.DeliveryFees.Create;
+using Application.Orders.DeliveryFees.Find;
+using Application.Orders.Find;
+using Application.Orders.Summary;
+using Application.Products.SearchAll;
 using Bogus;
 using Cetus.Api.Test.Shared;
 using Cetus.Api.Test.Shared.Fakers;
-using Cetus.Infrastructure.Persistence.EntityFramework;
-using Cetus.Orders.Application.CalculateInsights;
-using Cetus.Orders.Application.Create;
-using Cetus.Orders.Application.DeliveryFees.Create;
-using Cetus.Orders.Application.DeliveryFees.Find;
-using Cetus.Orders.Application.Find;
-using Cetus.Orders.Application.Summary;
-using Cetus.Orders.Domain;
-using Cetus.Products.Application.SearchAll;
-using Cetus.States.Domain;
+using Domain.Orders;
+using Domain.States;
 using Microsoft.Extensions.DependencyInjection;
 using Shouldly;
 
@@ -389,7 +389,7 @@ public class OrdersSpec(ApplicationTestCase factory) : ApplicationContextTestCas
             UpdatedAt = DateTime.UtcNow
         };
 
-        var db = Services.GetRequiredService<CetusDbContext>();
+        var db = Services.GetRequiredService<IApplicationDbContext>();
         await db.DeliveryFees.AddAsync(deliveryFee);
         await db.SaveChangesAsync();
         

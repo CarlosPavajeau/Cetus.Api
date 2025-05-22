@@ -1,6 +1,6 @@
+using Application.Orders.Create;
 using Bogus;
 using Bogus.Extensions.Belgium;
-using Cetus.Orders.Application.Create;
 
 namespace Cetus.Api.Test.Shared.Fakers;
 
