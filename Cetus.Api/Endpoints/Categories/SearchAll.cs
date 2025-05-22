@@ -10,22 +10,21 @@ internal sealed class SearchAll : IEndpoint
 {
     public void MapEndpoint(IEndpointRouteBuilder app)
     {
-        app.MapGet("categories",
-                async (
-                    HybridCache cache,
-                    IQueryHandler<SearchAllCategoriesQuery, IEnumerable<CategoryResponse>> handler,
-                    CancellationToken cancellationToken) =>
-                {
-                    var query = new SearchAllCategoriesQuery();
+        app.MapGet("categories", async (
+                HybridCache cache,
+                IQueryHandler<SearchAllCategoriesQuery, IEnumerable<CategoryResponse>> handler,
+                CancellationToken cancellationToken) =>
+            {
+                var query = new SearchAllCategoriesQuery();
 
-                    var result = await cache.GetOrCreateAsync(
-                        "categories",
-                        async token => await handler.Handle(query, token),
-                        cancellationToken: cancellationToken
-                    );
+                var result = await cache.GetOrCreateAsync(
+                    "categories",
+                    async token => await handler.Handle(query, token),
+                    cancellationToken: cancellationToken
+                );
 
-                    return result.Match(Results.Ok, CustomResults.Problem);
-                })
+                return result.Match(Results.Ok, CustomResults.Problem);
+            })
             .AllowAnonymous();
     }
 }
