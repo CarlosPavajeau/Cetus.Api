@@ -1,9 +1,9 @@
 using System.Net.Http.Json;
+using Application.Categories.Create;
+using Application.Categories.SearchAll;
+using Application.Categories.Update;
 using Bogus;
 using Cetus.Api.Test.Shared;
-using Cetus.Categories.Application.Create;
-using Cetus.Categories.Application.SearchAll;
-using Cetus.Categories.Application.Update;
 using Shouldly;
 
 namespace Cetus.Api.Test;
