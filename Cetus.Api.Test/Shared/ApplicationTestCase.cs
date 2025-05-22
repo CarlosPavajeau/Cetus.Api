@@ -1,4 +1,3 @@
-using Cetus.Infrastructure.Persistence.EntityFramework;
 using Infrastructure.Database;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Hosting;
@@ -21,7 +20,7 @@ public class ApplicationTestCase : WebApplicationFactory<Program>
 
         builder.ConfigureTestServices(services =>
         {
-            services.RemoveAll(typeof(DbContextOptions<CetusDbContext>));
+            services.RemoveAll(typeof(DbContextOptions<ApplicationDbContext>));
 
             var serviceProvider = new ServiceCollection()
                 .AddEntityFrameworkInMemoryDatabase()
