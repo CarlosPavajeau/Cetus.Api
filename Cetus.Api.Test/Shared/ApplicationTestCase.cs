@@ -1,4 +1,5 @@
 using Cetus.Infrastructure.Persistence.EntityFramework;
+using Infrastructure.Database;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;
@@ -25,7 +26,7 @@ public class ApplicationTestCase : WebApplicationFactory<Program>
             var serviceProvider = new ServiceCollection()
                 .AddEntityFrameworkInMemoryDatabase()
                 .BuildServiceProvider();
-            services.AddDbContextPool<CetusDbContext>(options =>
+            services.AddDbContextPool<ApplicationDbContext>(options =>
             {
                 options.UseInMemoryDatabase("test");
                 options.UseInternalServiceProvider(serviceProvider);
