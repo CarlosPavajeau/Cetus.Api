@@ -51,6 +51,7 @@ internal sealed class UpdateOrderCommandHandler(IApplicationDbContext context)
                     order.Id,
                     order.OrderNumber,
                     customer.Name,
+                    customer.Email,
                     order.Total
                 )));
                 break;
