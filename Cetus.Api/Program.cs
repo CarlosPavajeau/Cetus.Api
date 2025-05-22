@@ -1,3 +1,4 @@
+using System.Reflection;
 using Application;
 using Cetus.Api;
 using Cetus.Api.Extensions;
@@ -19,7 +20,16 @@ builder.Services
     .AddPresentation()
     .AddInfrastructure(builder.Configuration);
 
+builder.Services.AddEndpoints(Assembly.GetExecutingAssembly());
+
 var app = builder.Build();
+
+var apiGroup = app.MapGroup("/api")
+    .RequireAuthorization()
+    .RequireCors(DependencyInjection.AllowAllCorsPolicy)
+    .RequireRateLimiting("fixed");
+
+app.MapEndpoints(apiGroup);
 
 if (app.Environment.IsDevelopment())
 {
