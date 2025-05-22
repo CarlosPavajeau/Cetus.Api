@@ -1,8 +1,8 @@
+using Application.Abstractions.Data;
+using Application.States.SearchAll;
+using Application.States.SearchAllCities;
 using Cetus.Api.Test.Shared;
-using Cetus.Infrastructure.Persistence.EntityFramework;
-using Cetus.States.Application.SearchAll;
-using Cetus.States.Application.SearchAllCities;
-using Cetus.States.Domain;
+using Domain.States;
 using Microsoft.Extensions.DependencyInjection;
 using Shouldly;
 
@@ -20,11 +20,11 @@ public class StatesSpec(ApplicationTestCase factory) : ApplicationContextTestCas
             Name = "Test State"
         };
 
-        var context = Services.GetRequiredService<CetusDbContext>();
+        var context = Services.GetRequiredService<IApplicationDbContext>();
 
         await context.States.AddAsync(state);
         await context.SaveChangesAsync();
-        
+
         // Act
         var response = await Client.GetAsync("api/states");
 
@@ -35,7 +35,7 @@ public class StatesSpec(ApplicationTestCase factory) : ApplicationContextTestCas
 
         states.ShouldNotBeEmpty();
     }
-    
+
     [Fact(DisplayName = "Should get all cities from a state")]
     public async Task ShouldGetAllCitiesFromState()
     {
@@ -53,12 +53,12 @@ public class StatesSpec(ApplicationTestCase factory) : ApplicationContextTestCas
             StateId = state.Id
         };
 
-        var context = Services.GetRequiredService<CetusDbContext>();
+        var context = Services.GetRequiredService<IApplicationDbContext>();
 
         await context.States.AddAsync(state);
         await context.Cities.AddAsync(city);
         await context.SaveChangesAsync();
-        
+
         // Act
         var response = await Client.GetAsync($"api/states/{state.Id}/cities");
 
