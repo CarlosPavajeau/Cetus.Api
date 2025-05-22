@@ -1,14 +1,15 @@
-using Cetus.Infrastructure.Persistence.EntityFramework;
-using Cetus.Products.Application.SearchAll;
-using Cetus.Products.Domain;
-using MediatR;
+using Application.Abstractions.Data;
+using Application.Abstractions.Messaging;
+using Application.Products.SearchAll;
+using Domain.Products;
+using SharedKernel;
 
-namespace Cetus.Products.Application.Create;
+namespace Application.Products.Create;
 
-internal sealed class CreateProductCommandHandler(CetusDbContext context)
-    : IRequestHandler<CreateProductCommand, ProductResponse>
+internal sealed class CreateProductCommandHandler(IApplicationDbContext context)
+    : ICommandHandler<CreateProductCommand, ProductResponse>
 {
-    public async Task<ProductResponse> Handle(CreateProductCommand request, CancellationToken cancellationToken)
+    public async Task<Result<ProductResponse>> Handle(CreateProductCommand request, CancellationToken cancellationToken)
     {
         var product = new Product
         {

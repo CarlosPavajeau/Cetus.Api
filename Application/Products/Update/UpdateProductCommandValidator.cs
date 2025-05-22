@@ -1,11 +1,16 @@
 using FluentValidation;
 
-namespace Cetus.Products.Application.Create;
+namespace Application.Products.Update;
 
-public sealed class CreateProductCommandValidator : AbstractValidator<CreateProductCommand>
+public sealed class UpdateProductCommandValidator : AbstractValidator<UpdateProductCommand>
 {
-    public CreateProductCommandValidator()
+    public UpdateProductCommandValidator()
     {
+        RuleFor(x => x.Id)
+            .NotNull()
+            .NotEmpty()
+            .WithMessage("El identificador del producto es requerido.");
+
         RuleFor(x => x.Name)
             .NotNull()
             .NotEmpty()
@@ -24,12 +29,7 @@ public sealed class CreateProductCommandValidator : AbstractValidator<CreateProd
             .WithMessage("La cantidad en stock del producto es requerida.")
             .GreaterThan(0)
             .WithMessage("La cantidad en stock del producto debe ser mayor a 0.");
-
-        RuleFor(x => x.ImageUrl)
-            .NotNull()
-            .NotEmpty()
-            .WithMessage("La URL de la imagen del producto es requerida.");
-
+        
         RuleFor(x => x.CategoryId)
             .NotNull()
             .NotEmpty()

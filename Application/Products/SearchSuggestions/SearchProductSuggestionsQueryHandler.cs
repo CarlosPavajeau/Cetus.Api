@@ -1,23 +1,18 @@
-using Cetus.Infrastructure.Persistence.EntityFramework;
-using Cetus.Products.Application.SearchForSale;
-using MediatR;
+using Application.Abstractions.Data;
+using Application.Abstractions.Messaging;
+using Application.Products.SearchForSale;
 using Microsoft.EntityFrameworkCore;
+using SharedKernel;
 
-namespace Cetus.Products.Application.SearchSuggestions;
+namespace Application.Products.SearchSuggestions;
 
-internal sealed class SearchProductSuggestionsQueryHandler : IRequestHandler<SearchProductSuggestionsQuery, IEnumerable<ProductResponse>>
+internal sealed class SearchProductSuggestionsQueryHandler(IApplicationDbContext context)
+    : IQueryHandler<SearchProductSuggestionsQuery, IEnumerable<ProductResponse>>
 {
-    private readonly CetusDbContext _context;
-
-    public SearchProductSuggestionsQueryHandler(CetusDbContext context)
-    {
-        _context = context;
-    }
-
-    public async Task<IEnumerable<ProductResponse>> Handle(SearchProductSuggestionsQuery request,
+    public async Task<Result<IEnumerable<ProductResponse>>> Handle(SearchProductSuggestionsQuery request,
         CancellationToken cancellationToken)
     {
-        var category = await _context.Products
+        var category = await context.Products
             .AsNoTracking()
             .Include(x => x.Category)
             .Where(p => p.Id == request.ProductId)
@@ -26,11 +21,11 @@ internal sealed class SearchProductSuggestionsQueryHandler : IRequestHandler<Sea
         
         if (category == Guid.Empty)
         {
-            return [];
+            return Result.Success<IEnumerable<ProductResponse>>([]);
         }
         
         // Select only 3 random products in the same category but not the same product
-        var products = await _context.Products
+        var products = await context.Products
             .AsNoTracking()
             .Include(x => x.Category)
             .Where(p => p.DeletedAt == null && p.Enabled && p.Stock > 0)
@@ -39,6 +34,6 @@ internal sealed class SearchProductSuggestionsQueryHandler : IRequestHandler<Sea
             .Take(3)
             .ToListAsync(cancellationToken);
 
-        return products.Select(ProductResponse.FromProduct);
+        return Result.Success(products.Select(ProductResponse.FromProduct));
     }
 }

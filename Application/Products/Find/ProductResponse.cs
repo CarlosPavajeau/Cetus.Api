@@ -1,6 +1,6 @@
-using Cetus.Products.Domain;
+using Domain.Products;
 
-namespace Cetus.Products.Application.SearchAll;
+namespace Application.Products.Find;
 
 public sealed record ProductResponse(
     Guid Id,
@@ -8,10 +8,8 @@ public sealed record ProductResponse(
     string? Description,
     decimal Price,
     int Stock,
-    Guid CategoryId,
-    bool Enabled,
-    DateTime CreatedAt,
-    DateTime UpdatedAt)
+    string? ImageUrl,
+    string? Category)
 {
     public static ProductResponse FromProduct(Product product) =>
         new(
@@ -20,9 +18,7 @@ public sealed record ProductResponse(
             product.Description,
             product.Price,
             product.Stock,
-            product.CategoryId,
-            product.Enabled,
-            product.CreatedAt,
-            product.UpdatedAt
+            product.ImageUrl,
+            product.Category?.Name
         );
 }

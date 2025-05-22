@@ -1,7 +1,7 @@
-using Cetus.Products.Application.SearchAll;
-using MediatR;
+using Application.Abstractions.Messaging;
+using Application.Products.SearchAll;
 
-namespace Cetus.Products.Application.Update;
+namespace Application.Products.Update;
 
 public sealed record UpdateProductCommand(
     Guid Id,
@@ -11,4 +11,4 @@ public sealed record UpdateProductCommand(
     int Stock,
     string? ImageUrl,
     Guid CategoryId,
-    bool Enabled) : IRequest<ProductResponse?>;
+    bool Enabled) : ICommand<ProductResponse?>;

@@ -1,12 +1,11 @@
 using System.Net;
 using System.Net.Http.Json;
+using Application.Abstractions.Data;
+using Application.Products.SearchAll;
+using Application.Products.Update;
 using Cetus.Api.Test.Shared;
 using Cetus.Api.Test.Shared.Fakers;
-using Cetus.Categories.Domain;
-using Cetus.Infrastructure.Persistence.EntityFramework;
-using Cetus.Products.Application.SearchAll;
-using Cetus.Products.Application.Update;
-using Cetus.Products.Domain;
+using Domain.Categories;
 using Microsoft.Extensions.DependencyInjection;
 using Shouldly;
 
@@ -29,7 +28,7 @@ public class ProductsSpec(ApplicationTestCase factory) : ApplicationContextTestC
         // Assert
         response.EnsureSuccessStatusCode();
 
-        var product = await response.DeserializeAsync<Product>();
+        var product = await response.DeserializeAsync<ProductResponse>();
 
         product.ShouldNotBeNull();
         product.Enabled.ShouldBeTrue();
@@ -67,7 +66,7 @@ public class ProductsSpec(ApplicationTestCase factory) : ApplicationContextTestC
             CreatedAt = DateTime.UtcNow
         };
 
-        var db = Services.GetRequiredService<CetusDbContext>();
+        var db = Services.GetRequiredService<IApplicationDbContext>();
         await db.Categories.AddAsync(category);
         await db.SaveChangesAsync();
         
@@ -101,7 +100,7 @@ public class ProductsSpec(ApplicationTestCase factory) : ApplicationContextTestC
             CreatedAt = DateTime.UtcNow
         };
 
-        var db = Services.GetRequiredService<CetusDbContext>();
+        var db = Services.GetRequiredService<IApplicationDbContext>();
         await db.Categories.AddAsync(category);
         await db.SaveChangesAsync();
 
@@ -149,7 +148,7 @@ public class ProductsSpec(ApplicationTestCase factory) : ApplicationContextTestC
             CreatedAt = DateTime.UtcNow
         };
 
-        var db = Services.GetRequiredService<CetusDbContext>();
+        var db = Services.GetRequiredService<IApplicationDbContext>();
         await db.Categories.AddAsync(category);
         await db.SaveChangesAsync();
 

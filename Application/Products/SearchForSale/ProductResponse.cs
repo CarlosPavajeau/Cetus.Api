@@ -1,6 +1,6 @@
-using Cetus.Products.Domain;
+using Domain.Products;
 
-namespace Cetus.Products.Application.SearchForSale;
+namespace Application.Products.SearchForSale;
 
 public sealed record ProductResponse(
     Guid Id,

@@ -1,5 +1,5 @@
+using Application.Products.Create;
 using Bogus;
-using Cetus.Products.Application.Create;
 
 namespace Cetus.Api.Test.Shared.Fakers;
 
