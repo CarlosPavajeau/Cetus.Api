@@ -24,6 +24,6 @@ internal sealed class SearchForSale : IEndpoint
             );
 
             return result.Match(Results.Ok, CustomResults.Problem);
-        }).AllowAnonymous();
+        }).AllowAnonymous().WithTags(Tags.Products);
     }
 }

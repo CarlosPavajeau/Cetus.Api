@@ -18,7 +18,7 @@ internal sealed class Update : IEndpoint
             CancellationToken cancellationToken) =>
         {
             if (id != command.Id) return Results.BadRequest("Id in route and command do not match.");
-            
+
             var result = await handler.Handle(command, cancellationToken);
 
             if (result.IsSuccess)
@@ -27,6 +27,6 @@ internal sealed class Update : IEndpoint
             }
 
             return result.Match(Results.NoContent, CustomResults.Problem);
-        });
+        }).WithTags(Tags.Categories);
     }
 }

@@ -27,6 +27,6 @@ internal sealed class Create : IEndpoint
             }
 
             return result.Match(Results.Ok, CustomResults.Problem);
-        }).AllowAnonymous();
+        }).AllowAnonymous().WithTags(Tags.Orders);
     }
 }

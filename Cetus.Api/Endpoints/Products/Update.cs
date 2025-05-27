@@ -22,7 +22,7 @@ internal sealed class Update : IEndpoint
             {
                 return Results.BadRequest("Product ID mismatch.");
             }
-            
+
             var result = await handler.Handle(command, cancellationToken);
 
             if (result.IsSuccess)
@@ -31,6 +31,6 @@ internal sealed class Update : IEndpoint
             }
 
             return result.Match(Results.Ok, CustomResults.Problem);
-        });
+        }).WithTags(Tags.Products);
     }
 }

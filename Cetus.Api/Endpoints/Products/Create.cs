@@ -23,8 +23,8 @@ internal sealed class Create : IEndpoint
             {
                 await cache.RemoveAsync("products-for-sale", cancellationToken);
             }
-            
+
             return result.Match(Results.Ok, CustomResults.Problem);
-        });
+        }).WithTags(Tags.Products);
     }
 }

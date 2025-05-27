@@ -19,13 +19,13 @@ internal sealed class Delete : IEndpoint
             var command = new DeleteCategoryCommand(id);
 
             var result = await handler.Handle(command, cancellationToken);
-            
+
             if (result.IsSuccess)
             {
                 await cache.RemoveAsync("categories", cancellationToken);
             }
 
             return result.Match(Results.NoContent, CustomResults.Problem);
-        });
+        }).WithTags(Tags.Categories);
     }
 }

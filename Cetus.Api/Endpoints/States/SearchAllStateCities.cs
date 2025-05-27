@@ -25,6 +25,6 @@ internal sealed class SearchAllStateCities : IEndpoint
             );
 
             return result.Match(Results.Ok, CustomResults.Problem);
-        }).AllowAnonymous();
+        }).AllowAnonymous().WithTags(Tags.States);
     }
 }

@@ -25,6 +25,7 @@ internal sealed class SearchAll : IEndpoint
 
                 return result.Match(Results.Ok, CustomResults.Problem);
             })
-            .AllowAnonymous();
+            .AllowAnonymous()
+            .WithTags(Tags.Categories);
     }
 }

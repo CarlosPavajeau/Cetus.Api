@@ -18,14 +18,14 @@ internal sealed class Delete : IEndpoint
         {
             var command = new DeleteProductCommand(id);
             var result = await handler.Handle(command, cancellationToken);
-            
+
             if (result.IsSuccess)
             {
                 await cache.RemoveAsync($"product-{command.Id}", cancellationToken);
                 await cache.RemoveAsync("products-for-sale", cancellationToken);
             }
-            
+
             return result.Match(Results.Ok, CustomResults.Problem);
-        });
+        }).WithTags(Tags.Products);
     }
 }
