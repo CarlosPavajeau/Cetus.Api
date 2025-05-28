@@ -27,7 +27,8 @@ public static class DependencyInjection
             .AddServices()
             .AddDatabase(configuration)
             .AddHealthChecks(configuration)
-            .AddAuthentication(configuration)
+            .AddAuthenticationInternal(configuration)
+            .AddAuthorizationInternal()
             .AddCors(configuration)
             .AddEmail(configuration)
             .AddRateLimit()
@@ -67,7 +68,8 @@ public static class DependencyInjection
         return services;
     }
 
-    private static IServiceCollection AddAuthentication(this IServiceCollection services, IConfiguration configuration)
+    private static IServiceCollection AddAuthenticationInternal(this IServiceCollection services,
+        IConfiguration configuration)
     {
         services.AddAuthentication(ClerkAuthenticationDefaults.AuthenticationScheme)
             .AddClerkAuthentication(options =>
@@ -75,6 +77,13 @@ public static class DependencyInjection
                 options.Authority = configuration["Clerk:Authority"]!;
                 options.AuthorizedParty = configuration["Clerk:AuthorizedParty"]!;
             });
+
+        return services;
+    }
+
+    private static IServiceCollection AddAuthorizationInternal(this IServiceCollection services)
+    {
+        services.AddAuthorization();
 
         return services;
     }
