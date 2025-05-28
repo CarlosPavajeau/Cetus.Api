@@ -1,5 +1,6 @@
 using System.Security.Claims;
 using System.Text.Encodings.Web;
+using Cetus.Api.Endpoints;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
@@ -18,7 +19,8 @@ public class TestAuthHandler : AuthenticationHandler<AuthenticationSchemeOptions
         var claims = new[]
         {
             new Claim(ClaimTypes.Name, "Test user"),
-            new Claim(ClaimTypes.NameIdentifier, "Test user")
+            new Claim(ClaimTypes.NameIdentifier, "Test user"),
+            new Claim(ClerkClaimTypes.Permissions, ClerkPermissions.AppAccess)
         };
         var identity = new ClaimsIdentity(claims, "Test");
         var principal = new ClaimsPrincipal(identity);

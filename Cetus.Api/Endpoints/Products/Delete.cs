@@ -26,6 +26,6 @@ internal sealed class Delete : IEndpoint
             }
 
             return result.Match(Results.Ok, CustomResults.Problem);
-        }).WithTags(Tags.Products).HasPermission(Permissions.AppAccess);
+        }).WithTags(Tags.Products).HasPermission(ClerkPermissions.AppAccess);
     }
 }
