@@ -20,6 +20,6 @@ internal sealed class Cancel : IEndpoint
             var result = await handler.Handle(command, cancellationToken);
 
             return result.Match(Results.Ok, CustomResults.Problem);
-        }).WithTags(Tags.Orders);
+        }).WithTags(Tags.Orders).HasPermission(Permissions.AppAccess);
     }
 }

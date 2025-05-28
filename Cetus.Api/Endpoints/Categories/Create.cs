@@ -17,6 +17,6 @@ internal sealed class Create : IEndpoint
             var result = await handler.Handle(command, cancellationToken);
 
             return result.Match(Results.Ok, CustomResults.Problem);
-        }).WithTags(Tags.Categories);
+        }).WithTags(Tags.Categories).HasPermission(Permissions.AppAccess);
     }
 }
