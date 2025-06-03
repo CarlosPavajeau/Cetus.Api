@@ -1,4 +1,5 @@
-﻿using System.Threading.RateLimiting;
+﻿using System.Reflection;
+using System.Threading.RateLimiting;
 using Application.Abstractions.Data;
 using Clerk.Net.AspNetCore.Security;
 using Domain.Orders;
@@ -10,6 +11,10 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using OpenTelemetry;
+using OpenTelemetry.Metrics;
+using OpenTelemetry.Resources;
+using OpenTelemetry.Trace;
 using Resend;
 using SharedKernel;
 using ZiggyCreatures.Caching.Fusion;
@@ -27,6 +32,7 @@ public static class DependencyInjection
             .AddServices()
             .AddDatabase(configuration)
             .AddHealthChecks(configuration)
+            .AddTelemetry(configuration)
             .AddAuthenticationInternal(configuration)
             .AddAuthorizationInternal()
             .AddCors(configuration)
@@ -64,6 +70,41 @@ public static class DependencyInjection
         services
             .AddHealthChecks()
             .AddNpgSql(configuration.GetConnectionString("CetusContext")!);
+
+        return services;
+    }
+
+    private static IServiceCollection AddTelemetry(this IServiceCollection services, IConfiguration configuration)
+    {
+        var serviceName = configuration["OTEL_SERVICE_NAME"] ?? "cetus-api";
+        var otel = services.AddOpenTelemetry();
+
+        otel.ConfigureResource(resource =>
+        {
+            resource.AddService(
+                serviceName: serviceName,
+                serviceVersion: Assembly.GetExecutingAssembly().GetName().Version?.ToString() ?? "unknown",
+                serviceInstanceId: Environment.MachineName
+            );
+        });
+
+        otel.WithMetrics(metrics => metrics
+            .AddMeter(serviceName)
+            .AddAspNetCoreInstrumentation()
+            .AddHttpClientInstrumentation()
+            .AddFusionCacheInstrumentation()
+            .AddRuntimeInstrumentation());
+
+        otel.WithTracing(tracing =>
+        {
+            tracing.AddAspNetCoreInstrumentation()
+                .AddHttpClientInstrumentation()
+                .AddEntityFrameworkCoreInstrumentation()
+                .AddFusionCacheInstrumentation()
+                .AddSource(serviceName);
+        });
+
+        otel.UseOtlpExporter();
 
         return services;
     }
