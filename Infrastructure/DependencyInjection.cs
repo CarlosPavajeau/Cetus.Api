@@ -11,6 +11,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Npgsql;
 using OpenTelemetry;
 using OpenTelemetry.Metrics;
 using OpenTelemetry.Resources;
@@ -93,6 +94,7 @@ public static class DependencyInjection
             .AddAspNetCoreInstrumentation()
             .AddHttpClientInstrumentation()
             .AddFusionCacheInstrumentation()
+            .AddNpgsqlInstrumentation()
             .AddRuntimeInstrumentation());
 
         otel.WithTracing(tracing =>
@@ -101,6 +103,7 @@ public static class DependencyInjection
                 .AddHttpClientInstrumentation()
                 .AddEntityFrameworkCoreInstrumentation()
                 .AddFusionCacheInstrumentation()
+                .AddNpgsql()
                 .AddSource(serviceName);
         });
 
