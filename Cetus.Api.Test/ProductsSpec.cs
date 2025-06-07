@@ -2,6 +2,7 @@ using System.Net;
 using System.Net.Http.Json;
 using Application.Abstractions.Data;
 using Application.Products.SearchAll;
+using Application.Products.TopSelling;
 using Application.Products.Update;
 using Cetus.Api.Test.Shared;
 using Cetus.Api.Test.Shared.Fakers;
@@ -373,7 +374,7 @@ public class ProductsSpec(ApplicationTestCase factory) : ApplicationContextTestC
         // Assert
         response.EnsureSuccessStatusCode();
 
-        var body = await response.DeserializeAsync<IEnumerable<ProductResponse>>();
+        var body = await response.DeserializeAsync<IEnumerable<TopSellingProductResponse>>();
 
         var topSellingProducts = body?.ToList();
         topSellingProducts.ShouldNotBeNull();

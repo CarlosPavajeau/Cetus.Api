@@ -1,5 +1,4 @@
 using Application.Abstractions.Messaging;
-using Application.Products.SearchForSale;
 using Application.Products.TopSelling;
 using Cetus.Api.Extensions;
 using Cetus.Api.Infrastructure;
@@ -12,7 +11,7 @@ internal sealed class TopSelling : IEndpoint
     public void MapEndpoint(IEndpointRouteBuilder app)
     {
         app.MapGet("products/top-selling", async (
-            IQueryHandler<GetTopSellingProductsQuery, IEnumerable<ProductResponse>> handler,
+            IQueryHandler<GetTopSellingProductsQuery, IEnumerable<TopSellingProductResponse>> handler,
             HybridCache cache,
             CancellationToken cancellationToken) =>
         {
