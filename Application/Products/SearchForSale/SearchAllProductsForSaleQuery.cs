@@ -1,4 +1,5 @@
 using Application.Abstractions.Messaging;
+using Application.Products.Find;
 
 namespace Application.Products.SearchForSale;
 

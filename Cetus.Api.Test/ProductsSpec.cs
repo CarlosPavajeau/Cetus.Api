@@ -385,4 +385,53 @@ public class ProductsSpec(ApplicationTestCase factory) : ApplicationContextTestC
         topSellingProducts[1].Name.ShouldBe("Product 3"); // Second-highest sales count (75)
         topSellingProducts[2].Name.ShouldBe("Product 1"); // Lowest sales count (50)
     }
+
+    [Fact(DisplayName = "Should return a product by slug")]
+    public async Task ShouldReturnAProductBySlug()
+    {
+        // Arrange
+        var category = new Category
+        {
+            Id = Guid.NewGuid(),
+            Name = "Category Test",
+            CreatedAt = DateTime.UtcNow
+        };
+
+        var db = Services.GetRequiredService<IApplicationDbContext>();
+        await db.Categories.AddAsync(category);
+        await db.SaveChangesAsync();
+
+        var newProduct = _productCommandFaker.WithCategoryId(category.Id).Generate();
+        var createResponse = await Client.PostAsJsonAsync("api/products", newProduct);
+
+        createResponse.EnsureSuccessStatusCode();
+
+        var product = await createResponse.DeserializeAsync<ProductResponse>();
+        product.ShouldNotBeNull();
+
+        // Act
+        var response = await Client.GetAsync($"api/products/slug/{product.Slug}");
+
+        // Assert
+        response.EnsureSuccessStatusCode();
+
+        var productResponse = await response.DeserializeAsync<ProductResponse>();
+
+        productResponse.ShouldNotBeNull();
+        productResponse.Id.ShouldBe(product.Id);
+        productResponse.Slug.ShouldBe(product.Slug);
+    }
+
+    [Fact(DisplayName = "Should return not found when product slug not exists")]
+    public async Task ShouldReturnNotFoundWhenProductSlugNotExists()
+    {
+        // Arrange
+        const string nonExistentSlug = "non-existent-product-1234";
+
+        // Act
+        var response = await Client.GetAsync($"api/products/slug/{nonExistentSlug}");
+
+        // Assert
+        response.StatusCode.ShouldBe(HttpStatusCode.NotFound);
+    }
 }
