@@ -6,6 +6,7 @@ using Application.Products.Update;
 using Cetus.Api.Test.Shared;
 using Cetus.Api.Test.Shared.Fakers;
 using Domain.Categories;
+using Domain.Products;
 using Microsoft.Extensions.DependencyInjection;
 using Shouldly;
 
@@ -69,11 +70,11 @@ public class ProductsSpec(ApplicationTestCase factory) : ApplicationContextTestC
         var db = Services.GetRequiredService<IApplicationDbContext>();
         await db.Categories.AddAsync(category);
         await db.SaveChangesAsync();
-        
+
         var newProduct = _productCommandFaker
             .WithCategoryId(category.Id)
             .Generate();
-        
+
         var createResponse = await Client.PostAsJsonAsync("api/products", newProduct);
 
         createResponse.EnsureSuccessStatusCode();
@@ -159,12 +160,12 @@ public class ProductsSpec(ApplicationTestCase factory) : ApplicationContextTestC
 
         var product = await createResponse.DeserializeAsync<ProductResponse>();
         product.ShouldNotBeNull();
-        
+
         newProduct = _productCommandFaker.WithCategoryId(category.Id).Generate();
         createResponse = await Client.PostAsJsonAsync("api/products", newProduct);
-        
+
         createResponse.EnsureSuccessStatusCode();
-        
+
         product = await createResponse.DeserializeAsync<ProductResponse>();
         product.ShouldNotBeNull();
 
@@ -302,5 +303,85 @@ public class ProductsSpec(ApplicationTestCase factory) : ApplicationContextTestC
 
         // Assert
         response.StatusCode.ShouldBe(HttpStatusCode.NotFound);
+    }
+
+    [Fact(DisplayName = "Should return top selling products")]
+    public async Task ShouldReturnTopSellingProducts()
+    {
+        // Arrange
+        var category = new Category
+        {
+            Id = Guid.NewGuid(),
+            Name = "Category Test Top Selling",
+            CreatedAt = DateTime.UtcNow
+        };
+
+        var db = Services.GetRequiredService<IApplicationDbContext>();
+        await db.Categories.AddAsync(category);
+        await db.SaveChangesAsync();
+
+        // Create products directly in the database with different sales counts
+        var products = new List<Product>
+        {
+            new()
+            {
+                Id = Guid.NewGuid(),
+                Name = "Product 1",
+                Description = "Description 1",
+                Price = 100,
+                Stock = 10,
+                Enabled = true,
+                SalesCount = 50,
+                CategoryId = category.Id,
+                CreatedAt = DateTime.UtcNow,
+                UpdatedAt = DateTime.UtcNow
+            },
+            new()
+            {
+                Id = Guid.NewGuid(),
+                Name = "Product 2",
+                Description = "Description 2",
+                Price = 200,
+                Stock = 20,
+                Enabled = true,
+                SalesCount = 100,
+                CategoryId = category.Id,
+                CreatedAt = DateTime.UtcNow,
+                UpdatedAt = DateTime.UtcNow
+            },
+            new()
+            {
+                Id = Guid.NewGuid(),
+                Name = "Product 3",
+                Description = "Description 3",
+                Price = 300,
+                Stock = 30,
+                Enabled = true,
+                SalesCount = 75,
+                CategoryId = category.Id,
+                CreatedAt = DateTime.UtcNow,
+                UpdatedAt = DateTime.UtcNow
+            }
+        };
+
+        await db.Products.AddRangeAsync(products);
+        await db.SaveChangesAsync();
+
+        // Act
+        var response = await Client.GetAsync("api/products/top-selling");
+
+        // Assert
+        response.EnsureSuccessStatusCode();
+
+        var body = await response.DeserializeAsync<IEnumerable<ProductResponse>>();
+
+        var topSellingProducts = body?.ToList();
+        topSellingProducts.ShouldNotBeNull();
+        topSellingProducts.ShouldNotBeEmpty();
+
+        // Verify products are ordered by sales count
+        topSellingProducts[0].Name.ShouldBe("Product 2"); // Highest sales count (100)
+        topSellingProducts[1].Name.ShouldBe("Product 3"); // Second-highest sales count (75)
+        topSellingProducts[2].Name.ShouldBe("Product 1"); // Lowest sales count (50)
     }
 }
