@@ -14,7 +14,7 @@ namespace Infrastructure.Database;
 
 public sealed class ApplicationDbContext(
     DbContextOptions<ApplicationDbContext> options,
-    DomainEventsDispatcher domainEventsDispatcher)
+    IDomainEventsDispatcher domainEventsDispatcher)
     : DbContext(options), IApplicationDbContext
 {
     public DbSet<Category> Categories { get; set; }
@@ -83,7 +83,7 @@ public sealed class ApplicationDbContext(
             .Select(entry => entry.Entity)
             .SelectMany(entity =>
             {
-                List<IDomainEvent> domainEvents = entity.DomainEvents;
+                var domainEvents = entity.DomainEvents;
 
                 entity.ClearDomainEvents();
 
