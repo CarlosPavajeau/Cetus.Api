@@ -3,6 +3,7 @@ using Application.Abstractions.Data;
 using Domain.Categories;
 using Domain.Orders;
 using Domain.Products;
+using Domain.Reviews;
 using Domain.States;
 using Infrastructure.DomainEvents;
 using Microsoft.EntityFrameworkCore;
@@ -27,6 +28,9 @@ public sealed class ApplicationDbContext(
 
     public DbSet<State> States { get; set; }
     public DbSet<City> Cities { get; set; }
+
+    public DbSet<ReviewRequest> ReviewRequests { get; set; }
+    public DbSet<ProductReview> ProductReviews { get; set; }
     
     private class DateTimeToUtcConverter() : ValueConverter<DateTime, DateTime>(Serialize, Deserialize)
     {

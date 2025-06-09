@@ -1,6 +1,7 @@
 using Domain.Categories;
 using Domain.Orders;
 using Domain.Products;
+using Domain.Reviews;
 using Domain.States;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Storage;
@@ -20,7 +21,10 @@ public interface IApplicationDbContext
     DbSet<State> States { get; }
     DbSet<City> Cities { get; }
 
+    DbSet<ReviewRequest> ReviewRequests { get; }
+    DbSet<ProductReview> ProductReviews { get; }
+
     Task<int> SaveChangesAsync(CancellationToken cancellationToken = default);
-    
+
     Task<IDbContextTransaction> BeginTransactionAsync(CancellationToken cancellationToken = default);
 }
