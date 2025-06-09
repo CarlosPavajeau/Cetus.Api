@@ -20,7 +20,7 @@ public sealed class ApplicationDbContext(
 {
     public DbSet<Category> Categories { get; set; }
     public DbSet<Product> Products { get; set; }
-    
+
     public DbSet<Customer> Customers { get; set; }
     public DbSet<Order> Orders { get; set; }
     public DbSet<OrderItem> OrderItems { get; set; }
@@ -31,7 +31,7 @@ public sealed class ApplicationDbContext(
 
     public DbSet<ReviewRequest> ReviewRequests { get; set; }
     public DbSet<ProductReview> ProductReviews { get; set; }
-    
+
     private class DateTimeToUtcConverter() : ValueConverter<DateTime, DateTime>(Serialize, Deserialize)
     {
         static Expression<Func<DateTime, DateTime>> Deserialize =
@@ -52,10 +52,10 @@ public sealed class ApplicationDbContext(
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         base.OnModelCreating(modelBuilder);
-        
+
         modelBuilder.ApplyConfigurationsFromAssembly(GetType().Assembly);
     }
-    
+
     public override async Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)
     {
         // When should you publish domain events?
