@@ -19,6 +19,9 @@ public sealed class Product
 
     public int SalesCount { get; set; }
 
+    public decimal Rating { get; set; }
+    public int ReviewsCount { get; set; }
+
     [MaxLength(512)] public string? ImageUrl { get; set; }
 
     [Required] public Guid CategoryId { get; set; }
