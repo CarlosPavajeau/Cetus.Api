@@ -1,11 +1,11 @@
 using Application.Abstractions.Messaging;
-using Application.Reviews.Find;
+using Application.Reviews.ReviewRequests.Find;
 using Cetus.Api.Extensions;
 using Cetus.Api.Infrastructure;
 
-namespace Cetus.Api.Endpoints.Reviews;
+namespace Cetus.Api.Endpoints.Reviews.ReviewRequests;
 
-internal sealed class FindReviewRequest : IEndpoint
+internal sealed class Find : IEndpoint
 {
     public void MapEndpoint(IEndpointRouteBuilder app)
     {

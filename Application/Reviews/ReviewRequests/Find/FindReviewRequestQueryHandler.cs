@@ -4,7 +4,7 @@ using Domain.Reviews;
 using Microsoft.EntityFrameworkCore;
 using SharedKernel;
 
-namespace Application.Reviews.Find;
+namespace Application.Reviews.ReviewRequests.Find;
 
 internal sealed class FindReviewRequestQueryHandler(IApplicationDbContext context)
     : IQueryHandler<FindReviewRequestQuery, ReviewRequestResponse>

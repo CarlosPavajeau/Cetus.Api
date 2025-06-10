@@ -1,6 +1,6 @@
 using Domain.Reviews;
 
-namespace Application.Reviews.Find;
+namespace Application.Reviews.ReviewRequests.Find;
 
 public sealed record ReviewRequestProduct(
     string Name,

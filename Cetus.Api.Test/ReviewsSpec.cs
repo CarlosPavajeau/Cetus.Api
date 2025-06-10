@@ -4,7 +4,7 @@ using Application.Abstractions.Data;
 using Application.Orders.Create;
 using Application.Orders.Find;
 using Application.Products.SearchAll;
-using Application.Reviews.Find;
+using Application.Reviews.ReviewRequests.Find;
 using Bogus;
 using Cetus.Api.Test.Shared;
 using Cetus.Api.Test.Shared.Fakers;
