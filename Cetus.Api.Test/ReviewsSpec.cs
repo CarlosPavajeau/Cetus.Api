@@ -5,6 +5,7 @@ using Application.Orders.Create;
 using Application.Orders.Find;
 using Application.Products.SearchAll;
 using Application.Reviews.ProductReviews.Create;
+using Application.Reviews.ProductReviews.Reject;
 using Application.Reviews.ProductReviews.SearchAll;
 using Application.Reviews.ReviewRequests.Find;
 using Bogus;
@@ -199,13 +200,13 @@ public class ReviewsSpec(ApplicationTestCase factory) : ApplicationContextTestCa
             // Get created review
             var createdReview = await db.ProductReviews
                 .FirstOrDefaultAsync(r => r.ReviewRequestId == reviewRequest.Id);
-            
+
             createdReview.ShouldNotBeNull();
 
             createdReview.Status = ProductReviewStatus.Approved;
             createdReviews.Add(createdReview);
         }
-        
+
         await db.SaveChangesAsync();
 
         // Act
@@ -246,5 +247,197 @@ public class ReviewsSpec(ApplicationTestCase factory) : ApplicationContextTestCa
         var reviews = await response.DeserializeAsync<List<ProductReviewResponse>>();
         reviews.ShouldNotBeNull();
         reviews.ShouldBeEmpty();
+    }
+
+    [Fact(DisplayName = "Should return pending approval reviews")]
+    public async Task ShouldReturnPendingApprovalReviews()
+    {
+        // Arrange - Create a product
+        var newProduct = _productCommandFaker.Generate();
+        var createProductResponse = await Client.PostAsJsonAsync("api/products", newProduct);
+        createProductResponse.EnsureSuccessStatusCode();
+        var product = await createProductResponse.DeserializeAsync<ProductResponse>();
+        product.ShouldNotBeNull();
+
+        // Arrange - Create multiple orders and reviews
+        var db = Services.GetRequiredService<IApplicationDbContext>();
+        const int reviewCount = 3;
+
+        for (var i = 0; i < reviewCount; i++)
+        {
+            // Create order
+            var newCustomer = _orderCustomerFaker.Generate();
+            var newOrderItems = new List<CreateOrderItem>
+            {
+                new(newProduct.Name, newProduct.ImageUrl, 1, product.Price, product.Id)
+            };
+            var newOrder = new CreateOrderCommand(_faker.Address.FullAddress(), cityId, product.Price, newOrderItems,
+                newCustomer);
+            var createOrderResponse = await Client.PostAsJsonAsync("api/orders", newOrder);
+            createOrderResponse.EnsureSuccessStatusCode();
+            var order = await createOrderResponse.DeserializeAsync<OrderResponse>();
+            order.ShouldNotBeNull();
+
+            // Deliver order
+            var deliverOrderResponse = await Client.PostAsync($"api/orders/{order.Id}/deliver", null);
+            deliverOrderResponse.EnsureSuccessStatusCode();
+
+            // Get review request
+            var reviewRequest = await db.ReviewRequests
+                .AsNoTracking()
+                .FirstOrDefaultAsync(r => r.CustomerId == newCustomer.Id);
+            reviewRequest.ShouldNotBeNull();
+
+            // Create review
+            var createReviewCommand = new CreateProductReviewCommand(
+                reviewRequest.Id,
+                _faker.Lorem.Paragraph(),
+                _faker.Random.Byte(1, 5));
+
+            var createReviewResponse = await Client.PostAsJsonAsync("api/reviews/products", createReviewCommand);
+            createReviewResponse.EnsureSuccessStatusCode();
+
+            // Get created review
+            var createdReview = await db.ProductReviews
+                .AsNoTracking()
+                .FirstOrDefaultAsync(r => r.ReviewRequestId == reviewRequest.Id);
+            createdReview.ShouldNotBeNull();
+        }
+
+        // Act
+        var response = await Client.GetAsync("api/reviews/products/pending");
+
+        // Assert
+        response.EnsureSuccessStatusCode();
+        var reviews = await response.DeserializeAsync<List<ProductReviewResponse>>();
+        reviews.ShouldNotBeNull();
+        reviews.Count.ShouldBeGreaterThanOrEqualTo(reviewCount);
+    }
+
+    [Fact(DisplayName = "Should approve a review")]
+    public async Task ShouldApproveReview()
+    {
+        // Arrange - Create a product and review
+        var newProduct = _productCommandFaker.Generate();
+        var createProductResponse = await Client.PostAsJsonAsync("api/products", newProduct);
+        createProductResponse.EnsureSuccessStatusCode();
+        var product = await createProductResponse.DeserializeAsync<ProductResponse>();
+        product.ShouldNotBeNull();
+
+        // Create order
+        var newCustomer = _orderCustomerFaker.Generate();
+        var newOrderItems = new List<CreateOrderItem>
+        {
+            new(newProduct.Name, newProduct.ImageUrl, 1, product.Price, product.Id)
+        };
+        var newOrder = new CreateOrderCommand(_faker.Address.FullAddress(), cityId, product.Price, newOrderItems,
+            newCustomer);
+        var createOrderResponse = await Client.PostAsJsonAsync("api/orders", newOrder);
+        createOrderResponse.EnsureSuccessStatusCode();
+        var order = await createOrderResponse.DeserializeAsync<OrderResponse>();
+        order.ShouldNotBeNull();
+
+        // Deliver order
+        var deliverOrderResponse = await Client.PostAsync($"api/orders/{order.Id}/deliver", null);
+        deliverOrderResponse.EnsureSuccessStatusCode();
+
+        // Get review request
+        var db = Services.GetRequiredService<IApplicationDbContext>();
+        var reviewRequest = await db.ReviewRequests
+            .AsNoTracking()
+            .FirstOrDefaultAsync(r => r.CustomerId == newCustomer.Id);
+        reviewRequest.ShouldNotBeNull();
+
+        // Create review
+        var createReviewCommand = new CreateProductReviewCommand(
+            reviewRequest.Id,
+            _faker.Lorem.Paragraph(),
+            _faker.Random.Byte(1, 5));
+
+        var createReviewResponse = await Client.PostAsJsonAsync("api/reviews/products", createReviewCommand);
+        createReviewResponse.EnsureSuccessStatusCode();
+
+        // Get created review
+        var createdReview = await db.ProductReviews
+            .AsNoTracking()
+            .FirstOrDefaultAsync(r => r.ReviewRequestId == reviewRequest.Id);
+        createdReview.ShouldNotBeNull();
+
+        // Act
+        var response = await Client.PostAsync($"api/reviews/products/{createdReview.Id}/approve", null);
+
+        // Assert
+        response.EnsureSuccessStatusCode();
+
+        // Verify review was approved
+        var updatedReview = await db.ProductReviews.FindAsync(createdReview.Id);
+        updatedReview.ShouldNotBeNull();
+        updatedReview.Status.ShouldBe(ProductReviewStatus.Approved);
+    }
+
+    [Fact(DisplayName = "Should reject a review")]
+    public async Task ShouldRejectReview()
+    {
+        // Arrange - Create a product and review
+        var newProduct = _productCommandFaker.Generate();
+        var createProductResponse = await Client.PostAsJsonAsync("api/products", newProduct);
+        createProductResponse.EnsureSuccessStatusCode();
+        var product = await createProductResponse.DeserializeAsync<ProductResponse>();
+        product.ShouldNotBeNull();
+
+        // Create order
+        var newCustomer = _orderCustomerFaker.Generate();
+        var newOrderItems = new List<CreateOrderItem>
+        {
+            new(newProduct.Name, newProduct.ImageUrl, 1, product.Price, product.Id)
+        };
+        var newOrder = new CreateOrderCommand(_faker.Address.FullAddress(), cityId, product.Price, newOrderItems,
+            newCustomer);
+        var createOrderResponse = await Client.PostAsJsonAsync("api/orders", newOrder);
+        createOrderResponse.EnsureSuccessStatusCode();
+        var order = await createOrderResponse.DeserializeAsync<OrderResponse>();
+        order.ShouldNotBeNull();
+
+        // Deliver order
+        var deliverOrderResponse = await Client.PostAsync($"api/orders/{order.Id}/deliver", null);
+        deliverOrderResponse.EnsureSuccessStatusCode();
+
+        // Get review request
+        var db = Services.GetRequiredService<IApplicationDbContext>();
+        var reviewRequest = await db.ReviewRequests
+            .AsNoTracking()
+            .FirstOrDefaultAsync(r => r.CustomerId == newCustomer.Id);
+        reviewRequest.ShouldNotBeNull();
+
+        // Create review
+        var createReviewCommand = new CreateProductReviewCommand(
+            reviewRequest.Id,
+            _faker.Lorem.Paragraph(),
+            _faker.Random.Byte(1, 5));
+
+        var createReviewResponse = await Client.PostAsJsonAsync("api/reviews/products", createReviewCommand);
+        createReviewResponse.EnsureSuccessStatusCode();
+
+        // Get created review
+        var createdReview = await db.ProductReviews
+            .AsNoTracking()
+            .FirstOrDefaultAsync(r => r.ReviewRequestId == reviewRequest.Id);
+        createdReview.ShouldNotBeNull();
+
+        // Act
+        var request = new RejectProductReviewCommand(createdReview.Id, "Inappropriate content");
+        var response = await Client.PostAsJsonAsync($"api/reviews/products/{createdReview.Id}/reject", request);
+
+        // Assert
+        response.EnsureSuccessStatusCode();
+
+        // Verify review was rejected
+        var updatedReview = await db.ProductReviews
+            .AsNoTracking()
+            .FirstOrDefaultAsync(pr => pr.ReviewRequestId == reviewRequest.Id);
+
+        updatedReview.ShouldNotBeNull();
+        updatedReview.Status.ShouldBe(ProductReviewStatus.Rejected);
+        updatedReview.ModeratorNotes.ShouldBe(request.ModeratorNotes);
     }
 }
