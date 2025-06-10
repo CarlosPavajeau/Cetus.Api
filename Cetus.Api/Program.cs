@@ -22,11 +22,12 @@ builder.Host.UseSerilog((context, loggerConfig) =>
         config.Protocol = OtlpProtocol.HttpProtobuf;
         config.Headers = new Dictionary<string, string>
         {
-            { "api-key", context.Configuration["OTEL_EXPORTER_OTLP_API_KEY"] ?? string.Empty }
+            {"api-key", context.Configuration["OTEL_EXPORTER_OTLP_API_KEY"] ?? string.Empty}
         };
-        
+
         config.ResourceAttributes.Add("service.name", context.Configuration["OTEL_SERVICE_NAME"] ?? "cetus-api");
-        config.ResourceAttributes.Add("service.version", Assembly.GetExecutingAssembly().GetName().Version?.ToString() ?? "unknown");
+        config.ResourceAttributes.Add("service.version",
+            Assembly.GetExecutingAssembly().GetName().Version?.ToString() ?? "unknown");
         config.ResourceAttributes.Add("service.instance.id", Environment.MachineName);
     });
 });
@@ -79,7 +80,10 @@ app.UseAuthentication();
 
 app.UseAuthorization();
 
-app.UseRateLimiter();
+if (app.Environment.IsProduction())
+{
+    app.UseRateLimiter();
+}
 
 app.MapControllers();
 
