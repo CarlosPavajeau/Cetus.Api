@@ -23,4 +23,15 @@ public sealed class ProductReview
 
     public DateTime CreatedAt { get; set; }
     public DateTime UpdatedAt { get; set; }
+
+    public void Reject(string? commandModeratorNotes)
+    {
+        Status = ProductReviewStatus.Rejected;
+        ModeratorNotes = commandModeratorNotes;
+    }
+
+    public void Approve()
+    {
+        Status = ProductReviewStatus.Approved;
+    }
 }
