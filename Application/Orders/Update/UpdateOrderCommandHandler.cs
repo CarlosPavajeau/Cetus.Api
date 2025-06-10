@@ -2,6 +2,7 @@ using Application.Abstractions.Data;
 using Application.Abstractions.Messaging;
 using Application.Orders.SearchAll;
 using Domain.Orders;
+using Microsoft.EntityFrameworkCore;
 using SharedKernel;
 
 namespace Application.Orders.Update;
@@ -11,7 +12,10 @@ internal sealed class UpdateOrderCommandHandler(IApplicationDbContext context)
 {
     public async Task<Result<OrderResponse>> Handle(UpdateOrderCommand request, CancellationToken cancellationToken)
     {
-        var order = await context.Orders.FindAsync([request.Id], cancellationToken);
+        var order = await context.Orders
+            .Include(o => o.Items)
+            .FirstOrDefaultAsync(o => o.Id == request.Id, cancellationToken);
+
         if (order is null)
         {
             return Result.Failure<OrderResponse>(OrderErrors.NotFound(request.Id));
