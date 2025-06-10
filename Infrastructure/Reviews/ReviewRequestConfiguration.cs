@@ -1,4 +1,3 @@
-using Domain.Orders;
 using Domain.Reviews;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
@@ -17,16 +16,9 @@ internal sealed class ReviewRequestConfiguration : IEntityTypeConfiguration<Revi
 
         builder.Property(rr => rr.OrderItemId)
             .IsRequired();
-        builder.HasOne<OrderItem>()
-            .WithOne()
-            .HasForeignKey<ReviewRequest>(rr => rr.OrderItemId);
 
         builder.Property(rr => rr.CustomerId)
             .IsRequired()
             .HasMaxLength(50);
-        builder.HasOne<Customer>()
-            .WithMany()
-            .HasForeignKey(rr => rr.CustomerId)
-            .OnDelete(DeleteBehavior.Cascade);
     }
 }

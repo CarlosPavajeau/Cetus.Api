@@ -1,5 +1,3 @@
-using Domain.Orders;
-using Domain.Products;
 using Domain.Reviews;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
@@ -24,23 +22,12 @@ internal sealed class ProductReviewConfiguration : IEntityTypeConfiguration<Prod
 
         builder.Property(pr => pr.ReviewRequestId)
             .IsRequired();
-        builder.HasOne<ReviewRequest>()
-            .WithOne()
-            .HasForeignKey<ProductReview>(pr => pr.ReviewRequestId);
 
         builder.Property(pr => pr.ProductId)
             .IsRequired();
-        builder.HasOne<Product>()
-            .WithMany()
-            .HasForeignKey(pr => pr.ProductId)
-            .OnDelete(DeleteBehavior.Cascade);
 
         builder.Property(pr => pr.CustomerId)
             .IsRequired()
             .HasMaxLength(50);
-        builder.HasOne<Customer>()
-            .WithMany()
-            .HasForeignKey(pr => pr.CustomerId)
-            .OnDelete(DeleteBehavior.Cascade);
     }
 }
