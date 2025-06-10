@@ -1,22 +1,16 @@
 using Application.Abstractions.Data;
 using Domain.Orders;
 using Domain.Reviews;
-using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
-using Resend;
 using SharedKernel;
 
 namespace Application.Orders.Update;
 
 internal sealed class CreateReviewRequestDomainEventHandler(
     IApplicationDbContext context,
-    IResend resend,
-    IConfiguration configuration,
     ILogger<CreateReviewRequestDomainEventHandler> logger)
     : IDomainEventHandler<DeliveredOrderDomainEvent>
 {
-    private const string EmailSubject = "¡Cuéntanos tu experiencia!";
-
     public async Task Handle(DeliveredOrderDomainEvent domainEvent, CancellationToken cancellationToken)
     {
         logger.LogInformation("Creating review requests for order {OrderNumber}", domainEvent.Order.OrderNumber);
