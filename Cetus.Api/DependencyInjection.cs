@@ -1,4 +1,5 @@
 using Cetus.Api.Infrastructure;
+using Microsoft.AspNetCore.Http.Features;
 
 namespace Cetus.Api;
 
@@ -14,7 +15,16 @@ public static class DependencyInjection
         services.AddControllers();
 
         services.AddExceptionHandler<GlobalExceptionHandler>();
-        services.AddProblemDetails();
+        services.AddProblemDetails(options =>
+        {
+            options.CustomizeProblemDetails = context =>
+            {
+                context.ProblemDetails.Extensions.TryAdd("requestId", context.HttpContext.TraceIdentifier);
+
+                var activity = context.HttpContext.Features.Get<IHttpActivityFeature>()?.Activity;
+                context.ProblemDetails.Extensions.TryAdd("traceId", activity?.Id);
+            };
+        });
 
         services.AddRouting(options =>
         {
