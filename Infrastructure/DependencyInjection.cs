@@ -3,6 +3,7 @@ using System.Threading.RateLimiting;
 using Application.Abstractions.Data;
 using Clerk.Net.AspNetCore.Security;
 using Domain.Orders;
+using Domain.Reviews;
 using Infrastructure.Database;
 using Infrastructure.DomainEvents;
 using Infrastructure.Time;
@@ -57,7 +58,12 @@ public static class DependencyInjection
         {
             options.UseNpgsql(
                     connectionString,
-                    dbContextOptionsBuilder => { dbContextOptionsBuilder.MapEnum<OrderStatus>("order_status"); })
+                    dbContextOptionsBuilder =>
+                    {
+                        dbContextOptionsBuilder.MapEnum<OrderStatus>("order_status");
+                        dbContextOptionsBuilder.MapEnum<ReviewRequestStatus>("review_request_status");
+                        dbContextOptionsBuilder.MapEnum<ProductReviewStatus>("product_review_status");
+                    })
                 .UseSnakeCaseNamingConvention();
         });
 
