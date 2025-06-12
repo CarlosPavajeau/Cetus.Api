@@ -10,6 +10,8 @@ public sealed record ProductResponse(
     decimal Price,
     int Stock,
     string? ImageUrl,
+    decimal Rating,
+    int ReviewsCount,
     Guid CategoryId,
     string? Category)
 {
@@ -22,6 +24,8 @@ public sealed record ProductResponse(
             product.Price,
             product.Stock,
             product.ImageUrl,
+            product.Rating,
+            product.ReviewsCount,
             product.CategoryId,
             product.Category?.Name
         );
