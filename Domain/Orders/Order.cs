@@ -1,4 +1,3 @@
-using System.ComponentModel.DataAnnotations;
 using Domain.States;
 using SharedKernel;
 
@@ -6,7 +5,7 @@ namespace Domain.Orders;
 
 public sealed class Order : Entity
 {
-    [Required] [Key] public Guid Id { get; set; }
+    public Guid Id { get; set; }
     public long OrderNumber { get; set; }
     public OrderStatus Status { get; set; } = OrderStatus.Pending;
 
