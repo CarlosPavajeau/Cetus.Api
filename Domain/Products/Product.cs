@@ -1,4 +1,3 @@
-using System.ComponentModel.DataAnnotations;
 using Domain.Categories;
 
 namespace Domain.Products;
@@ -19,9 +18,9 @@ public sealed class Product
     public decimal Rating { get; set; }
     public int ReviewsCount { get; set; }
 
-    [MaxLength(512)] public string? ImageUrl { get; set; }
+    public string? ImageUrl { get; set; }
 
-    [Required] public Guid CategoryId { get; set; }
+    public Guid CategoryId { get; set; }
     public Category? Category { get; set; }
 
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
