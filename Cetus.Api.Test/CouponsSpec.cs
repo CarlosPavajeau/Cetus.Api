@@ -164,4 +164,26 @@ public class CouponsSpec(ApplicationTestCase factory) : ApplicationContextTestCa
         coupon.ShouldNotBeNull();
         coupon.UsageLimit.ShouldBeNull();
     }
+
+    [Fact(DisplayName = "Should return all coupons")]
+    public async Task ShouldReturnAllCoupons()
+    {
+        // Arrange
+        var coupon1 = _couponCommandFaker.Generate();
+        var coupon2 = _couponCommandFaker.Generate();
+        
+        await Client.PostAsJsonAsync("api/coupons", coupon1);
+        await Client.PostAsJsonAsync("api/coupons", coupon2);
+
+        // Act
+        var response = await Client.GetAsync("api/coupons");
+
+        // Assert
+        response.EnsureSuccessStatusCode();
+
+        var coupons = await response.DeserializeAsync<List<CouponResponse>>();
+        coupons.ShouldNotBeNull();
+        coupons.ShouldNotBeEmpty();
+        coupons.Count.ShouldBeGreaterThanOrEqualTo(2);
+    }
 }
