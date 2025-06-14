@@ -2,6 +2,7 @@
 using System.Threading.RateLimiting;
 using Application.Abstractions.Data;
 using Clerk.Net.AspNetCore.Security;
+using Domain.Coupons;
 using Domain.Orders;
 using Domain.Reviews;
 using Infrastructure.Database;
@@ -63,6 +64,8 @@ public static class DependencyInjection
                         dbContextOptionsBuilder.MapEnum<OrderStatus>("order_status");
                         dbContextOptionsBuilder.MapEnum<ReviewRequestStatus>("review_request_status");
                         dbContextOptionsBuilder.MapEnum<ProductReviewStatus>("product_review_status");
+                        dbContextOptionsBuilder.MapEnum<CouponDiscountType>("coupon_discount_type");
+                        dbContextOptionsBuilder.MapEnum<CouponRuleType>("coupon_rule_type");
                     })
                 .UseSnakeCaseNamingConvention();
         });
