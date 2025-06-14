@@ -1,4 +1,5 @@
 using Domain.Categories;
+using Domain.Coupons;
 using Domain.Orders;
 using Domain.Products;
 using Domain.Reviews;
@@ -23,6 +24,10 @@ public interface IApplicationDbContext
 
     DbSet<ReviewRequest> ReviewRequests { get; }
     DbSet<ProductReview> ProductReviews { get; }
+    
+    DbSet<Coupon> Coupons { get; }
+    DbSet<CouponRule> CouponRules { get; }
+    DbSet<CouponUsage> CouponUsages { get; }
 
     Task<int> SaveChangesAsync(CancellationToken cancellationToken = default);
 

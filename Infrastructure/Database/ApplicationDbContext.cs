@@ -1,6 +1,7 @@
 using System.Linq.Expressions;
 using Application.Abstractions.Data;
 using Domain.Categories;
+using Domain.Coupons;
 using Domain.Orders;
 using Domain.Products;
 using Domain.Reviews;
@@ -31,6 +32,10 @@ public sealed class ApplicationDbContext(
 
     public DbSet<ReviewRequest> ReviewRequests { get; set; }
     public DbSet<ProductReview> ProductReviews { get; set; }
+    
+    public DbSet<Coupon> Coupons { get; set; }
+    public DbSet<CouponRule> CouponRules { get; set; }
+    public DbSet<CouponUsage> CouponUsages { get; set; }
 
     private class DateTimeToUtcConverter() : ValueConverter<DateTime, DateTime>(Serialize, Deserialize)
     {
