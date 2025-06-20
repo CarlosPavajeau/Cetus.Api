@@ -12,8 +12,9 @@ internal sealed class CreateCouponCommandHandler(IApplicationDbContext context)
     public async Task<Result<CouponResponse>> Handle(CreateCouponCommand command, CancellationToken cancellationToken)
     {
         // Check if coupon code already exists (case-insensitive)
+        var couponCode = command.Code.Trim().ToUpperInvariant();
         var codeExists = await context.Coupons
-            .AnyAsync(c => c.Code.Equals(command.Code, StringComparison.CurrentCultureIgnoreCase), cancellationToken);
+            .AnyAsync(c => c.Code == couponCode, cancellationToken);
 
         if (codeExists)
         {
@@ -22,7 +23,7 @@ internal sealed class CreateCouponCommandHandler(IApplicationDbContext context)
 
         var coupon = new Coupon
         {
-            Code = command.Code,
+            Code = couponCode,
             Description = command.Description,
             DiscountType = command.DiscountType,
             DiscountValue = command.DiscountValue,
