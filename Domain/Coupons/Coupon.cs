@@ -19,18 +19,18 @@ public sealed class Coupon
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
     public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
 
-    public bool IsExpired
+    public bool IsExpired(DateTime currentDate)
     {
-        get
+        if (EndDate.HasValue && EndDate.Value < currentDate)
         {
-            if (EndDate.HasValue && EndDate.Value < DateTime.UtcNow)
-            {
-                return true;
-            }
-
-            return StartDate.HasValue && StartDate.Value > DateTime.UtcNow;
+            return true;
         }
+
+        return StartDate.HasValue && StartDate.Value > currentDate;
     }
 
-    public bool IsValidForUsage => IsActive && !IsExpired && (UsageLimit == null || UsageCount < UsageLimit);
+    public bool IsValidForUsage(DateTime currentDate)
+    {
+        return IsActive && !IsExpired(currentDate) && (UsageLimit == null || UsageCount < UsageLimit);
+    }
 }

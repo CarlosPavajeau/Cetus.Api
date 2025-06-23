@@ -9,6 +9,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Moq;
 using Resend;
+using SharedKernel;
 
 namespace Cetus.Api.Test.Shared;
 
@@ -42,6 +43,14 @@ public class ApplicationTestCase : WebApplicationFactory<Program>
 
             services.RemoveAll<IResend>();
             services.AddSingleton(resendMock.Object);
+            
+            // Mock IDateTimeProvider
+            var dateTimeProviderMock = new Mock<IDateTimeProvider>();
+            var frozenCurrentTime = DateTime.UtcNow.AddHours(-5);
+            dateTimeProviderMock.Setup(dp => dp.UtcNow).Returns(frozenCurrentTime);
+
+            services.RemoveAll<IDateTimeProvider>();
+            services.AddSingleton(dateTimeProviderMock.Object);
         });
 
         base.ConfigureWebHost(builder);
