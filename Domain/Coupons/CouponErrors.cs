@@ -60,4 +60,10 @@ public static class CouponErrors
         "No discount can be applied to this order.",
         ErrorType.Validation
     );
+
+    public static Error AlreadyUsed => new(
+        "Coupon.AlreadyUsed",
+        "This coupon has already been used.",
+        ErrorType.Validation
+    );
 }

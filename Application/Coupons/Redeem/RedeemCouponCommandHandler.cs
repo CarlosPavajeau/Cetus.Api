@@ -37,6 +37,13 @@ internal sealed class RedeemCouponCommandHandler(IApplicationDbContext context, 
             return Result.Failure(OrderErrors.NotFound(command.OrderId));
         }
 
+        var alreadyUsed = await context.CouponUsages
+            .AnyAsync(u => u.CouponId == coupon.Id && u.OrderId == order.Id, cancellationToken);
+        if (alreadyUsed)
+        {
+            return Result.Failure(CouponErrors.AlreadyUsed);
+        }
+
         var validationResult = await ValidateCouponRules(coupon, order, cancellationToken);
         if (validationResult.IsFailure)
         {
