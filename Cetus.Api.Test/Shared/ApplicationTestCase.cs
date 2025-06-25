@@ -46,7 +46,7 @@ public class ApplicationTestCase : WebApplicationFactory<Program>
             
             // Mock IDateTimeProvider
             var dateTimeProviderMock = new Mock<IDateTimeProvider>();
-            var frozenCurrentTime = DateTime.UtcNow.AddHours(-5);
+            var frozenCurrentTime = DateTime.UtcNow.AddDays(-1);
             dateTimeProviderMock.Setup(dp => dp.UtcNow).Returns(frozenCurrentTime);
 
             services.RemoveAll<IDateTimeProvider>();
