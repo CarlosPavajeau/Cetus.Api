@@ -15,11 +15,12 @@ public sealed class CreateCouponCommandFaker : Faker<CreateCouponCommand>
             faker.PickRandom<CouponDiscountType>(),
             faker.Random.Decimal(1, 100),
             faker.Random.Int(1, 1000),
-            faker.Date.Recent(),
-            faker.Date.Future(),
+            faker.Date.Recent(2),
+            faker.Date.Soon(5),
             new List<CreateCouponRuleCommand>
             {
-                new(CouponRuleType.MinPurchaseAmount, faker.Random.Decimal(10, 100).ToString(CultureInfo.InvariantCulture)),
+                new(CouponRuleType.MinPurchaseAmount,
+                    faker.Random.Decimal(10, 100).ToString(CultureInfo.InvariantCulture)),
                 new(CouponRuleType.SpecificCategory, faker.Commerce.Categories(1)[0])
             }
         ));
@@ -35,7 +36,7 @@ public sealed class CreateCouponCommandFaker : Faker<CreateCouponCommand>
     public CreateCouponCommandFaker WithFixedAmountDiscount()
     {
         RuleFor(c => c.DiscountType, _ => CouponDiscountType.FixedAmount);
-        RuleFor(c => c.DiscountValue, f => f.Random.Decimal(1, 100));
+        RuleFor(c => c.DiscountValue, f => f.Random.Decimal(100, 1000));
         return this;
     }
 

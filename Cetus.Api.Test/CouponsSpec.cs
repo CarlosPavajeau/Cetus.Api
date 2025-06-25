@@ -222,7 +222,11 @@ public class CouponsSpec(ApplicationTestCase factory) : ApplicationContextTestCa
     public async Task ShouldSuccessfullyRedeemAValidCoupon()
     {
         // Arrange
-        var newCoupon = _couponCommandFaker.WithNoRules().Generate();
+        var newCoupon = _couponCommandFaker
+            .WithFixedAmountDiscount()
+            .WithNoRules()
+            .Generate();
+
         var createResponse = await Client.PostAsJsonAsync("api/coupons", newCoupon);
         createResponse.EnsureSuccessStatusCode();
 
