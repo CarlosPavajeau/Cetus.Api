@@ -8,6 +8,8 @@ public sealed record OrderResponse(
     long OrderNumber,
     OrderStatus Status,
     string Address,
+    decimal Subtotal,
+    decimal Discount,
     decimal Total,
     DateTime CreatedAt)
 {
@@ -23,6 +25,8 @@ public sealed record OrderResponse(
                 order.OrderNumber,
                 order.Status,
                 address.ToString(),
+                order.Subtotal,
+                order.Discount,
                 order.Total,
                 order.CreatedAt);
         }
@@ -37,6 +41,8 @@ public sealed record OrderResponse(
             order.OrderNumber,
             order.Status,
             address.ToString(),
+            order.Subtotal,
+            order.Discount,
             order.Total,
             order.CreatedAt);
     }
