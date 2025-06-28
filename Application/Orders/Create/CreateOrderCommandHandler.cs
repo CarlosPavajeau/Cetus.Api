@@ -51,7 +51,7 @@ internal sealed class CreateOrderCommandHandler(
         {
             logger.LogError(ex, "Error creating order for customer {CustomerId}", request.Customer.Id);
             await transaction.RollbackAsync(cancellationToken);
-            throw;
+            return Result.Failure<OrderResponse>(OrderErrors.CreationFailed(request.Customer.Id, ex.Message));
         }
     }
 
@@ -128,6 +128,8 @@ internal sealed class CreateOrderCommandHandler(
             Id = Guid.NewGuid(),
             Address = request.Address,
             CityId = request.CityId,
+            Subtotal = request.Total,
+            Discount = 0, // Assuming no discount for simplicity
             DeliveryFee = deliveryFee,
             Total = request.Total,
             CustomerId = customerId,
