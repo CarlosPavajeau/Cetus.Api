@@ -13,6 +13,8 @@ public sealed class Order : Entity
     public Guid? CityId { get; set; }
     public City? City { get; set; }
 
+    public decimal Subtotal { get; set; }
+    public decimal Discount { get; set; }
     public decimal DeliveryFee { get; set; }
     public decimal Total { get; set; }
 
