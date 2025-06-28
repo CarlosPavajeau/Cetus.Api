@@ -7,6 +7,7 @@ using Domain.Orders;
 using Domain.Reviews;
 using Infrastructure.Database;
 using Infrastructure.DomainEvents;
+using Infrastructure.Reviews.Jobs;
 using Infrastructure.Time;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
@@ -18,6 +19,8 @@ using OpenTelemetry;
 using OpenTelemetry.Metrics;
 using OpenTelemetry.Resources;
 using OpenTelemetry.Trace;
+using Quartz;
+using Quartz.AspNetCore;
 using Resend;
 using SharedKernel;
 using ZiggyCreatures.Caching.Fusion;
@@ -41,7 +44,8 @@ public static class DependencyInjection
             .AddCors(configuration)
             .AddEmail(configuration)
             .AddRateLimit()
-            .AddCache();
+            .AddCache()
+            .AddQuartz();
 
     private static IServiceCollection AddServices(this IServiceCollection services)
     {
@@ -113,6 +117,7 @@ public static class DependencyInjection
                 .AddEntityFrameworkCoreInstrumentation()
                 .AddFusionCacheInstrumentation()
                 .AddNpgsql()
+                .AddQuartzInstrumentation()
                 .AddSource(serviceName);
         });
 
@@ -195,6 +200,27 @@ public static class DependencyInjection
     {
         services.AddFusionCache().AsHybridCache();
 
+        return services;
+    }
+
+    private static IServiceCollection AddQuartz(this IServiceCollection services)
+    {
+        services.AddQuartz(config =>
+        {
+            var sendPendingReviewRequestsJobKey = new JobKey(SendPendingReviewRequestsJob.Name);
+            config.AddJob<SendPendingReviewRequestsJob>(sendPendingReviewRequestsJobKey);
+
+            config.AddTrigger(trigger =>
+            {
+                trigger
+                    .ForJob(sendPendingReviewRequestsJobKey)
+                    .WithIdentity($"{sendPendingReviewRequestsJobKey.Name}-trigger")
+                    .WithCronSchedule("0 0 9 * * ?") // Every day at 9 AM UTC
+                    .WithDescription("Send pending review requests job trigger");
+            });
+        });
+
+        services.AddQuartzServer(options => { options.WaitForJobsToComplete = true; });
         return services;
     }
 }
