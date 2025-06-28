@@ -21,32 +21,70 @@ internal sealed class CalculateOrdersInsightsQueryHandler(IApplicationDbContext 
             return OrdersInsightsResponse.Empty;
         }
 
-        var month = date.Month;
+        var currentMonth = date.Month;
+        var previousMonth = currentMonth == 1 ? 12 : currentMonth - 1;
         
-        var allOrdersQuery = context.Orders
+        // Current month data
+        var currentMonthOrdersQuery = context.Orders
             .AsNoTracking()
-            .Where(order => order.CreatedAt.Month == month);
+            .Where(order => order.CreatedAt.Month == currentMonth);
         
-        var completedOrdersQuery = allOrdersQuery
+        var currentMonthCompletedOrdersQuery = currentMonthOrdersQuery
             .Where(order => order.Status == OrderStatus.Delivered);
         
-        var allOrdersCount = await allOrdersQuery.CountAsync(cancellationToken);
-        
-        var completedOrdersCount = await completedOrdersQuery.CountAsync(cancellationToken);
-        
-        var currentMonthTotalRevenue = await completedOrdersQuery
+        var currentMonthAllOrdersCount = await currentMonthOrdersQuery.CountAsync(cancellationToken);
+        var currentMonthCompletedOrdersCount = await currentMonthCompletedOrdersQuery.CountAsync(cancellationToken);
+        var currentMonthTotalRevenue = await currentMonthCompletedOrdersQuery
             .SumAsync(order => order.Total, cancellationToken);
         
-        var itemsInCompletedOrders = await completedOrdersQuery
+        var currentMonthItemsInCompletedOrders = await currentMonthCompletedOrdersQuery
             .SelectMany(order => order.Items)
             .CountAsync(cancellationToken);
         
-        var currentMonthTotalCost = itemsInCompletedOrders * CostPerItem;
+        var currentMonthTotalCost = currentMonthItemsInCompletedOrders * CostPerItem;
+
+        // Previous month data
+        var previousMonthOrdersQuery = context.Orders
+            .AsNoTracking()
+            .Where(order => order.CreatedAt.Month == previousMonth);
+        
+        var previousMonthCompletedOrdersQuery = previousMonthOrdersQuery
+            .Where(order => order.Status == OrderStatus.Delivered);
+        
+        var previousMonthAllOrdersCount = await previousMonthOrdersQuery.CountAsync(cancellationToken);
+        var previousMonthTotalRevenue = await previousMonthCompletedOrdersQuery
+            .SumAsync(order => order.Total, cancellationToken);
+
+        // Calculate percentage changes
+        var revenuePercentageChange = CalculatePercentageChange(previousMonthTotalRevenue, currentMonthTotalRevenue);
+        var ordersCountPercentageChange = CalculatePercentageChange(previousMonthAllOrdersCount, currentMonthAllOrdersCount);
 
         return new OrdersInsightsResponse(
             currentMonthTotalRevenue,
             currentMonthTotalCost,
-            allOrdersCount,
-            completedOrdersCount);
+            currentMonthAllOrdersCount,
+            currentMonthCompletedOrdersCount,
+            revenuePercentageChange,
+            ordersCountPercentageChange);
+    }
+
+    private static decimal CalculatePercentageChange(decimal previousValue, decimal currentValue)
+    {
+        if (previousValue == 0)
+        {
+            return currentValue > 0 ? 100 : 0;
+        }
+
+        return Math.Round(((currentValue - previousValue) / previousValue), 2);
+    }
+
+    private static decimal CalculatePercentageChange(long previousValue, long currentValue)
+    {
+        if (previousValue == 0)
+        {
+            return currentValue > 0 ? 100 : 0;
+        }
+
+        return Math.Round(((decimal)(currentValue - previousValue) / previousValue), 2);
     }
 }

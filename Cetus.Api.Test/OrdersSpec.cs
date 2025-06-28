@@ -300,6 +300,8 @@ public class OrdersSpec(ApplicationTestCase factory) : ApplicationContextTestCas
 
         ordersInsights.ShouldNotBeNull();
         ordersInsights.CurrentMonthTotal.ShouldBeGreaterThan(0);
+        ordersInsights.RevenuePercentageChange.ShouldBeGreaterThanOrEqualTo(0);
+        ordersInsights.OrdersCountPercentageChange.ShouldBeGreaterThanOrEqualTo(0);
     }
     
     [Fact(DisplayName = "Should get orders summary")]
