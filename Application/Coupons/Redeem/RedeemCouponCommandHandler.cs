@@ -85,7 +85,9 @@ internal sealed class RedeemCouponCommandHandler(
             DiscountAmountApplied = discountAmount
         };
 
+        order.Discount += discountAmount;
         order.Total -= discountAmount;
+
         logger.LogInformation("Discount applied. New order total: {OrderTotal}", order.Total);
 
         context.CouponUsages.Add(couponUsage);
