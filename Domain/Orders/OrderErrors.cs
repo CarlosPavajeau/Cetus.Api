@@ -33,4 +33,10 @@ public static class OrderErrors
             "Orders.CustomerNotFound",
             $"Customer with ID {customerId} was not found."
         );
+
+    public static Error CreationFailed(string CustomerId, string message) =>
+        Error.Problem(
+            "Orders.CreationFailed",
+            $"Failed to create order for customer {CustomerId}: {message}"
+        );
 }
