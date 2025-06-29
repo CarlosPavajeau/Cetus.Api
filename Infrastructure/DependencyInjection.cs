@@ -54,7 +54,8 @@ public static class DependencyInjection
 
         services.AddTransient<IDomainEventsDispatcher, DomainEventsDispatcher>();
 
-        services.AddScoped<ITenantContext, TenantContext>();
+        services.AddScoped<TenantContext>();
+        services.AddScoped<ITenantContext>(sp => sp.GetRequiredService<TenantContext>());
 
         return services;
     }

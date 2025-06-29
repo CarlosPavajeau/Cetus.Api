@@ -6,6 +6,7 @@ using Domain.Orders;
 using Domain.Products;
 using Domain.Reviews;
 using Domain.States;
+using Domain.Stores;
 using Infrastructure.DomainEvents;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Storage;
@@ -36,8 +37,10 @@ public sealed class ApplicationDbContext(
     public DbSet<Coupon> Coupons { get; set; }
     public DbSet<CouponRule> CouponRules { get; set; }
     public DbSet<CouponUsage> CouponUsages { get; set; }
+    
+    public DbSet<Store> Stores { get; set; }
 
-    private class DateTimeToUtcConverter() : ValueConverter<DateTime, DateTime>(Serialize, Deserialize)
+    private sealed class DateTimeToUtcConverter() : ValueConverter<DateTime, DateTime>(Serialize, Deserialize)
     {
         static Expression<Func<DateTime, DateTime>> Deserialize =
             x => x.Kind == DateTimeKind.Unspecified ? DateTime.SpecifyKind(x, DateTimeKind.Utc) : x;

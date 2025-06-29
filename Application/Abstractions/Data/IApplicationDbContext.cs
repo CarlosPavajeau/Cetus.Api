@@ -4,6 +4,7 @@ using Domain.Orders;
 using Domain.Products;
 using Domain.Reviews;
 using Domain.States;
+using Domain.Stores;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Storage;
 
@@ -28,6 +29,8 @@ public interface IApplicationDbContext
     DbSet<Coupon> Coupons { get; }
     DbSet<CouponRule> CouponRules { get; }
     DbSet<CouponUsage> CouponUsages { get; }
+    
+    DbSet<Store> Stores { get; }
 
     Task<int> SaveChangesAsync(CancellationToken cancellationToken = default);
 
