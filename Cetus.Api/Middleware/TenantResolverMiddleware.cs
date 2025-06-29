@@ -23,6 +23,8 @@ public class TenantResolverMiddleware(RequestDelegate next)
         if (foundStore is not null)
         {
             tenantContext.Id = foundStore.Id;
+            context.Response.Headers.TryAdd("X-Tenant-Id", foundStore.Id.ToString());
+            context.Response.Headers.TryAdd("X-Tenant-Domain", foundStore.CustomDomain);
         }
 
         await next(context);
