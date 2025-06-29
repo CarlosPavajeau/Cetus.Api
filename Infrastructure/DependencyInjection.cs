@@ -8,6 +8,7 @@ using Domain.Reviews;
 using Infrastructure.Database;
 using Infrastructure.DomainEvents;
 using Infrastructure.Reviews.Jobs;
+using Infrastructure.Stores;
 using Infrastructure.Time;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
@@ -52,6 +53,8 @@ public static class DependencyInjection
         services.AddSingleton<IDateTimeProvider, DateTimeProvider>();
 
         services.AddTransient<IDomainEventsDispatcher, DomainEventsDispatcher>();
+
+        services.AddScoped<ITenantContext, TenantContext>();
 
         return services;
     }
