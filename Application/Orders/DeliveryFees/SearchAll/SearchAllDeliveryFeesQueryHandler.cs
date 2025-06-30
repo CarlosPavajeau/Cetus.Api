@@ -5,7 +5,7 @@ using SharedKernel;
 
 namespace Application.Orders.DeliveryFees.SearchAll;
 
-internal sealed class SearchAllDeliveryFeesQueryHandler(IApplicationDbContext context)
+internal sealed class SearchAllDeliveryFeesQueryHandler(IApplicationDbContext context, ITenantContext tenant)
     : IQueryHandler<SearchAllDeliveryFeesQuery, IEnumerable<DeliveryFeeResponse>>
 {
     public async Task<Result<IEnumerable<DeliveryFeeResponse>>> Handle(SearchAllDeliveryFeesQuery request,
@@ -15,7 +15,7 @@ internal sealed class SearchAllDeliveryFeesQueryHandler(IApplicationDbContext co
             .AsNoTracking()
             .Include(x => x.City)
             .ThenInclude(x => x!.State)
-            .Where(x => x.DeletedAt == null)
+            .Where(x => x.DeletedAt == null && x.StoreId == tenant.Id)
             .ToListAsync(cancellationToken);
 
         return deliveryFees.Select(DeliveryFeeResponse.FromDeliveryFee).ToList();

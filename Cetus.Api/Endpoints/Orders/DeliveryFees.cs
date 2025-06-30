@@ -28,12 +28,13 @@ internal sealed class DeliveryFees : IEndpoint
             IQueryHandler<SearchAllDeliveryFeesQuery,
                 IEnumerable<Application.Orders.DeliveryFees.SearchAll.DeliveryFeeResponse>> handler,
             HybridCache cache,
+            ITenantContext tenant,
             CancellationToken cancellationToken) =>
         {
             var query = new SearchAllDeliveryFeesQuery();
 
             var result = await cache.GetOrCreateAsync(
-                "delivery-fees",
+                $"delivery-fees-${tenant.Id}",
                 async token => await handler.Handle(query, token),
                 cancellationToken: cancellationToken
             );
