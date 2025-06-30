@@ -12,8 +12,7 @@ public class TenantResolverMiddleware(RequestDelegate next)
         HttpContext context,
         IQueryHandler<FindStoreQuery, StoreResponse> handler,
         TenantContext tenantContext,
-        HybridCache cache,
-        CancellationToken cancellationToken)
+        HybridCache cache)
     {
         string? domain = null;
         if (context.Request.Headers.TryGetValue("Origin", out var originValues))
@@ -54,7 +53,7 @@ public class TenantResolverMiddleware(RequestDelegate next)
                 Expiration = TimeSpan.FromHours(5),
                 LocalCacheExpiration = TimeSpan.FromHours(5)
             },
-            cancellationToken: cancellationToken
+            cancellationToken: context.RequestAborted
         );
 
         if (result.IsSuccess)
