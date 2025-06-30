@@ -6,7 +6,7 @@ using SharedKernel;
 
 namespace Application.Orders.DeliveryFees.Create;
 
-internal sealed class CreateDeliveryFeeCommandHandler(IApplicationDbContext context)
+internal sealed class CreateDeliveryFeeCommandHandler(IApplicationDbContext context, ITenantContext tenant)
     : ICommandHandler<CreateDeliveryFeeCommand, DeliveryFeeResponse>
 {
     public async Task<Result<DeliveryFeeResponse>> Handle(CreateDeliveryFeeCommand request,
@@ -15,7 +15,8 @@ internal sealed class CreateDeliveryFeeCommandHandler(IApplicationDbContext cont
         var deliveryFee = new DeliveryFee
         {
             CityId = request.CityId,
-            Fee = request.Fee
+            Fee = request.Fee,
+            StoreId = tenant.Id
         };
 
         await context.DeliveryFees.AddAsync(deliveryFee, cancellationToken);
