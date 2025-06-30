@@ -6,7 +6,7 @@ using SharedKernel;
 
 namespace Application.Products.SearchForSale;
 
-internal sealed class SearchAllProductsForSaleQueryHandler(IApplicationDbContext context)
+internal sealed class SearchAllProductsForSaleQueryHandler(IApplicationDbContext context, ITenantContext tenant)
     : IQueryHandler<SearchAllProductsForSaleQuery, IEnumerable<ProductResponse>>
 {
     public async Task<Result<IEnumerable<ProductResponse>>> Handle(SearchAllProductsForSaleQuery request,
@@ -15,7 +15,7 @@ internal sealed class SearchAllProductsForSaleQueryHandler(IApplicationDbContext
         var products = await context.Products
             .AsNoTracking()
             .Include(x => x.Category)
-            .Where(p => p.DeletedAt == null && p.Enabled && p.Stock > 0)
+            .Where(p => p.DeletedAt == null && p.Enabled && p.Stock > 0 && p.StoreId == tenant.Id)
             .ToListAsync(cancellationToken);
 
         return Result.Success(products.Select(ProductResponse.FromProduct));

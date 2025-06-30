@@ -1,3 +1,4 @@
+using Application.Abstractions.Data;
 using Application.Abstractions.Messaging;
 using Application.Products.Find;
 using Application.Products.SearchForSale;
@@ -14,12 +15,13 @@ internal sealed class SearchForSale : IEndpoint
         app.MapGet("products/for-sale", async (
             IQueryHandler<SearchAllProductsForSaleQuery, IEnumerable<ProductResponse>> handler,
             HybridCache cache,
+            ITenantContext tenant,
             CancellationToken cancellationToken) =>
         {
             var query = new SearchAllProductsForSaleQuery();
 
             var result = await cache.GetOrCreateAsync(
-                "products-for-sale",
+                $"products-for-sale-${tenant.Id}",
                 async token => await handler.Handle(query, token),
                 cancellationToken: cancellationToken
             );
