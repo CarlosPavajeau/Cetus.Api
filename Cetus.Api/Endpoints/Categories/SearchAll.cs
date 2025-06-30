@@ -1,3 +1,4 @@
+using Application.Abstractions.Data;
 using Application.Abstractions.Messaging;
 using Application.Categories.SearchAll;
 using Cetus.Api.Extensions;
@@ -13,12 +14,13 @@ internal sealed class SearchAll : IEndpoint
         app.MapGet("categories", async (
                 HybridCache cache,
                 IQueryHandler<SearchAllCategoriesQuery, IEnumerable<CategoryResponse>> handler,
+                ITenantContext context,
                 CancellationToken cancellationToken) =>
             {
                 var query = new SearchAllCategoriesQuery();
 
                 var result = await cache.GetOrCreateAsync(
-                    "categories",
+                    $"categories-{context.Id}",
                     async token => await handler.Handle(query, token),
                     cancellationToken: cancellationToken
                 );
