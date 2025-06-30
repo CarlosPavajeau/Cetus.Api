@@ -5,7 +5,7 @@ using SharedKernel;
 
 namespace Application.Orders.SearchAll;
 
-internal sealed class SearchAllOrdersQueryHandler(IApplicationDbContext context)
+internal sealed class SearchAllOrdersQueryHandler(IApplicationDbContext context, ITenantContext tenant)
     : IQueryHandler<SearchAllOrdersQuery, IEnumerable<OrderResponse>>
 {
     public async Task<Result<IEnumerable<OrderResponse>>> Handle(SearchAllOrdersQuery request,
@@ -17,6 +17,7 @@ internal sealed class SearchAllOrdersQueryHandler(IApplicationDbContext context)
             .ThenInclude(c => c!.State)
             .OrderByDescending(order => order.Status)
             .ThenBy(order => order.CreatedAt)
+            .Where(o => o.StoreId == tenant.Id)
             .ToListAsync(cancellationToken);
 
         return orders.Select(OrderResponse.FromOrder).ToList();
