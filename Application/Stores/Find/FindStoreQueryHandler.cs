@@ -17,18 +17,24 @@ internal sealed class FindStoreQueryHandler(IApplicationDbContext context)
         }
 
         var queryable = context.Stores.AsNoTracking();
+        Store? store = null;
 
         if (!string.IsNullOrEmpty(query.CustomDomain))
         {
-            queryable = queryable.Where(s => s.CustomDomain == query.CustomDomain);
+            store = await queryable.Where(s => s.CustomDomain == query.CustomDomain)
+                .FirstOrDefaultAsync(cancellationToken);
+        }
+
+        if (store is not null)
+        {
+            return StoreResponse.FromStore(store);
         }
 
         if (!string.IsNullOrEmpty(query.Slug))
         {
-            queryable = queryable.Where(s => s.Slug == query.Slug);
+            store = await queryable.Where(s => s.Slug == query.Slug)
+                .FirstOrDefaultAsync(cancellationToken);
         }
-
-        var store = await queryable.FirstOrDefaultAsync(cancellationToken);
 
         if (store is null)
         {
