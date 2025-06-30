@@ -1,3 +1,4 @@
+using Application.Abstractions.Data;
 using Application.Abstractions.Messaging;
 using Application.Categories.Delete;
 using Cetus.Api.Extensions;
@@ -14,6 +15,7 @@ internal sealed class Delete : IEndpoint
             Guid id,
             ICommandHandler<DeleteCategoryCommand, bool> handler,
             HybridCache cache,
+            ITenantContext context,
             CancellationToken cancellationToken) =>
         {
             var command = new DeleteCategoryCommand(id);
@@ -22,7 +24,7 @@ internal sealed class Delete : IEndpoint
 
             if (result.IsSuccess)
             {
-                await cache.RemoveAsync("categories", cancellationToken);
+                await cache.RemoveAsync($"categories-{context.Id}", cancellationToken);
             }
 
             return result.Match(Results.NoContent, CustomResults.Problem);

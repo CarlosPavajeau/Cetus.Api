@@ -1,3 +1,4 @@
+using Application.Abstractions.Data;
 using Application.Abstractions.Messaging;
 using Application.Categories.Update;
 using Cetus.Api.Extensions;
@@ -15,6 +16,7 @@ internal sealed class Update : IEndpoint
             UpdateCategoryCommand command,
             ICommandHandler<UpdateCategoryCommand, bool> handler,
             HybridCache cache,
+            ITenantContext context,
             CancellationToken cancellationToken) =>
         {
             if (id != command.Id) return Results.BadRequest("Id in route and command do not match.");
@@ -23,7 +25,7 @@ internal sealed class Update : IEndpoint
 
             if (result.IsSuccess)
             {
-                await cache.RemoveAsync("categories", cancellationToken);
+                await cache.RemoveAsync($"categories-{context.Id}", cancellationToken);
             }
 
             return result.Match(Results.NoContent, CustomResults.Problem);
