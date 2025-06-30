@@ -1,3 +1,4 @@
+using Application.Abstractions.Data;
 using Application.Abstractions.Messaging;
 using Application.Orders.DeliveryFees.Create;
 using Application.Orders.DeliveryFees.Find;
@@ -44,12 +45,13 @@ internal sealed class DeliveryFees : IEndpoint
             Guid cityId,
             IQueryHandler<FindDeliveryFeeQuery, DeliveryFeeResponse> handler,
             HybridCache cache,
+            ITenantContext tenant,
             CancellationToken cancellationToken) =>
         {
             var query = new FindDeliveryFeeQuery(cityId);
 
             var result = await cache.GetOrCreateAsync(
-                $"delivery-fee-{cityId}",
+                $"delivery-fee-{cityId}-${tenant.Id}",
                 async token => await handler.Handle(query, token),
                 cancellationToken: cancellationToken
             );

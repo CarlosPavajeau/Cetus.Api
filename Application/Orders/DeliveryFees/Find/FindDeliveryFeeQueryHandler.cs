@@ -5,7 +5,7 @@ using SharedKernel;
 
 namespace Application.Orders.DeliveryFees.Find;
 
-internal sealed class FindDeliveryFeeQueryHandler(IApplicationDbContext context)
+internal sealed class FindDeliveryFeeQueryHandler(IApplicationDbContext context, ITenantContext tenant)
     : IQueryHandler<FindDeliveryFeeQuery, DeliveryFeeResponse>
 {
     public async Task<Result<DeliveryFeeResponse>> Handle(FindDeliveryFeeQuery request,
@@ -13,10 +13,13 @@ internal sealed class FindDeliveryFeeQueryHandler(IApplicationDbContext context)
     {
         var deliveryFee = await context.DeliveryFees
             .AsNoTracking()
-            .FirstOrDefaultAsync(x => x.CityId == request.CityId, cancellationToken);
+            .FirstOrDefaultAsync(x => x.CityId == request.CityId && x.StoreId == tenant.Id, cancellationToken);
 
-        return deliveryFee == null
-            ? DeliveryFeeResponse.Empty
-            : new DeliveryFeeResponse(deliveryFee.Id, deliveryFee.Fee);
+        if (deliveryFee is null)
+        {
+            return DeliveryFeeResponse.Empty;
+        }
+
+        return new DeliveryFeeResponse(deliveryFee.Id, deliveryFee.Fee);
     }
 }
