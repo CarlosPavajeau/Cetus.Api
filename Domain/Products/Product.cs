@@ -23,6 +23,8 @@ public sealed class Product
     public Guid CategoryId { get; set; }
     public Category? Category { get; set; }
 
+    public Guid StoreId { get; set; }
+
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
     public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
     public DateTime? DeletedAt { get; set; }
