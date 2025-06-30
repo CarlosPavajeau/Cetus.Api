@@ -15,4 +15,9 @@ public sealed class OrdersHub : Hub<IOrdersClient>
     {
         await Groups.AddToGroupAsync(Context.ConnectionId, orderId.ToString());
     }
+
+    public async Task JoinStoreGroup(string storeSlug)
+    {
+        await Groups.AddToGroupAsync(Context.ConnectionId, storeSlug);
+    }
 }
