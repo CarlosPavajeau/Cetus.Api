@@ -321,6 +321,8 @@ public class ProductsSpec(ApplicationTestCase factory) : ApplicationContextTestC
         await db.Categories.AddAsync(category);
         await db.SaveChangesAsync();
 
+        var tenant = Services.GetRequiredService<ITenantContext>();
+
         // Create products directly in the database with different sales counts
         var products = new List<Product>
         {
@@ -334,6 +336,7 @@ public class ProductsSpec(ApplicationTestCase factory) : ApplicationContextTestC
                 Enabled = true,
                 SalesCount = 50,
                 CategoryId = category.Id,
+                StoreId = tenant.Id,
                 CreatedAt = DateTime.UtcNow,
                 UpdatedAt = DateTime.UtcNow
             },
@@ -347,6 +350,7 @@ public class ProductsSpec(ApplicationTestCase factory) : ApplicationContextTestC
                 Enabled = true,
                 SalesCount = 100,
                 CategoryId = category.Id,
+                StoreId = tenant.Id,
                 CreatedAt = DateTime.UtcNow,
                 UpdatedAt = DateTime.UtcNow
             },
@@ -360,6 +364,7 @@ public class ProductsSpec(ApplicationTestCase factory) : ApplicationContextTestC
                 Enabled = true,
                 SalesCount = 75,
                 CategoryId = category.Id,
+                StoreId = tenant.Id,
                 CreatedAt = DateTime.UtcNow,
                 UpdatedAt = DateTime.UtcNow
             }
