@@ -7,7 +7,7 @@ using SharedKernel;
 
 namespace Application.Products.Create;
 
-internal sealed partial class CreateProductCommandHandler(IApplicationDbContext context)
+internal sealed partial class CreateProductCommandHandler(IApplicationDbContext context, ITenantContext tenant)
     : ICommandHandler<CreateProductCommand, ProductResponse>
 {
     public async Task<Result<ProductResponse>> Handle(CreateProductCommand request, CancellationToken cancellationToken)
@@ -25,7 +25,8 @@ internal sealed partial class CreateProductCommandHandler(IApplicationDbContext 
             Stock = request.Stock,
             Enabled = true,
             ImageUrl = request.ImageUrl,
-            CategoryId = request.CategoryId
+            CategoryId = request.CategoryId,
+            StoreId = tenant.Id
         };
 
         await context.Products.AddAsync(product, cancellationToken);
@@ -38,16 +39,17 @@ internal sealed partial class CreateProductCommandHandler(IApplicationDbContext 
     {
         // Convert name to lowercase and replace non-alphanumeric chars with hyphens
         var baseSlug = ProductNameRegex().Replace(name.ToLower(), "-");
-        
+
         // Get last 4 chars of the ID
         var idSuffix = id.ToString()[(id.ToString().Length - 4)..];
-        
+
         // Combine and ensure no double hyphens
         return SlugRegex().Replace($"{baseSlug}-{idSuffix}", "-");
     }
 
     [GeneratedRegex("[^a-z0-9]")]
     private static partial Regex ProductNameRegex();
+
     [GeneratedRegex("-+")]
     private static partial Regex SlugRegex();
 }
