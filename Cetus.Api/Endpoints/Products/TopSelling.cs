@@ -1,3 +1,4 @@
+using Application.Abstractions.Data;
 using Application.Abstractions.Messaging;
 using Application.Products.TopSelling;
 using Cetus.Api.Extensions;
@@ -13,12 +14,13 @@ internal sealed class TopSelling : IEndpoint
         app.MapGet("products/top-selling", async (
             IQueryHandler<GetTopSellingProductsQuery, IEnumerable<TopSellingProductResponse>> handler,
             HybridCache cache,
+            ITenantContext tenant,
             CancellationToken cancellationToken) =>
         {
             var query = new GetTopSellingProductsQuery();
 
             var result = await cache.GetOrCreateAsync(
-                "products-top-selling",
+                $"products-top-selling-${tenant.Id}",
                 async token => await handler.Handle(query, token),
                 new HybridCacheEntryOptions
                 {
