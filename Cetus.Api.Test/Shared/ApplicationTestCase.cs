@@ -1,4 +1,6 @@
+using Application.Abstractions.Data;
 using Infrastructure.Database;
+using Infrastructure.Stores;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;
@@ -43,7 +45,7 @@ public class ApplicationTestCase : WebApplicationFactory<Program>
 
             services.RemoveAll<IResend>();
             services.AddSingleton(resendMock.Object);
-            
+
             // Mock IDateTimeProvider
             var dateTimeProviderMock = new Mock<IDateTimeProvider>();
             var frozenCurrentTime = DateTime.UtcNow;
@@ -51,6 +53,10 @@ public class ApplicationTestCase : WebApplicationFactory<Program>
 
             services.RemoveAll<IDateTimeProvider>();
             services.AddSingleton(dateTimeProviderMock.Object);
+
+            var tenantId = Guid.NewGuid();
+            services.RemoveAll<ITenantContext>();
+            services.AddSingleton<ITenantContext>(new TenantContext {Id = tenantId});
         });
 
         base.ConfigureWebHost(builder);
