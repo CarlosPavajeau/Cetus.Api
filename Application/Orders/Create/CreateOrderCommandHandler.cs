@@ -13,6 +13,7 @@ namespace Application.Orders.Create;
 
 internal sealed class CreateOrderCommandHandler(
     IApplicationDbContext context,
+    ITenantContext tenant,
     ILogger<CreateOrderCommandHandler> logger)
     : ICommandHandler<CreateOrderCommand, OrderResponse>
 {
@@ -133,6 +134,7 @@ internal sealed class CreateOrderCommandHandler(
             DeliveryFee = deliveryFee,
             Total = request.Total,
             CustomerId = customerId,
+            StoreId = tenant.Id,
             Items = request.Items.Select(i => new OrderItem
             {
                 ProductName = i.ProductName,
