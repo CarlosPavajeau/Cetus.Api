@@ -5,7 +5,7 @@ using SharedKernel;
 
 namespace Application.Categories.Create;
 
-internal sealed class CreateCategoryCommandHandler(IApplicationDbContext context)
+internal sealed class CreateCategoryCommandHandler(IApplicationDbContext context, ITenantContext tenant)
     : ICommandHandler<CreateCategoryCommand, bool>
 {
     public async Task<Result<bool>> Handle(CreateCategoryCommand request, CancellationToken cancellationToken)
@@ -14,6 +14,7 @@ internal sealed class CreateCategoryCommandHandler(IApplicationDbContext context
         {
             Id = Guid.NewGuid(),
             Name = request.Name,
+            StoreId = tenant.Id
         };
 
         await context.Categories.AddAsync(category, cancellationToken);
