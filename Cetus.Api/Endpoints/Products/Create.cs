@@ -1,3 +1,4 @@
+using Application.Abstractions.Data;
 using Application.Abstractions.Messaging;
 using Application.Products.Create;
 using Application.Products.SearchAll;
@@ -15,13 +16,14 @@ internal sealed class Create : IEndpoint
             CreateProductCommand command,
             ICommandHandler<CreateProductCommand, ProductResponse> handler,
             HybridCache cache,
+            ITenantContext tenant,
             CancellationToken cancellationToken) =>
         {
             var result = await handler.Handle(command, cancellationToken);
 
             if (result.IsSuccess)
             {
-                await cache.RemoveAsync("products-for-sale", cancellationToken);
+                await cache.RemoveAsync($"products-for-sale-{tenant.Id}", cancellationToken);
             }
 
             return result.Match(Results.Ok, CustomResults.Problem);
