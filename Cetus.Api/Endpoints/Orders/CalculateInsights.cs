@@ -1,3 +1,4 @@
+using Application.Abstractions.Data;
 using Application.Abstractions.Messaging;
 using Application.Orders.CalculateInsights;
 using Cetus.Api.Extensions;
@@ -15,12 +16,13 @@ internal sealed class CalculateInsights : IEndpoint
             [FromQuery] string month,
             IQueryHandler<CalculateOrdersInsightsQuery, OrdersInsightsResponse> handler,
             HybridCache cache,
+            ITenantContext tenant,
             CancellationToken cancellationToken) =>
         {
             var query = new CalculateOrdersInsightsQuery(month);
 
             var result = await cache.GetOrCreateAsync(
-                $"orders-insights-{month}",
+                $"orders-insights-{month}-${tenant.Id}",
                 async token => await handler.Handle(query, token),
                 new HybridCacheEntryOptions
                 {
