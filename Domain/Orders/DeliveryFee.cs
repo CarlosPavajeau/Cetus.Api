@@ -10,7 +10,7 @@ public sealed class DeliveryFee
     public Guid CityId { get; set; }
     public City? City { get; set; }
 
-    public string OrganizationId { get; set; } = string.Empty;
+    public Guid StoreId { get; set; }
 
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
     public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;

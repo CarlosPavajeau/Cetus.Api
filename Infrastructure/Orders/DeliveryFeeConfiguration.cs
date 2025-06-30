@@ -13,8 +13,8 @@ public class DeliveryFeeConfiguration : IEntityTypeConfiguration<DeliveryFee>
         builder.Property(df => df.Fee)
             .IsRequired();
 
-        builder.Property(df => df.OrganizationId)
-            .HasMaxLength(64);
+        builder.Property(df => df.StoreId)
+            .IsRequired();
 
         builder.Property(df => df.CityId)
             .IsRequired();
