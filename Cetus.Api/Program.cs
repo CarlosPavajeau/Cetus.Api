@@ -83,8 +83,9 @@ app.UseAuthorization();
 if (app.Environment.IsProduction())
 {
     app.UseRateLimiter();
-    app.UseTenantResolver();
 }
+
+app.UseTenantResolver();
 
 app.MapControllers();
 
