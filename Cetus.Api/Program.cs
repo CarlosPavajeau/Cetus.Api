@@ -69,7 +69,6 @@ app.MapHealthChecks("health", new HealthCheckOptions
 });
 
 app.UseRequestContextLogging();
-app.UseTenantResolver();
 
 app.UseSerilogRequestLogging();
 
@@ -84,6 +83,7 @@ app.UseAuthorization();
 if (app.Environment.IsProduction())
 {
     app.UseRateLimiter();
+    app.UseTenantResolver();
 }
 
 app.MapControllers();
