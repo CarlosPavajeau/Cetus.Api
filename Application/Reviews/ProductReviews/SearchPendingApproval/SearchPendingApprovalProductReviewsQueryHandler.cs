@@ -6,7 +6,9 @@ using SharedKernel;
 
 namespace Application.Reviews.ProductReviews.SearchPendingApproval;
 
-internal sealed class SearchPendingApprovalProductReviewsQueryHandler(IApplicationDbContext context)
+internal sealed class SearchPendingApprovalProductReviewsQueryHandler(
+    IApplicationDbContext context,
+    ITenantContext tenant)
     : IQueryHandler<SearchPendingApprovalProductReviewsQuery, IEnumerable<PendingApprovalProductReviewResponse>>
 {
     public async Task<Result<IEnumerable<PendingApprovalProductReviewResponse>>> Handle(
@@ -16,7 +18,7 @@ internal sealed class SearchPendingApprovalProductReviewsQueryHandler(IApplicati
         var pendingReviews = await context.ProductReviews
             .Include(pr => pr.Customer)
             .Include(pr => pr.Product)
-            .Where(r => r.Status == ProductReviewStatus.PendingApproval)
+            .Where(r => r.Status == ProductReviewStatus.PendingApproval && r.Product!.StoreId == tenant.Id)
             .ToListAsync(cancellationToken);
 
         var responses = pendingReviews.Select(PendingApprovalProductReviewResponse.FromProductReview).ToList();
