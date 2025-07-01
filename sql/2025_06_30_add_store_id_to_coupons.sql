@@ -1,0 +1,6 @@
+BEGIN;
+
+ALTER TABLE coupons
+    ADD COLUMN store_id UUID;
+
+COMMIT;

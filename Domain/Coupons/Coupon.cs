@@ -16,6 +16,8 @@ public sealed class Coupon
     public ICollection<CouponRule> Rules { get; set; } = new List<CouponRule>();
     public ICollection<CouponUsage> Usages { get; set; } = new List<CouponUsage>();
 
+    public Guid StoreId { get; set; }
+
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
     public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
 
