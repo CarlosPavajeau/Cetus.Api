@@ -7,7 +7,7 @@ using SharedKernel;
 namespace Application.Orders.Summary;
 
 internal sealed class
-    GetOrdersSummaryQueryHandler(IApplicationDbContext context)
+    GetOrdersSummaryQueryHandler(IApplicationDbContext context, ITenantContext tenant)
     : IQueryHandler<GetOrdersSummaryQuery, IEnumerable<OrderSummaryResponse>>
 {
     public async Task<Result<IEnumerable<OrderSummaryResponse>>> Handle(GetOrdersSummaryQuery request,
@@ -20,7 +20,7 @@ internal sealed class
         }
 
         var orders = await context.Orders
-            .Where(o => o.CreatedAt.Month == date.Month && o.CreatedAt.Year == date.Year)
+            .Where(o => o.CreatedAt.Month == date.Month && o.CreatedAt.Year == date.Year && o.StoreId == tenant.Id)
             .Select(order => new OrderSummaryResponse(order.Id, order.Status, order.CreatedAt))
             .ToListAsync(cancellationToken);
 

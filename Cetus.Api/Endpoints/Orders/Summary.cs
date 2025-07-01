@@ -1,3 +1,4 @@
+using Application.Abstractions.Data;
 using Application.Abstractions.Messaging;
 using Application.Orders.Summary;
 using Cetus.Api.Extensions;
@@ -15,10 +16,11 @@ internal sealed class Summary : IEndpoint
             [FromQuery] string month,
             IQueryHandler<GetOrdersSummaryQuery, IEnumerable<OrderSummaryResponse>> handler,
             HybridCache cache,
+            ITenantContext tenant,
             CancellationToken cancellationToken) =>
         {
             var query = new GetOrdersSummaryQuery(month);
-            var cacheKey = $"orders-summary-{month}";
+            var cacheKey = $"orders-summary-{month}-{tenant.Id}";
 
             var result = await cache.GetOrCreateAsync(
                 cacheKey,
