@@ -1,3 +1,4 @@
+using Application.Abstractions.Data;
 using Application.Abstractions.Messaging;
 using Application.Coupons;
 using Application.Coupons.SearchAll;
@@ -12,14 +13,15 @@ internal sealed class SearchAll : IEndpoint
     public void MapEndpoint(IEndpointRouteBuilder app)
     {
         app.MapGet("coupons", async (
-            HybridCache cache,
             IQueryHandler<SearchAllCouponsQuery, IEnumerable<CouponResponse>> handler,
+            HybridCache cache,
+            ITenantContext tenant,
             CancellationToken cancellationToken) =>
         {
             var query = new SearchAllCouponsQuery();
 
             var result = await cache.GetOrCreateAsync(
-                "coupons",
+                $"coupons-{tenant.Id}",
                 async token => await handler.Handle(query, token),
                 cancellationToken: cancellationToken
             );
