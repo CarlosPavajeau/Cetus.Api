@@ -6,7 +6,7 @@ using SharedKernel;
 
 namespace Application.Coupons.Create;
 
-internal sealed class CreateCouponCommandHandler(IApplicationDbContext context)
+internal sealed class CreateCouponCommandHandler(IApplicationDbContext context, ITenantContext tenant)
     : ICommandHandler<CreateCouponCommand, CouponResponse>
 {
     public async Task<Result<CouponResponse>> Handle(CreateCouponCommand command, CancellationToken cancellationToken)
@@ -34,7 +34,8 @@ internal sealed class CreateCouponCommandHandler(IApplicationDbContext context)
             {
                 RuleType = r.RuleType,
                 Value = r.Value
-            }).ToList()
+            }).ToList(),
+            StoreId = tenant.Id
         };
 
         context.Coupons.Add(coupon);
