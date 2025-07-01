@@ -46,7 +46,7 @@ internal sealed class CalculateOrdersInsightsQueryHandler(IApplicationDbContext 
         // Previous month data
         var previousMonthOrdersQuery = context.Orders
             .AsNoTracking()
-            .Where(order => order.CreatedAt.Month == previousMonth);
+            .Where(order => order.CreatedAt.Month == previousMonth && order.StoreId == tenant.Id);
 
         var previousMonthCompletedOrdersQuery = previousMonthOrdersQuery
             .Where(order => order.Status == OrderStatus.Delivered);
