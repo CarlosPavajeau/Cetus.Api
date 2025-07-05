@@ -17,22 +17,24 @@ internal sealed class FindStoreQueryHandler(IApplicationDbContext context)
         }
 
         var queryable = context.Stores.AsNoTracking();
-        Store? store = null;
+        StoreResponse? store = null;
 
         if (!string.IsNullOrEmpty(query.CustomDomain))
         {
             store = await queryable.Where(s => s.CustomDomain == query.CustomDomain)
+                .Select(StoreResponse.Map)
                 .FirstOrDefaultAsync(cancellationToken);
         }
 
         if (store is not null)
         {
-            return StoreResponse.FromStore(store);
+            return store;
         }
 
         if (!string.IsNullOrEmpty(query.Slug))
         {
             store = await queryable.Where(s => s.Slug == query.Slug)
+                .Select(StoreResponse.Map)
                 .FirstOrDefaultAsync(cancellationToken);
         }
 
@@ -41,6 +43,6 @@ internal sealed class FindStoreQueryHandler(IApplicationDbContext context)
             return Result.Failure<StoreResponse>(StoreErrors.NotFound(query.CustomDomain, query.Slug));
         }
 
-        return StoreResponse.FromStore(store);
+        return store;
     }
 }
