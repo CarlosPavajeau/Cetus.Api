@@ -9,7 +9,8 @@ namespace Application.Categories.Create;
 internal sealed class CreateCategoryCommandHandler(IApplicationDbContext context, ITenantContext tenant)
     : ICommandHandler<CreateCategoryCommand, CategoryResponse>
 {
-    public async Task<Result<CategoryResponse>> Handle(CreateCategoryCommand request, CancellationToken cancellationToken)
+    public async Task<Result<CategoryResponse>> Handle(CreateCategoryCommand request,
+        CancellationToken cancellationToken)
     {
         var category = new Category
         {

@@ -14,8 +14,9 @@ internal sealed class SearchAllCategoriesQueryHandler(IApplicationDbContext cont
         var categories = await context.Categories
             .AsNoTracking()
             .Where(c => c.DeletedAt == null && c.StoreId == tenant.Id)
+            .Select(CategoryResponse.Map)
             .ToListAsync(cancellationToken);
 
-        return Result.Success(categories.Select(CategoryResponse.FromCategory));
+        return categories;
     }
 }
