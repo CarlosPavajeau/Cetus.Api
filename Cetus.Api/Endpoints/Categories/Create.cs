@@ -1,6 +1,7 @@
 using Application.Abstractions.Data;
 using Application.Abstractions.Messaging;
 using Application.Categories.Create;
+using Application.Categories.SearchAll;
 using Cetus.Api.Extensions;
 using Cetus.Api.Infrastructure;
 using Microsoft.Extensions.Caching.Hybrid;
@@ -13,7 +14,7 @@ internal sealed class Create : IEndpoint
     {
         app.MapPost("categories", async (
             CreateCategoryCommand command,
-            ICommandHandler<CreateCategoryCommand, bool> handler,
+            ICommandHandler<CreateCategoryCommand, CategoryResponse> handler,
             HybridCache cache,
             ITenantContext context,
             CancellationToken cancellationToken) =>

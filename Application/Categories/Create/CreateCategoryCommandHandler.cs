@@ -1,14 +1,15 @@
 using Application.Abstractions.Data;
 using Application.Abstractions.Messaging;
+using Application.Categories.SearchAll;
 using Domain.Categories;
 using SharedKernel;
 
 namespace Application.Categories.Create;
 
 internal sealed class CreateCategoryCommandHandler(IApplicationDbContext context, ITenantContext tenant)
-    : ICommandHandler<CreateCategoryCommand, bool>
+    : ICommandHandler<CreateCategoryCommand, CategoryResponse>
 {
-    public async Task<Result<bool>> Handle(CreateCategoryCommand request, CancellationToken cancellationToken)
+    public async Task<Result<CategoryResponse>> Handle(CreateCategoryCommand request, CancellationToken cancellationToken)
     {
         var category = new Category
         {
@@ -20,6 +21,6 @@ internal sealed class CreateCategoryCommandHandler(IApplicationDbContext context
         await context.Categories.AddAsync(category, cancellationToken);
         await context.SaveChangesAsync(cancellationToken);
 
-        return true;
+        return CategoryResponse.FromCategory(category);
     }
 }

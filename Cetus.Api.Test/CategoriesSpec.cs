@@ -23,6 +23,10 @@ public class CategoriesSpec(ApplicationTestCase factory) : ApplicationContextTes
 
         // Assert
         response.EnsureSuccessStatusCode();
+
+        var category = await response.DeserializeAsync<CategoryResponse>();
+        
+        category.ShouldNotBeNull();
     }
 
     [Fact(DisplayName = "Should return a list of categories")]
@@ -58,7 +62,7 @@ public class CategoriesSpec(ApplicationTestCase factory) : ApplicationContextTes
 
         categories.ShouldNotBeNull().ShouldNotBeEmpty();
 
-        var category = categories.First();
+        var category = categories[0];
 
         var updateCategory = new UpdateCategoryCommand(category.Id, _faker.Commerce.Categories(1)[0]);
 
@@ -84,7 +88,7 @@ public class CategoriesSpec(ApplicationTestCase factory) : ApplicationContextTes
 
         categories.ShouldNotBeNull().ShouldNotBeEmpty();
 
-        var category = categories.First();
+        var category = categories[0];
 
         // Act
         var deleteResponse = await Client.DeleteAsync($"api/categories/{category.Id}");
