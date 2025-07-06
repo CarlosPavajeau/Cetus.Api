@@ -12,6 +12,7 @@ public class TenantResolverMiddleware(RequestDelegate next)
         HttpContext context,
         IQueryHandler<FindStoreQuery, StoreResponse> handler,
         TenantContext tenantContext,
+        ILogger<TenantResolverMiddleware> logger,
         HybridCache cache)
     {
         string? domain = null;
@@ -45,6 +46,9 @@ public class TenantResolverMiddleware(RequestDelegate next)
         }
 
         var cacheKey = BuildCacheKey(domain, slug);
+        
+        logger.LogInformation("Try to find store for domain {Domain} and slug {Slug}", domain, slug);
+        
         var result = await cache.GetOrCreateAsync(
             cacheKey,
             async token => await handler.Handle(new FindStoreQuery(domain, slug), token),
@@ -58,13 +62,17 @@ public class TenantResolverMiddleware(RequestDelegate next)
 
         if (result.IsSuccess)
         {
+            logger.LogInformation("Found store for domain {Domain} and slug {Slug}", domain, slug);
             var store = result.Value;
-
             tenantContext.Id = store.Id;
 
             context.Response.Headers.TryAdd("X-Tenant-Id", store.Id.ToString());
             context.Response.Headers.TryAdd("X-Tenant-Domain", store.CustomDomain);
             context.Response.Headers.TryAdd("X-Tenant-Name", store.Name);
+        }
+        else
+        {
+            logger.LogWarning("Could not found store for domain {Domain} and slug {Slug}", domain, slug);
         }
 
         await next(context);
