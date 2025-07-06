@@ -18,12 +18,12 @@ internal sealed class SearchProductSuggestionsQueryHandler(IApplicationDbContext
             .Where(p => p.Id == request.ProductId)
             .Select(p => p.CategoryId)
             .FirstOrDefaultAsync(cancellationToken);
-        
+
         if (category == Guid.Empty)
         {
             return Result.Success<IEnumerable<ProductResponse>>([]);
         }
-        
+
         // Select only 3 random products in the same category but not the same product
         var products = await context.Products
             .AsNoTracking()
@@ -32,8 +32,9 @@ internal sealed class SearchProductSuggestionsQueryHandler(IApplicationDbContext
             .Where(p => p.CategoryId == category && p.Id != request.ProductId)
             .OrderBy(_ => Guid.NewGuid())
             .Take(3)
+            .Select(ProductResponse.Map)
             .ToListAsync(cancellationToken);
 
-        return Result.Success(products.Select(ProductResponse.FromProduct));
+        return products;
     }
 }

@@ -1,8 +1,9 @@
+using System.Linq.Expressions;
 using Domain.Reviews;
 
 namespace Application.Reviews.ProductReviews.SearchPendingApproval;
 
-public sealed record PendingApprovalProductReviewProduct(string Name, string ImageUrl);
+public sealed record PendingApprovalProductReviewProduct(string Name, string? ImageUrl);
 
 public sealed record PendingApprovalProductReviewResponse(
     Guid Id,
@@ -12,16 +13,14 @@ public sealed record PendingApprovalProductReviewResponse(
     PendingApprovalProductReviewProduct Product,
     DateTime CreatedAt)
 {
-    public static PendingApprovalProductReviewResponse FromProductReview(ProductReview productReview)
-    {
-        return new PendingApprovalProductReviewResponse(
+    public static Expression<Func<ProductReview, PendingApprovalProductReviewResponse>> Map => productReview =>
+        new PendingApprovalProductReviewResponse(
             productReview.Id,
             productReview.Comment,
             productReview.Rating,
-            productReview.Customer?.Name ?? "Desconocido",
+            productReview.Customer!.Name,
             new PendingApprovalProductReviewProduct(
-                productReview.Product?.Name ?? "Desconocido",
-                productReview.Product?.ImageUrl ?? string.Empty),
+                productReview.Product!.Name,
+                productReview.Product!.ImageUrl),
             productReview.CreatedAt);
-    }
 }

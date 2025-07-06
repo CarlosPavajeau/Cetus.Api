@@ -15,6 +15,7 @@ internal sealed class FindProductBySlugQueryHandler(IApplicationDbContext contex
         var product = await context.Products
             .AsNoTracking()
             .Include(x => x.Category)
+            .Select(ProductResponse.Map)
             .FirstOrDefaultAsync(x => x.Slug == request.Slug, cancellationToken);
 
         if (product is null)
@@ -22,6 +23,6 @@ internal sealed class FindProductBySlugQueryHandler(IApplicationDbContext contex
             return Result.Failure<ProductResponse>(ProductErrors.NotFound(request.Slug));
         }
 
-        return ProductResponse.FromProduct(product);
+        return product;
     }
 } 

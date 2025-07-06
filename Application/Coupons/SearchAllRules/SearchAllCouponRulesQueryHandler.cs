@@ -5,7 +5,7 @@ using SharedKernel;
 
 namespace Application.Coupons.SearchAllRules;
 
-internal sealed class SearchAllCouponRulesQueryHandler(IApplicationDbContext context) 
+internal sealed class SearchAllCouponRulesQueryHandler(IApplicationDbContext context)
     : IQueryHandler<SearchAllCouponRulesQuery, IEnumerable<CouponRuleResponse>>
 {
     public async Task<Result<IEnumerable<CouponRuleResponse>>> Handle(SearchAllCouponRulesQuery query,
@@ -13,10 +13,9 @@ internal sealed class SearchAllCouponRulesQueryHandler(IApplicationDbContext con
     {
         var rules = await context.CouponRules
             .Where(r => r.CouponId == query.Id)
+            .Select(CouponRuleResponse.Map)
             .ToListAsync(cancellationToken);
-        
-        var response = rules.Select(CouponRuleResponse.FromCouponRule).ToList();
-        
-        return response;
+
+        return rules;
     }
 }

@@ -14,8 +14,9 @@ internal sealed class SearchAllProductsQueryHandler(IApplicationDbContext contex
         var products = await context.Products
             .AsNoTracking()
             .Where(p => p.DeletedAt == null && p.StoreId == tenant.Id)
+            .Select(ProductResponse.Map)
             .ToListAsync(cancellationToken);
 
-        return Result.Success(products.Select(ProductResponse.FromProduct));
+        return products;
     }
 }

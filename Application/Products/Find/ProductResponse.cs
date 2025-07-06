@@ -1,3 +1,4 @@
+using System.Linq.Expressions;
 using Domain.Products;
 
 namespace Application.Products.Find;
@@ -15,8 +16,10 @@ public sealed record ProductResponse(
     Guid CategoryId,
     string? Category)
 {
-    public static ProductResponse FromProduct(Product product) =>
-        new(
+    public static ProductResponse FromProduct(Product product) => Map.Compile()(product);
+
+    public static Expression<Func<Product, ProductResponse>> Map => product =>
+        new ProductResponse(
             product.Id,
             product.Name,
             product.Slug,
@@ -27,6 +30,6 @@ public sealed record ProductResponse(
             product.Rating,
             product.ReviewsCount,
             product.CategoryId,
-            product.Category?.Name
+            product.Category!.Name
         );
 }

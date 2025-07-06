@@ -16,12 +16,9 @@ internal sealed class SearchAllProductReviewsQueryHandler(IApplicationDbContext 
             .Include(pr => pr.Customer)
             .Where(pr => pr.ProductId == query.ProductId && pr.Status == ProductReviewStatus.Approved)
             .OrderBy(pr => pr.CreatedAt)
+            .Select(ProductReviewResponse.Map)
             .ToListAsync(cancellationToken);
-
-        var productReviewResponses = productReviews
-            .Select(ProductReviewResponse.FromProductReview)
-            .ToList();
-
-        return productReviewResponses;
+        
+        return productReviews;
     }
 }

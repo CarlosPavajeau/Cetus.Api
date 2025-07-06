@@ -13,6 +13,7 @@ internal sealed class FindCustomerQueryHandler(IApplicationDbContext context)
     {
         var customer = await context.Customers
             .AsNoTracking()
+            .Select(CustomerResponse.Map)
             .FirstOrDefaultAsync(x => x.Id == query.Id, cancellationToken);
 
         if (customer is null)
@@ -20,6 +21,6 @@ internal sealed class FindCustomerQueryHandler(IApplicationDbContext context)
             return Result.Failure<CustomerResponse>(CustomerErrors.NotFound(query.Id));
         }
 
-        return new CustomerResponse(customer.Id, customer.Name, customer.Email, customer.Phone);
+        return customer;
     }
 }

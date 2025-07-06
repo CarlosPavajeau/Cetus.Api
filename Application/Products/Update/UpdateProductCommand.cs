@@ -11,4 +11,4 @@ public sealed record UpdateProductCommand(
     int Stock,
     string? ImageUrl,
     Guid CategoryId,
-    bool Enabled) : ICommand<ProductResponse?>;
+    bool Enabled) : ICommand<ProductResponse>;

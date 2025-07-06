@@ -15,9 +15,9 @@ internal sealed class SearchAllCouponsQueryHandler(IApplicationDbContext context
             .AsNoTracking()
             .Where(c => c.StoreId == tenant.Id)
             .OrderByDescending(c => c.CreatedAt)
+            .Select(CouponResponse.Map)
             .ToListAsync(cancellationToken);
 
-        var response = coupons.Select(CouponResponse.FromCoupon).ToList();
-        return response;
+        return coupons;
     }
 }

@@ -19,10 +19,9 @@ internal sealed class SearchPendingApprovalProductReviewsQueryHandler(
             .Include(pr => pr.Customer)
             .Include(pr => pr.Product)
             .Where(r => r.Status == ProductReviewStatus.PendingApproval && r.Product!.StoreId == tenant.Id)
+            .Select(PendingApprovalProductReviewResponse.Map)
             .ToListAsync(cancellationToken);
 
-        var responses = pendingReviews.Select(PendingApprovalProductReviewResponse.FromProductReview).ToList();
-
-        return responses;
+        return pendingReviews;
     }
 }

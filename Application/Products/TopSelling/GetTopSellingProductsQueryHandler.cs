@@ -17,8 +17,9 @@ internal sealed class GetTopSellingProductsQueryHandler(IApplicationDbContext co
             .Where(p => p.DeletedAt == null && p.Enabled && p.SalesCount > 0 && p.StoreId == tenant.Id)
             .OrderByDescending(p => p.SalesCount)
             .Take(5)
+            .Select(TopSellingProductResponse.Map)
             .ToListAsync(cancellationToken);
 
-        return Result.Success(products.Select(TopSellingProductResponse.FromProduct));
+        return products;
     }
 }

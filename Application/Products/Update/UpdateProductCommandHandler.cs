@@ -7,14 +7,14 @@ using SharedKernel;
 namespace Application.Products.Update;
 
 internal sealed class UpdateProductCommandHandler(IApplicationDbContext dbContext)
-    : ICommandHandler<UpdateProductCommand, ProductResponse?>
+    : ICommandHandler<UpdateProductCommand, ProductResponse>
 {
-    public async Task<Result<ProductResponse?>> Handle(UpdateProductCommand request, CancellationToken cancellationToken)
+    public async Task<Result<ProductResponse>> Handle(UpdateProductCommand request, CancellationToken cancellationToken)
     {
         var product = await dbContext.Products.FindAsync([request.Id], cancellationToken);
         if (product is null)
         {
-            return Result.Failure<ProductResponse?>(ProductErrors.NotFound(request.Id.ToString()));
+            return Result.Failure<ProductResponse>(ProductErrors.NotFound(request.Id.ToString()));
         }
 
         product.Name = request.Name;

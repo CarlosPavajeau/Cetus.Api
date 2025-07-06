@@ -15,8 +15,9 @@ internal sealed class SearchAllStatesQueryHandler(IApplicationDbContext context)
             .AsNoTracking()
             .Where(s => s.DeletedAt == null)
             .OrderBy(s => s.Name)
+            .Select(s => new StateResponse(s.Id, s.Name))
             .ToListAsync(cancellationToken);
 
-        return Result.Success(states.Select(s => new StateResponse(s.Id, s.Name)));
+        return states;
     }
 }

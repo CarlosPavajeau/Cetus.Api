@@ -1,3 +1,4 @@
+using System.Linq.Expressions;
 using Domain.Coupons;
 
 namespace Application.Coupons;
@@ -17,9 +18,8 @@ public sealed record CouponResponse(
     DateTime UpdatedAt
 )
 {
-    public static CouponResponse FromCoupon(Coupon coupon)
-    {
-        return new CouponResponse(
+    public static Expression<Func<Coupon, CouponResponse>> Map => coupon =>
+        new CouponResponse(
             coupon.Id,
             coupon.Code,
             coupon.Description,
@@ -33,5 +33,6 @@ public sealed record CouponResponse(
             coupon.CreatedAt,
             coupon.UpdatedAt
         );
-    }
+
+    public static CouponResponse FromCoupon(Coupon coupon) => Map.Compile()(coupon);
 }
