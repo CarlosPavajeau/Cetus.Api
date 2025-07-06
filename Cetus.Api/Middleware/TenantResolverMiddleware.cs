@@ -16,7 +16,7 @@ public class TenantResolverMiddleware(RequestDelegate next)
         HybridCache cache)
     {
         string? domain = null;
-        if (context.Request.Headers.TryGetValue("Origin", out var originValues))
+        if (context.Request.Headers.TryGetValue("Referer", out var originValues))
         {
             var origin = originValues.FirstOrDefault();
             if (!string.IsNullOrEmpty(origin) && Uri.TryCreate(origin, UriKind.Absolute, out var originUri))
@@ -25,7 +25,7 @@ public class TenantResolverMiddleware(RequestDelegate next)
             }
         }
 
-        if (string.IsNullOrEmpty(domain) && context.Request.Headers.TryGetValue("Referer", out var refererValues))
+        if (string.IsNullOrEmpty(domain) && context.Request.Headers.TryGetValue("Origin", out var refererValues))
         {
             var referer = refererValues.FirstOrDefault();
             if (!string.IsNullOrEmpty(referer) && Uri.TryCreate(referer, UriKind.Absolute, out var refererUri))
