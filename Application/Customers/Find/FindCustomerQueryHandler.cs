@@ -13,8 +13,9 @@ internal sealed class FindCustomerQueryHandler(IApplicationDbContext context)
     {
         var customer = await context.Customers
             .AsNoTracking()
+            .Where(x => x.Id == query.Id)
             .Select(CustomerResponse.Map)
-            .FirstOrDefaultAsync(x => x.Id == query.Id, cancellationToken);
+            .FirstOrDefaultAsync(cancellationToken);
 
         if (customer is null)
         {
