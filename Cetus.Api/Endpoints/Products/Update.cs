@@ -14,7 +14,7 @@ internal sealed class Update : IEndpoint
         app.MapPut("products/{id:guid}", async (
             Guid id,
             UpdateProductCommand command,
-            ICommandHandler<UpdateProductCommand, ProductResponse?> handler,
+            ICommandHandler<UpdateProductCommand, ProductResponse> handler,
             HybridCache cache,
             CancellationToken cancellationToken) =>
         {

@@ -11,7 +11,7 @@ internal sealed class Find : IEndpoint
     {
         app.MapGet("customers/{id}", async (
             string id,
-            IQueryHandler<FindCustomerQuery, CustomerResponse?> handler,
+            IQueryHandler<FindCustomerQuery, CustomerResponse> handler,
             CancellationToken cancellationToken) =>
         {
             var query = new FindCustomerQuery(id);
