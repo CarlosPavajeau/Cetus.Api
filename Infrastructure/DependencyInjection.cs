@@ -191,7 +191,7 @@ public static class DependencyInjection
                     partitionKey: context.Connection.RemoteIpAddress?.ToString() ?? string.Empty,
                     factory: _ => new FixedWindowRateLimiterOptions
                     {
-                        PermitLimit = 30,
+                        PermitLimit = 100,
                         Window = TimeSpan.FromMinutes(1)
                     })
             );
