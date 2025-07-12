@@ -439,4 +439,67 @@ public class ProductsSpec(ApplicationTestCase factory) : ApplicationContextTestC
         // Assert
         response.StatusCode.ShouldBe(HttpStatusCode.NotFound);
     }
+
+    [Fact(DisplayName = "Should return all featured products")]
+    public async Task ShouldReturnAllFeaturedProducts()
+    {
+        // Arrange
+        var category = new Category
+        {
+            Id = Guid.NewGuid(),
+            Name = "Category Test Featured",
+            CreatedAt = DateTime.UtcNow
+        };
+
+        var db = Services.GetRequiredService<IApplicationDbContext>();
+        await db.Categories.AddAsync(category);
+        await db.SaveChangesAsync();
+
+        var tenant = Services.GetRequiredService<ITenantContext>();
+
+        // Create featured products directly in the database
+        var featuredProducts = new List<Product>
+        {
+            new()
+            {
+                Id = Guid.NewGuid(),
+                Name = "Featured Product 1",
+                Description = "Description 1",
+                Price = 100,
+                Stock = 10,
+                Enabled = true,
+                CategoryId = category.Id,
+                StoreId = tenant.Id,
+                CreatedAt = DateTime.UtcNow,
+                UpdatedAt = DateTime.UtcNow
+            },
+            new()
+            {
+                Id = Guid.NewGuid(),
+                Name = "Featured Product 2",
+                Description = "Description 2",
+                Price = 200,
+                Stock = 20,
+                Enabled = true,
+                CategoryId = category.Id,
+                StoreId = tenant.Id,
+                CreatedAt = DateTime.UtcNow,
+                UpdatedAt = DateTime.UtcNow
+            }
+        };
+
+        await db.Products.AddRangeAsync(featuredProducts);
+        await db.SaveChangesAsync();
+
+        // Act
+        var response = await Client.GetAsync("api/products/featured");
+
+        // Assert
+        response.EnsureSuccessStatusCode();
+
+        var body = await response.DeserializeAsync<List<ProductResponse>>();
+
+        body.ShouldNotBeNull();
+        body.ShouldNotBeEmpty();
+    }
 }
