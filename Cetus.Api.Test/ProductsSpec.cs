@@ -502,4 +502,72 @@ public class ProductsSpec(ApplicationTestCase factory) : ApplicationContextTestC
         body.ShouldNotBeNull();
         body.ShouldNotBeEmpty();
     }
+
+    [Fact(DisplayName = "Should return all popular products")]
+    public async Task ShouldReturnAllPopularProducts()
+    {
+        // Arrange
+        var category = new Category
+        {
+            Id = Guid.NewGuid(),
+            Name = "Category Test Popular",
+            CreatedAt = DateTime.UtcNow
+        };
+
+        var db = Services.GetRequiredService<IApplicationDbContext>();
+        await db.Categories.AddAsync(category);
+        await db.SaveChangesAsync();
+
+        var tenant = Services.GetRequiredService<ITenantContext>();
+
+        // Create popular products directly in the database
+        var popularProducts = new List<Product>
+        {
+            new()
+            {
+                Id = Guid.NewGuid(),
+                Name = "Popular Product 1",
+                Description = "Description 1",
+                Price = 100,
+                Stock = 10,
+                Enabled = true,
+                Rating = 4.5m,
+                SalesCount = 50,
+                CategoryId = category.Id,
+                StoreId = tenant.Id,
+                CreatedAt = DateTime.UtcNow,
+                UpdatedAt = DateTime.UtcNow
+            },
+            new()
+            {
+                Id = Guid.NewGuid(),
+                Name = "Popular Product 2",
+                Description = "Description 2",
+                Price = 200,
+                Stock = 20,
+                Enabled = true,
+                Rating = 4.8m,
+                SalesCount = 100,
+                CategoryId = category.Id,
+                StoreId = tenant.Id,
+                CreatedAt = DateTime.UtcNow,
+                UpdatedAt = DateTime.UtcNow
+            }
+        };
+
+        await db.Products.AddRangeAsync(popularProducts);
+        await db.SaveChangesAsync();
+
+        // Act
+        var response = await Client.GetAsync("api/products/popular");
+
+        // Assert
+        response.EnsureSuccessStatusCode();
+
+        var body =
+            await response.DeserializeAsync<List<ProductResponse>>();
+
+        body.ShouldNotBeNull();
+        body.ShouldNotBeEmpty();
+    }
 }
