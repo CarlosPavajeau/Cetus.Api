@@ -24,6 +24,11 @@ internal sealed class SearchSuggestions : IEndpoint
             var result = await cache.GetOrCreateAsync(
                 cacheKey,
                 async token => await handler.Handle(query, token),
+                new HybridCacheEntryOptions
+                {
+                    Expiration = TimeSpan.FromHours(5),
+                    LocalCacheExpiration = TimeSpan.FromHours(5)
+                },
                 cancellationToken: cancellationToken
             );
 
