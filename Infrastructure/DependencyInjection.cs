@@ -1,7 +1,6 @@
 ﻿using System.Reflection;
 using System.Threading.RateLimiting;
 using Application.Abstractions.Data;
-using Clerk.Net.AspNetCore.Security;
 using Domain.Coupons;
 using Domain.Orders;
 using Domain.Reviews;
@@ -10,11 +9,13 @@ using Infrastructure.DomainEvents;
 using Infrastructure.Reviews.Jobs;
 using Infrastructure.Stores;
 using Infrastructure.Time;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.IdentityModel.Tokens;
 using Npgsql;
 using OpenTelemetry;
 using OpenTelemetry.Metrics;
@@ -133,11 +134,48 @@ public static class DependencyInjection
     private static IServiceCollection AddAuthenticationInternal(this IServiceCollection services,
         IConfiguration configuration)
     {
-        services.AddAuthentication(ClerkAuthenticationDefaults.AuthenticationScheme)
-            .AddClerkAuthentication(options =>
+        services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+            .AddJwtBearer(options =>
             {
-                options.Authority = configuration["Clerk:Authority"]!;
-                options.AuthorizedParty = configuration["Clerk:AuthorizedParty"]!;
+                options.RequireHttpsMetadata = false;
+                options.Authority = configuration["Jwt:Authority"]!;
+                options.Audience = configuration["Jwt:Audience"]!;
+
+                options.TokenValidationParameters = new TokenValidationParameters
+                {
+                    ValidateIssuerSigningKey = true,
+                    ValidateIssuer = true,
+                    ValidateAudience = true,
+                    ValidateLifetime = true,
+                    ClockSkew = TimeSpan.FromMinutes(5),
+
+                    ValidIssuer = configuration["Jwt:Issuer"]!,
+                    ValidAudience = configuration["Jwt:Audience"]!,
+                    IssuerSigningKeyResolver = (_, _, kid, _) =>
+                    {
+                        using var httpClient = new HttpClient();
+                        try
+                        {
+                            var jwksJson = httpClient
+                                .GetStringAsync($"{configuration["Jwt:Audience"]}/api/auth/jwks")
+                                .Result;
+                            var jwks = new JsonWebKeySet(jwksJson);
+
+                            // If kid is provided, filter by it
+                            if (!string.IsNullOrEmpty(kid))
+                            {
+                                return jwks.Keys.Where(x => x.KeyId == kid);
+                            }
+
+                            // Otherwise return all keys
+                            return jwks.Keys;
+                        }
+                        catch (Exception)
+                        {
+                            return [];
+                        }
+                    }
+                };
             });
 
         return services;
