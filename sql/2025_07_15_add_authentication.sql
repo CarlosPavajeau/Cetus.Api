@@ -64,7 +64,7 @@ CREATE TABLE organizations
     slug       TEXT      NOT NULL UNIQUE,
     logo       TEXT,
     created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    metadata   TEXT,
+    metadata   TEXT
 );
 
 CREATE TABLE members
