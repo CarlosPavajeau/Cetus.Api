@@ -38,6 +38,6 @@ public static class EndpointExtensions
 
     public static RouteHandlerBuilder HasPermission(this RouteHandlerBuilder app, string permission)
     {
-        return app.RequireAuthorization(config => { config.RequireClaim(ClerkClaimTypes.Permissions, permission); });
+        return app.RequireAuthorization();
     }
 }
