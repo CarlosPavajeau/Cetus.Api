@@ -1,14 +1,17 @@
 ﻿using System.Reflection;
 using System.Threading.RateLimiting;
 using Application.Abstractions.Data;
+using Application.Abstractions.MercadoPago;
 using Domain.Coupons;
 using Domain.Orders;
 using Domain.Reviews;
 using Infrastructure.Database;
 using Infrastructure.DomainEvents;
+using Infrastructure.MercadoPago;
 using Infrastructure.Reviews.Jobs;
 using Infrastructure.Stores;
 using Infrastructure.Time;
+using MercadoPago.Config;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
@@ -47,7 +50,8 @@ public static class DependencyInjection
             .AddEmail(configuration)
             .AddRateLimit()
             .AddCache()
-            .AddQuartz();
+            .AddQuartz()
+            .AddMercadoPago(configuration);
 
     private static IServiceCollection AddServices(this IServiceCollection services)
     {
@@ -263,6 +267,15 @@ public static class DependencyInjection
         });
 
         services.AddQuartzServer(options => { options.WaitForJobsToComplete = true; });
+        return services;
+    }
+
+    private static IServiceCollection AddMercadoPago(this IServiceCollection services, IConfiguration configuration)
+    {
+        MercadoPagoConfig.AccessToken = configuration["MercadoPago:AccessToken"]!;
+
+        services.AddTransient<IMercadoPagoClient, MercadoPagoClient>();
+
         return services;
     }
 }
