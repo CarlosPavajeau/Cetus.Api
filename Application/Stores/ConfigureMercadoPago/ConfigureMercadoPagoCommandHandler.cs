@@ -22,7 +22,7 @@ internal sealed class ConfigureMercadoPagoCommandHandler(IApplicationDbContext d
         
         store.MercadoPagoAccessToken = command.AccessToken;
         store.MercadoPagoRefreshToken = command.RefreshToken;
-        store.MercadoPagoExpiresAt = DateTime.Today.AddSeconds(command.ExpiresIn);
+        store.MercadoPagoExpiresAt = DateTime.Today.AddSeconds(command.ExpiresIn).ToUniversalTime();
         
         await db.SaveChangesAsync(cancellationToken);
         
