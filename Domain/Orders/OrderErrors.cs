@@ -39,4 +39,10 @@ public static class OrderErrors
             "Orders.CreationFailed",
             $"Failed to create order for customer {CustomerId}: {message}"
         );
+
+    public static Error PaymentCreationFailed(Guid OrderId) =>
+        Error.Problem(
+            "Orders.PaymentCreationFailed",
+            $"Failed to create payment for order {OrderId}."
+        );
 }

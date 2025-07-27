@@ -10,6 +10,12 @@ public static class StoreErrors
             $"Store with CustomDomain '{CustomDomain}' or Slug '{Slug}' was not found."
         );
 
+    public static Error NotFoundById(string Id) =>
+        Error.NotFound(
+            "Stores.NotFoundById",
+            $"Store with Id '{Id}' was not found."
+        );
+
     public static Error InvalidQuery() =>
         Error.Problem(
             "Stores.InvalidQuery",
@@ -20,5 +26,11 @@ public static class StoreErrors
         Error.Conflict(
             "Stores.AlreadyExists",
             $"Store with Slug '{Slug}' already exists."
+        );
+    
+    public static Error NotConnectedToMercadoPago(string Slug) =>
+    Error.Problem(
+        "Stores.NotConnectedToMercadoPago",
+        $"Store with Slug '{Slug}' is not connected to Mercado Pago"
         );
 }
