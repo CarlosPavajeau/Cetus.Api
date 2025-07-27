@@ -1,5 +1,7 @@
 using Application.Abstractions.MercadoPago;
 using MercadoPago.Client.OAuth;
+using MercadoPago.Client.Payment;
+using MercadoPago.Resource.Payment;
 using Microsoft.Extensions.Configuration;
 
 namespace Infrastructure.MercadoPago;
@@ -31,5 +33,14 @@ public class MercadoPagoClient(IConfiguration configuration) : IMercadoPagoClien
         );
 
         return authorizationUrl;
+    }
+
+    public async Task<Payment?> FindPaymentById(long paymentId, CancellationToken cancellationToken = default)
+    {
+        var paymentClient = new PaymentClient();
+        
+        var payment = await paymentClient.GetAsync(paymentId, cancellationToken: cancellationToken);
+
+        return payment;
     }
 }
