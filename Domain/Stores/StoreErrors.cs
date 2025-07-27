@@ -15,4 +15,10 @@ public static class StoreErrors
             "Stores.InvalidQuery",
             "Either CustomDomain or Slug must be provided."
         );
+
+    public static Error AlreadyExists(string Slug) =>
+        Error.Conflict(
+            "Stores.AlreadyExists",
+            $"Store with Slug '{Slug}' already exists."
+        );
 }

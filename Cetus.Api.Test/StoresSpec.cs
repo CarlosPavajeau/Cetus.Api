@@ -1,7 +1,10 @@
+using System.Net.Http.Json;
 using Application.Abstractions.Data;
 using Application.Stores;
+using Application.Stores.Create;
 using Cetus.Api.Test.Shared;
 using Domain.Stores;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Shouldly;
 
@@ -63,5 +66,29 @@ public class StoresSpec(ApplicationTestCase factory) : ApplicationContextTestCas
         var storeResponse = await response.DeserializeAsync<StoreResponse>();
 
         storeResponse.ShouldNotBeNull();
+    }
+
+    [Fact(DisplayName = "Should create a store")]
+    public async Task ShouldCreateAStore()
+    {
+        // Arrange
+        var command = new CreateStoreCommand("Test Store", "test_store", "external-id-123");
+
+        // Act
+        var response = await Client.PostAsJsonAsync("api/stores", command);
+
+        // Assert
+        response.EnsureSuccessStatusCode();
+
+        var result = await response.Content.ReadAsStringAsync();
+        result.ShouldBeEmpty(); // Expecting no content on successful creation
+
+        var db = Services.GetRequiredService<IApplicationDbContext>();
+        var store = await db.Stores.FirstOrDefaultAsync(x => x.Slug == command.Slug);
+
+        store.ShouldNotBeNull();
+        store.Name.ShouldBe(command.Name);
+        store.Slug.ShouldBe(command.Slug);
+        store.ExternalId.ShouldBe(command.ExternalId);
     }
 }
