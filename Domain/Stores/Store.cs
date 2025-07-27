@@ -18,7 +18,17 @@ public class Store
     public string? Phone { get; set; }
     public string? Email { get; set; }
 
+    public string? MercadoPagoAccessToken { get; set; }
+    public string? MercadoPagoRefreshToken { get; set; }
+    public DateTime? MercadoPagoExpiresAt { get; set; }
+
     public DateTime CreatedAt { get; set; }
     public DateTime UpdatedAt { get; set; }
     public DateTime? DeletedAt { get; set; }
+
+    public bool IsConnectedToMercadoPago => !string.IsNullOrEmpty(MercadoPagoAccessToken) &&
+                                            !string.IsNullOrEmpty(MercadoPagoRefreshToken);
+
+    public bool IsMercadoPagoTokenExpired =>
+        MercadoPagoExpiresAt.HasValue && MercadoPagoExpiresAt.Value <= DateTime.Today;
 }
