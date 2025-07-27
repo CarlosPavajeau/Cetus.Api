@@ -1,12 +1,16 @@
 using Application.Abstractions.MercadoPago;
+using MercadoPago.Client;
 using MercadoPago.Client.OAuth;
 using MercadoPago.Client.Payment;
+using MercadoPago.Client.Preference;
 using MercadoPago.Resource.Payment;
+using MercadoPago.Resource.Preference;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Logging;
 
 namespace Infrastructure.MercadoPago;
 
-public class MercadoPagoClient(IConfiguration configuration) : IMercadoPagoClient
+public class MercadoPagoClient(IConfiguration configuration, ILogger<MercadoPagoClient> logger) : IMercadoPagoClient
 {
     public async Task<string?> GenerateAuthorizationUrl(CancellationToken cancellationToken = default)
     {
@@ -42,5 +46,26 @@ public class MercadoPagoClient(IConfiguration configuration) : IMercadoPagoClien
         var payment = await paymentClient.GetAsync(paymentId, cancellationToken: cancellationToken);
 
         return payment;
+    }
+
+    public async Task<Preference?> CreatePreference(PreferenceRequest request, string accessToken, CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            var preferenceClient = new PreferenceClient();
+            var options = new RequestOptions
+            {
+                AccessToken = accessToken
+            };
+
+            var preference = await preferenceClient.CreateAsync(request, options, cancellationToken: cancellationToken);
+
+            return preference;
+        }
+        catch (Exception e)
+        {
+            logger.LogError(e, "Error creating MercadoPago preference");
+            return null;
+        }
     }
 }
