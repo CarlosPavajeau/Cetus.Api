@@ -12,7 +12,6 @@ internal sealed class ConfigureMercadoPagoCommandHandler(IApplicationDbContext d
     public async Task<Result> Handle(ConfigureMercadoPagoCommand command, CancellationToken cancellationToken)
     {
         var store = await db.Stores
-            .AsNoTracking()
             .Where(s => s.Id == tenant.Id)
             .FirstOrDefaultAsync(cancellationToken);
 
