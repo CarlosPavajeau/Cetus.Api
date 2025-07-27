@@ -23,7 +23,6 @@
     </ItemGroup>
 
     <ItemGroup>
-      <Folder Include="Orders\" />
       <Folder Include="Reviews\ReviewRequests\" />
     </ItemGroup>
 
