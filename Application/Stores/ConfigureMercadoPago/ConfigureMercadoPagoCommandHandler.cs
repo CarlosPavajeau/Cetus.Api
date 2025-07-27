@@ -1,0 +1,32 @@
+using Application.Abstractions.Data;
+using Application.Abstractions.Messaging;
+using Domain.Stores;
+using Microsoft.EntityFrameworkCore;
+using SharedKernel;
+
+namespace Application.Stores.ConfigureMercadoPago;
+
+internal sealed class ConfigureMercadoPagoCommandHandler(IApplicationDbContext db, ITenantContext tenant)
+    : ICommandHandler<ConfigureMercadoPagoCommand>
+{
+    public async Task<Result> Handle(ConfigureMercadoPagoCommand command, CancellationToken cancellationToken)
+    {
+        var store = await db.Stores
+            .AsNoTracking()
+            .Where(s => s.Id == tenant.Id)
+            .FirstOrDefaultAsync(cancellationToken);
+
+        if (store is null)
+        {
+            return Result.Failure(StoreErrors.NotFound(tenant.Id.ToString(), null));
+        }
+        
+        store.MercadoPagoAccessToken = command.AccessToken;
+        store.MercadoPagoRefreshToken = command.RefreshToken;
+        store.MercadoPagoExpiresAt = DateTime.Today.AddSeconds(command.ExpiresIn);
+        
+        await db.SaveChangesAsync(cancellationToken);
+        
+        return Result.Success();
+    }
+}
