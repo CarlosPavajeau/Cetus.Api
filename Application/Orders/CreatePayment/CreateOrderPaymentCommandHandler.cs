@@ -74,7 +74,8 @@ internal sealed class CreateOrderPaymentCommandHandler(
 
         if (store.CustomDomain is not null)
         {
-            var backUrl = $"https://{store.CustomDomain}/orders/{createPreferenceRequest.ExternalReference}/confirmation";
+            var backUrl =
+                $"https://{store.CustomDomain}/orders/{createPreferenceRequest.ExternalReference}/confirmation";
             createPreferenceRequest.BackUrls = new PreferenceBackUrlsRequest
             {
                 Success = backUrl,
