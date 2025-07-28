@@ -5,12 +5,16 @@ using Domain.Orders;
 using Domain.Stores;
 using MercadoPago.Client.Preference;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
 using SharedKernel;
 
 namespace Application.Orders.CreatePayment;
 
-internal sealed class CreateOrderPaymentCommandHandler(IApplicationDbContext db, IMercadoPagoClient mercadoPagoClient)
-    : ICommandHandler<CreateOrderPaymentCommand, string>
+internal sealed class CreateOrderPaymentCommandHandler(
+    IApplicationDbContext db,
+    IMercadoPagoClient mercadoPagoClient,
+    IConfiguration configuration
+) : ICommandHandler<CreateOrderPaymentCommand, string>
 {
     public async Task<Result<string>> Handle(CreateOrderPaymentCommand command, CancellationToken cancellationToken)
     {
@@ -47,6 +51,7 @@ internal sealed class CreateOrderPaymentCommandHandler(IApplicationDbContext db,
             return Result.Failure<string>(StoreErrors.NotConnectedToMercadoPago(store.Slug));
         }
 
+        var cdnUrl = configuration["CdnUrl"];
         var createPreferenceRequest = new PreferenceRequest
         {
             ExternalReference = order.Id.ToString(),
@@ -60,12 +65,23 @@ internal sealed class CreateOrderPaymentCommandHandler(IApplicationDbContext db,
                 Id = item.Id.ToString(),
                 Title = item.ProductName,
                 Description = item.ProductName,
-                PictureUrl = item.ImageUrl,
+                PictureUrl = $"{cdnUrl}/{item.ImageUrl}",
                 Quantity = item.Quantity,
                 UnitPrice = item.Price
             }).ToList(),
             MarketplaceFee = CalculateFee(order.Subtotal)
         };
+
+        if (store.CustomDomain is not null)
+        {
+            var backUrl = $"https://{store.CustomDomain}/orders/{createPreferenceRequest.ExternalReference}/confirmation";
+            createPreferenceRequest.BackUrls = new PreferenceBackUrlsRequest
+            {
+                Success = backUrl,
+                Failure = backUrl,
+                Pending = backUrl
+            };
+        }
 
         var preference =
             await mercadoPagoClient.CreatePreference(createPreferenceRequest, store.MercadoPagoAccessToken!,
