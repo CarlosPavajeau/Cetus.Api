@@ -13,6 +13,7 @@ public sealed class CreateProductCommandFaker : Faker<CreateProductCommand>
             faker.Random.Decimal(10, 1000),
             faker.Random.Int(10, 1000),
             faker.Image.PicsumUrl(),
+            [new CreateProductImage(faker.Image.PicsumUrl(), faker.Commerce.ProductName(), 0)],
             faker.Random.Guid()
         ));
     }
