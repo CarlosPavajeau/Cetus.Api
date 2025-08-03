@@ -15,6 +15,14 @@ internal sealed partial class CreateProductCommandHandler(IApplicationDbContext 
         var productId = Guid.NewGuid();
         var slug = GenerateSlug(request.Name, productId);
 
+        var images = request.Images.Select(img => new ProductImage
+        {
+            ProductId = productId,
+            ImageUrl = img.ImageUrl,
+            AltText = img.AltText,
+            SortOrder = img.SortOrder
+        });
+
         var product = new Product
         {
             Id = productId,
@@ -25,6 +33,7 @@ internal sealed partial class CreateProductCommandHandler(IApplicationDbContext 
             Stock = request.Stock,
             Enabled = true,
             ImageUrl = request.ImageUrl,
+            Images = images,
             CategoryId = request.CategoryId,
             StoreId = tenant.Id
         };
