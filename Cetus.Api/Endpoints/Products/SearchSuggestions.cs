@@ -1,5 +1,5 @@
 using Application.Abstractions.Messaging;
-using Application.Products.Find;
+using Application.Products;
 using Application.Products.SearchSuggestions;
 using Cetus.Api.Extensions;
 using Cetus.Api.Infrastructure;
@@ -14,7 +14,7 @@ internal sealed class SearchSuggestions : IEndpoint
     {
         app.MapGet("products/suggestions", async (
             [FromQuery] Guid productId,
-            IQueryHandler<SearchProductSuggestionsQuery, IEnumerable<ProductResponse>> handler,
+            IQueryHandler<SearchProductSuggestionsQuery, IEnumerable<SimpleProductForSaleResponse>> handler,
             HybridCache cache,
             CancellationToken cancellationToken) =>
         {

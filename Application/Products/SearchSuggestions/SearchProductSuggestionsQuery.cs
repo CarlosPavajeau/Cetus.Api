@@ -1,7 +1,5 @@
 using Application.Abstractions.Messaging;
-using Application.Products.Find;
-using Application.Products.SearchForSale;
 
 namespace Application.Products.SearchSuggestions;
 
-public sealed record SearchProductSuggestionsQuery(Guid ProductId) : IQuery<IEnumerable<ProductResponse>>;
+public sealed record SearchProductSuggestionsQuery(Guid ProductId) : IQuery<IEnumerable<SimpleProductForSaleResponse>>;

@@ -178,7 +178,7 @@ public class ProductsSpec(ApplicationTestCase factory) : ApplicationContextTestC
         // Assert
         response.EnsureSuccessStatusCode();
 
-        var suggestions = await response.DeserializeAsync<IEnumerable<ProductResponse>>();
+        var suggestions = await response.DeserializeAsync<IEnumerable<SimpleProductForSaleResponse>>();
 
         suggestions.ShouldNotBeEmpty();
     }
