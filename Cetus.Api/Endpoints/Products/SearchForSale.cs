@@ -1,6 +1,6 @@
 using Application.Abstractions.Data;
 using Application.Abstractions.Messaging;
-using Application.Products.Find;
+using Application.Products;
 using Application.Products.SearchForSale;
 using Cetus.Api.Extensions;
 using Cetus.Api.Infrastructure;
@@ -13,7 +13,7 @@ internal sealed class SearchForSale : IEndpoint
     public void MapEndpoint(IEndpointRouteBuilder app)
     {
         app.MapGet("products/for-sale", async (
-            IQueryHandler<SearchAllProductsForSaleQuery, IEnumerable<ProductResponse>> handler,
+            IQueryHandler<SearchAllProductsForSaleQuery, IEnumerable<SimpleProductForSaleResponse>> handler,
             HybridCache cache,
             ITenantContext tenant,
             CancellationToken cancellationToken) =>
