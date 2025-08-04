@@ -36,7 +36,7 @@ public class WompiControllerSpec(ApplicationTestCase factory) : ApplicationConte
         var newCustomer = _orderCustomerFaker.Generate();
         var newOrderItems = new List<CreateOrderItem>
         {
-            new(newProduct.Name, newProduct.ImageUrl, 1, product.Price, product.Id)
+            new(newProduct.Name, _faker.Image.PicsumUrl(), 1, product.Price, product.Id)
         };
         var newOrder = new CreateOrderCommand(_faker.Address.FullAddress(), cityId, product.Price, newOrderItems,
             newCustomer);
@@ -76,7 +76,7 @@ public class WompiControllerSpec(ApplicationTestCase factory) : ApplicationConte
         var newCustomer = _orderCustomerFaker.Generate();
         var newOrderItems = new List<CreateOrderItem>
         {
-            new(newProduct.Name, newProduct.ImageUrl, 1, product.Price, product.Id)
+            new(newProduct.Name, _faker.Image.PicsumUrl(), 1, product.Price, product.Id)
         };
         var newOrder = new CreateOrderCommand(_faker.Address.FullAddress(), cityId, product.Price, newOrderItems,
             newCustomer);
@@ -115,7 +115,7 @@ public class WompiControllerSpec(ApplicationTestCase factory) : ApplicationConte
         var newCustomer = _orderCustomerFaker.Generate();
         var newOrderItems = new List<CreateOrderItem>
         {
-            new(newProduct.Name, newProduct.ImageUrl, 1, product.Price, product.Id)
+            new(newProduct.Name, _faker.Image.PicsumUrl(), 1, product.Price, product.Id)
         };
         var newOrder = new CreateOrderCommand(_faker.Address.FullAddress(), cityId, product.Price, newOrderItems,
             newCustomer);

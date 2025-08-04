@@ -39,7 +39,7 @@ public class ReviewsSpec(ApplicationTestCase factory) : ApplicationContextTestCa
         var newCustomer = _orderCustomerFaker.Generate();
         var newOrderItems = new List<CreateOrderItem>
         {
-            new(newProduct.Name, newProduct.ImageUrl, 1, product.Price, product.Id)
+            new(newProduct.Name, newProduct.Images[0].ImageUrl, 1, product.Price, product.Id)
         };
         var newOrder = new CreateOrderCommand(_faker.Address.FullAddress(), cityId, product.Price, newOrderItems,
             newCustomer);
@@ -72,7 +72,7 @@ public class ReviewsSpec(ApplicationTestCase factory) : ApplicationContextTestCa
         reviewRequestResponse.Status.ShouldBe(ReviewRequestStatus.Pending);
         reviewRequestResponse.Customer.ShouldBe(newCustomer.Name);
         reviewRequestResponse.Product.Name.ShouldBe(newProduct.Name);
-        reviewRequestResponse.Product.ImageUrl.ShouldBe(newProduct.ImageUrl);
+        reviewRequestResponse.Product.ImageUrl.ShouldBe(newProduct.Images[0].ImageUrl);
     }
 
     [Fact(DisplayName = "Should return not found for non-existing review request")]
@@ -105,7 +105,7 @@ public class ReviewsSpec(ApplicationTestCase factory) : ApplicationContextTestCa
         var newCustomer = _orderCustomerFaker.Generate();
         var newOrderItems = new List<CreateOrderItem>
         {
-            new(newProduct.Name, newProduct.ImageUrl, 1, product.Price, product.Id)
+            new(newProduct.Name, newProduct.Images[0].ImageUrl, 1, product.Price, product.Id)
         };
         var newOrder = new CreateOrderCommand(_faker.Address.FullAddress(), cityId, product.Price, newOrderItems,
             newCustomer);
@@ -168,7 +168,7 @@ public class ReviewsSpec(ApplicationTestCase factory) : ApplicationContextTestCa
             var newCustomer = _orderCustomerFaker.Generate();
             var newOrderItems = new List<CreateOrderItem>
             {
-                new(newProduct.Name, newProduct.ImageUrl, 1, product.Price, product.Id)
+                new(newProduct.Name, newProduct.Images[0].ImageUrl, 1, product.Price, product.Id)
             };
             var newOrder = new CreateOrderCommand(_faker.Address.FullAddress(), cityId, product.Price, newOrderItems,
                 newCustomer);
@@ -269,7 +269,7 @@ public class ReviewsSpec(ApplicationTestCase factory) : ApplicationContextTestCa
             var newCustomer = _orderCustomerFaker.Generate();
             var newOrderItems = new List<CreateOrderItem>
             {
-                new(newProduct.Name, newProduct.ImageUrl, 1, product.Price, product.Id)
+                new(newProduct.Name, newProduct.Images[0].ImageUrl, 1, product.Price, product.Id)
             };
             var newOrder = new CreateOrderCommand(_faker.Address.FullAddress(), cityId, product.Price, newOrderItems,
                 newCustomer);
@@ -328,7 +328,7 @@ public class ReviewsSpec(ApplicationTestCase factory) : ApplicationContextTestCa
         var newCustomer = _orderCustomerFaker.Generate();
         var newOrderItems = new List<CreateOrderItem>
         {
-            new(newProduct.Name, newProduct.ImageUrl, 1, product.Price, product.Id)
+            new(newProduct.Name, newProduct.Images[0].ImageUrl, 1, product.Price, product.Id)
         };
         var newOrder = new CreateOrderCommand(_faker.Address.FullAddress(), cityId, product.Price, newOrderItems,
             newCustomer);
@@ -389,7 +389,7 @@ public class ReviewsSpec(ApplicationTestCase factory) : ApplicationContextTestCa
         var newCustomer = _orderCustomerFaker.Generate();
         var newOrderItems = new List<CreateOrderItem>
         {
-            new(newProduct.Name, newProduct.ImageUrl, 1, product.Price, product.Id)
+            new(newProduct.Name, newProduct.Images[0].ImageUrl, 1, product.Price, product.Id)
         };
         var newOrder = new CreateOrderCommand(_faker.Address.FullAddress(), cityId, product.Price, newOrderItems,
             newCustomer);

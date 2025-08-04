@@ -23,7 +23,7 @@ public class OrdersSpec(ApplicationTestCase factory) : ApplicationContextTestCas
 {
     private readonly Guid cityId = Guid.Parse("f97957e9-d820-4858-ac26-b5d03d658370");
     private const decimal DeliveryFee = 100m;
-    
+
     private readonly CreateProductCommandFaker _productCommandFaker = new();
     private readonly CreateOrderCustomerFaker _orderCustomerFaker = new();
     private readonly Faker _faker = new();
@@ -43,7 +43,7 @@ public class OrdersSpec(ApplicationTestCase factory) : ApplicationContextTestCas
         var newCustomer = _orderCustomerFaker.Generate();
         var newOrderItems = new List<CreateOrderItem>
         {
-            new(newProduct.Name, newProduct.ImageUrl, 1, product.Price, product.Id)
+            new(newProduct.Name, newProduct.Images[0].ImageUrl, 1, product.Price, product.Id)
         };
 
         var newOrder = new CreateOrderCommand(_faker.Address.FullAddress(), cityId, product.Price, newOrderItems,
@@ -75,7 +75,7 @@ public class OrdersSpec(ApplicationTestCase factory) : ApplicationContextTestCas
         var newCustomer = _orderCustomerFaker.Generate();
         var newOrderItems = new List<CreateOrderItem>
         {
-            new(newProduct.Name, newProduct.ImageUrl, 10, product.Price, product.Id)
+            new(newProduct.Name, newProduct.Images[0].ImageUrl, 10, product.Price, product.Id)
         };
 
         var newOrder =
@@ -103,7 +103,7 @@ public class OrdersSpec(ApplicationTestCase factory) : ApplicationContextTestCas
         var newCustomer = _orderCustomerFaker.Generate();
         var newOrderItems = new List<CreateOrderItem>
         {
-            new(newProduct.Name, newProduct.ImageUrl, 1, product.Price, product.Id)
+            new(newProduct.Name, newProduct.Images[0].ImageUrl, 1, product.Price, product.Id)
         };
 
         var newOrder =
@@ -144,7 +144,7 @@ public class OrdersSpec(ApplicationTestCase factory) : ApplicationContextTestCas
         var newCustomer = _orderCustomerFaker.Generate();
         var newOrderItems = new List<CreateOrderItem>
         {
-            new(newProduct.Name, newProduct.ImageUrl, 1, product.Price, product.Id)
+            new(newProduct.Name, newProduct.Images[0].ImageUrl, 1, product.Price, product.Id)
         };
 
         var newOrder =
@@ -182,7 +182,7 @@ public class OrdersSpec(ApplicationTestCase factory) : ApplicationContextTestCas
         var newCustomer = _orderCustomerFaker.Generate();
         var newOrderItems = new List<CreateOrderItem>
         {
-            new(newProduct.Name, newProduct.ImageUrl, 1, product.Price, product.Id)
+            new(newProduct.Name, newProduct.Images[0].ImageUrl, 1, product.Price, product.Id)
         };
 
         var newOrder =
@@ -227,7 +227,7 @@ public class OrdersSpec(ApplicationTestCase factory) : ApplicationContextTestCas
         var newCustomer = _orderCustomerFaker.Generate();
         var newOrderItems = new List<CreateOrderItem>
         {
-            new(newProduct.Name, newProduct.ImageUrl, 1, product.Price, product.Id)
+            new(newProduct.Name, newProduct.Images[0].ImageUrl, 1, product.Price, product.Id)
         };
 
         var newOrder =
@@ -272,7 +272,7 @@ public class OrdersSpec(ApplicationTestCase factory) : ApplicationContextTestCas
         var newCustomer = _orderCustomerFaker.Generate();
         var newOrderItems = new List<CreateOrderItem>
         {
-            new(newProduct.Name, newProduct.ImageUrl, 1, product.Price, product.Id)
+            new(newProduct.Name, newProduct.Images[0].ImageUrl, 1, product.Price, product.Id)
         };
 
         var newOrder =
@@ -303,7 +303,7 @@ public class OrdersSpec(ApplicationTestCase factory) : ApplicationContextTestCas
         ordersInsights.RevenuePercentageChange.ShouldBeGreaterThanOrEqualTo(0);
         ordersInsights.OrdersCountPercentageChange.ShouldBeGreaterThanOrEqualTo(0);
     }
-    
+
     [Fact(DisplayName = "Should get orders summary")]
     public async Task ShouldGetOrdersSummary()
     {
@@ -319,7 +319,7 @@ public class OrdersSpec(ApplicationTestCase factory) : ApplicationContextTestCas
         var newCustomer = _orderCustomerFaker.Generate();
         var newOrderItems = new List<CreateOrderItem>
         {
-            new(newProduct.Name, newProduct.ImageUrl, 1, product.Price, product.Id)
+            new(newProduct.Name, newProduct.Images[0].ImageUrl, 1, product.Price, product.Id)
         };
 
         var newOrder =
@@ -347,7 +347,7 @@ public class OrdersSpec(ApplicationTestCase factory) : ApplicationContextTestCas
 
         ordersSummary.ShouldNotBeNull().ShouldNotBeEmpty();
     }
-    
+
     [Fact(DisplayName = "Should create a new delivery fee")]
     public async Task ShouldCreateANewDeliveryFee()
     {
@@ -365,7 +365,7 @@ public class OrdersSpec(ApplicationTestCase factory) : ApplicationContextTestCas
         deliveryFee.ShouldNotBeNull();
         deliveryFee.Fee.ShouldBe(deliveryFeeCommand.Fee);
     }
-    
+
     [Fact(DisplayName = "Should get all delivery fees")]
     public async Task ShouldGetAllDeliveryFees()
     {
@@ -380,7 +380,7 @@ public class OrdersSpec(ApplicationTestCase factory) : ApplicationContextTestCas
                 Name = "Test State"
             }
         };
-        
+
         var deliveryFee = new DeliveryFee
         {
             Id = Guid.NewGuid(),
@@ -394,7 +394,7 @@ public class OrdersSpec(ApplicationTestCase factory) : ApplicationContextTestCas
         var db = Services.GetRequiredService<IApplicationDbContext>();
         await db.DeliveryFees.AddAsync(deliveryFee);
         await db.SaveChangesAsync();
-        
+
         // Act
         var getDeliveryFeesResponse = await Client.GetAsync("api/orders/delivery-fees");
 
@@ -405,7 +405,7 @@ public class OrdersSpec(ApplicationTestCase factory) : ApplicationContextTestCas
 
         deliveryFees.ShouldNotBeNull().ShouldNotBeEmpty();
     }
-    
+
     [Fact(DisplayName = "Should get delivery fee")]
     public async Task ShouldGetDeliveryFee()
     {
