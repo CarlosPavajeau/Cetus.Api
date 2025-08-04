@@ -21,7 +21,7 @@ internal sealed partial class CreateProductCommandHandler(IApplicationDbContext 
             ImageUrl = img.ImageUrl,
             AltText = img.AltText,
             SortOrder = img.SortOrder
-        });
+        }).ToList();
 
         var product = new Product
         {
