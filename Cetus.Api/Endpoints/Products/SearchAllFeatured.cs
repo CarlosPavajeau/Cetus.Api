@@ -1,6 +1,6 @@
 using Application.Abstractions.Data;
 using Application.Abstractions.Messaging;
-using Application.Products.Find;
+using Application.Products;
 using Application.Products.SearchAllFeatured;
 using Cetus.Api.Extensions;
 using Cetus.Api.Infrastructure;
@@ -13,7 +13,7 @@ internal sealed class SearchAllFeatured : IEndpoint
     public void MapEndpoint(IEndpointRouteBuilder app)
     {
         app.MapGet("products/featured", async (
-            IQueryHandler<SearchAllFeaturedProductsQuery, IEnumerable<ProductResponse>> handler,
+            IQueryHandler<SearchAllFeaturedProductsQuery, IEnumerable<SimpleProductForSaleResponse>> handler,
             HybridCache cache,
             ITenantContext tenant,
             CancellationToken cancellationToken) =>

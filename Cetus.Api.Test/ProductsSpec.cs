@@ -1,6 +1,7 @@
 using System.Net;
 using System.Net.Http.Json;
 using Application.Abstractions.Data;
+using Application.Products;
 using Application.Products.SearchAll;
 using Application.Products.TopSelling;
 using Application.Products.Update;
@@ -200,7 +201,7 @@ public class ProductsSpec(ApplicationTestCase factory) : ApplicationContextTestC
             newProduct.Description,
             2000,
             20,
-            newProduct.ImageUrl,
+            newProduct.Images[0].ImageUrl,
             newProduct.CategoryId,
             true
         );
@@ -497,7 +498,7 @@ public class ProductsSpec(ApplicationTestCase factory) : ApplicationContextTestC
         // Assert
         response.EnsureSuccessStatusCode();
 
-        var body = await response.DeserializeAsync<List<ProductResponse>>();
+        var body = await response.DeserializeAsync<List<SimpleProductForSaleResponse>>();
 
         body.ShouldNotBeNull();
         body.ShouldNotBeEmpty();
@@ -565,7 +566,7 @@ public class ProductsSpec(ApplicationTestCase factory) : ApplicationContextTestC
         response.EnsureSuccessStatusCode();
 
         var body =
-            await response.DeserializeAsync<List<ProductResponse>>();
+            await response.DeserializeAsync<List<SimpleProductForSaleResponse>>();
 
         body.ShouldNotBeNull();
         body.ShouldNotBeEmpty();
