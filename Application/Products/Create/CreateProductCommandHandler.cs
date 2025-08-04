@@ -32,7 +32,6 @@ internal sealed partial class CreateProductCommandHandler(IApplicationDbContext 
             Price = request.Price,
             Stock = request.Stock,
             Enabled = true,
-            ImageUrl = request.ImageUrl,
             Images = images,
             CategoryId = request.CategoryId,
             StoreId = tenant.Id

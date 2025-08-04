@@ -25,10 +25,10 @@ public sealed class CreateProductCommandValidator : AbstractValidator<CreateProd
             .GreaterThan(0)
             .WithMessage("La cantidad en stock del producto debe ser mayor a 0.");
 
-        RuleFor(x => x.ImageUrl)
+        RuleFor(x => x.Images)
             .NotNull()
             .NotEmpty()
-            .WithMessage("La URL de la imagen del producto es requerida.");
+            .WithMessage("Las imágenes del producto son requeridas.");
 
         RuleFor(x => x.CategoryId)
             .NotNull()

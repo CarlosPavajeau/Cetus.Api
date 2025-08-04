@@ -14,6 +14,5 @@ public sealed record CreateProductCommand(
     string? Description,
     decimal Price,
     int Stock,
-    string ImageUrl,
     List<CreateProductImage> Images,
     Guid CategoryId) : ICommand<ProductResponse>;
