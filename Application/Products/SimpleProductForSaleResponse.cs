@@ -8,6 +8,7 @@ public sealed record SimpleProductForSaleResponse(
     string Name,
     string Slug,
     string? ImageUrl,
+    Guid CategoryId,
     decimal Price,
     decimal Rating,
     int ReviewsCount)
@@ -18,6 +19,7 @@ public sealed record SimpleProductForSaleResponse(
             product.Name,
             product.Slug,
             product.Images.FirstOrDefault()!.ImageUrl,
+            product.CategoryId,
             product.Price,
             product.Rating,
             product.ReviewsCount
