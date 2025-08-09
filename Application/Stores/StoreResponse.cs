@@ -19,7 +19,7 @@ public sealed record StoreResponse(
             store.Id,
             store.Name,
             store.Slug,
-            store.CustomDomain,
+            $"https://{store.CustomDomain}",
             store.LogoUrl,
             store.Address,
             store.Phone,
