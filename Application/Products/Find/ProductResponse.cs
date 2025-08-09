@@ -15,7 +15,8 @@ public sealed record ProductResponse(
     decimal Rating,
     int ReviewsCount,
     Guid CategoryId,
-    string? Category)
+    string? Category,
+    Guid StoreId)
 {
     public static ProductResponse FromProduct(Product product) => Map.Compile()(product);
 
@@ -32,6 +33,7 @@ public sealed record ProductResponse(
             product.Rating,
             product.ReviewsCount,
             product.CategoryId,
-            product.Category!.Name
+            product.Category!.Name,
+            product.StoreId
         );
 }
