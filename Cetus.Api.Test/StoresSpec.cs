@@ -91,4 +91,36 @@ public class StoresSpec(ApplicationTestCase factory) : ApplicationContextTestCas
         store.Slug.ShouldBe(command.Slug);
         store.ExternalId.ShouldBe(command.ExternalId);
     }
+
+    [Fact(DisplayName = "Should find a store by ID")]
+    public async Task ShouldFindAStoreById()
+    {
+        // Arrange
+        var store = new Store
+        {
+            Id = Guid.NewGuid(),
+            Name = "Test store",
+            CustomDomain = "customdomain.com",
+            Slug = "custom_domain"
+        };
+
+        var db = Services.GetRequiredService<IApplicationDbContext>();
+
+        await db.Stores.AddAsync(store);
+        await db.SaveChangesAsync();
+
+        // Act
+        var response = await Client.GetAsync($"api/stores/{store.Id}");
+
+        // Assert
+        response.EnsureSuccessStatusCode();
+
+        var storeResponse = await response.DeserializeAsync<StoreResponse>();
+
+        storeResponse.ShouldNotBeNull();
+        storeResponse.Id.ShouldBe(store.Id);
+        storeResponse.Name.ShouldBe(store.Name);
+        storeResponse.CustomDomain.ShouldBe(store.CustomDomain);
+        storeResponse.Slug.ShouldBe(store.Slug);
+    }
 }
