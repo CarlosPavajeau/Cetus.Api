@@ -571,4 +571,36 @@ public class ProductsSpec(ApplicationTestCase factory) : ApplicationContextTestC
         body.ShouldNotBeNull();
         body.ShouldNotBeEmpty();
     }
+
+    [Fact(DisplayName = "Should return all products by category")]
+    public async Task ShouldReturnAllProductsByCategory()
+    {
+        // Arrange
+        var category = new Category
+        {
+            Id = Guid.NewGuid(),
+            Name = "Category Test By Category",
+            CreatedAt = DateTime.UtcNow
+        };
+
+        var db = Services.GetRequiredService<IApplicationDbContext>();
+        await db.Categories.AddAsync(category);
+        await db.SaveChangesAsync();
+
+        var newProduct = _productCommandFaker.WithCategoryId(category.Id).Generate();
+        var createResponse = await Client.PostAsJsonAsync("api/products", newProduct);
+
+        createResponse.EnsureSuccessStatusCode();
+
+        // Act
+        var response = await Client.GetAsync($"api/products/category/{category.Id}");
+
+        // Assert
+        response.EnsureSuccessStatusCode();
+
+        var products = await response.DeserializeAsync<List<SimpleProductForSaleResponse>>();
+
+        products.ShouldNotBeEmpty();
+        products.ShouldAllBe(p => p.CategoryId == category.Id);
+    }
 }
