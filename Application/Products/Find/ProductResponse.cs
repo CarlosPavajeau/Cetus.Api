@@ -16,6 +16,7 @@ public sealed record ProductResponse(
     int ReviewsCount,
     Guid CategoryId,
     string? Category,
+    string CategorySlug,
     Guid StoreId)
 {
     public static ProductResponse FromProduct(Product product) => Map.Compile()(product);
@@ -34,6 +35,7 @@ public sealed record ProductResponse(
             product.ReviewsCount,
             product.CategoryId,
             product.Category!.Name,
+            product.Category.Slug,
             product.StoreId
         );
 }
