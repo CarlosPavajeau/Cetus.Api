@@ -30,7 +30,7 @@ internal sealed class SearchProductSuggestionsQueryHandler(IApplicationDbContext
             .Where(p => p.DeletedAt == null && p.Enabled && p.Stock > 0)
             .Where(p => p.CategoryId == category && p.Id != request.ProductId)
             .OrderBy(_ => Guid.NewGuid())
-            .Take(7)
+            .Take(4)
             .Select(SimpleProductForSaleResponse.Map)
             .ToListAsync(cancellationToken);
 
