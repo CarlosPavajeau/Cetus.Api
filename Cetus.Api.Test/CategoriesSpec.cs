@@ -1,5 +1,6 @@
 using System.Net.Http.Json;
 using Application.Categories.Create;
+using Application.Categories.FindBySlug;
 using Application.Categories.SearchAll;
 using Application.Categories.Update;
 using Bogus;
@@ -95,5 +96,33 @@ public class CategoriesSpec(ApplicationTestCase factory) : ApplicationContextTes
 
         // Assert
         deleteResponse.EnsureSuccessStatusCode();
+    }
+
+    [Fact(DisplayName = "Should find a category by slug")]
+    public async Task ShouldFindBySlug()
+    {
+        // Arrange 
+        var newCategory = new CreateCategoryCommand(_faker.Commerce.Categories(1)[0]);
+        var createResponse = await Client.PostAsJsonAsync("api/categories", newCategory);
+        createResponse.EnsureSuccessStatusCode();
+
+        var getResponse = await Client.GetAsync("api/categories");
+        getResponse.EnsureSuccessStatusCode();
+
+        var categories = await getResponse.DeserializeAsync<List<CategoryResponse>>();
+
+        categories.ShouldNotBeNull().ShouldNotBeEmpty();
+
+        var category = categories[0];
+
+        // Act
+        var findBySlugResponse = await Client.GetAsync($"api/categories/{category.Slug}");
+
+        // Assert
+        findBySlugResponse.EnsureSuccessStatusCode();
+
+        var foundCategory = await findBySlugResponse.DeserializeAsync<FindCategoryBySlugResponse>();
+
+        foundCategory.ShouldNotBeNull();
     }
 }
