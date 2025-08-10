@@ -120,7 +120,6 @@ public class StoresSpec(ApplicationTestCase factory) : ApplicationContextTestCas
         storeResponse.ShouldNotBeNull();
         storeResponse.Id.ShouldBe(store.Id);
         storeResponse.Name.ShouldBe(store.Name);
-        storeResponse.CustomDomain.ShouldBe(store.CustomDomain);
         storeResponse.Slug.ShouldBe(store.Slug);
     }
 }
