@@ -28,8 +28,10 @@ internal sealed class CreateProductReviewCommandHandler(IApplicationDbContext co
             IsVerified = true,
             ReviewRequestId = command.ReviewRequestId,
             ProductId = reviewRequest.OrderItem.ProductId,
-            CustomerId = reviewRequest.CustomerId
+            CustomerId = reviewRequest.CustomerId,
+            CreatedAt = DateTime.UtcNow
         };
+
         await context.ProductReviews.AddAsync(productReview, cancellationToken);
 
         reviewRequest.Status = ReviewRequestStatus.Completed;
