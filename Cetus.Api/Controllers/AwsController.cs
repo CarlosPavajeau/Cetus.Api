@@ -15,6 +15,8 @@ namespace Cetus.Api.Controllers;
 [Route("api/[controller]")]
 public class AwsController : ControllerBase
 {
+    private const string FailedToGeneratePreSignedUrl = "Failed to generate pre-signed URL";
+    
     private readonly IConfiguration _configuration;
     private readonly ILogger<AwsController> _logger;
 
@@ -65,13 +67,13 @@ public class AwsController : ControllerBase
                 return Ok(new {Url = url});
             }
 
-            _logger.LogError("Failed to generate pre-signed URL");
-            return BadRequest("Failed to generate pre-signed URL");
+            _logger.LogError(FailedToGeneratePreSignedUrl);
+            return BadRequest(FailedToGeneratePreSignedUrl);
         }
         catch (Exception e)
         {
-            _logger.LogError(e, "Failed to generate pre-signed URL");
-            return BadRequest("Failed to generate pre-signed URL");
+            _logger.LogError(e, FailedToGeneratePreSignedUrl);
+            return BadRequest(FailedToGeneratePreSignedUrl);
         }
     }
 }
