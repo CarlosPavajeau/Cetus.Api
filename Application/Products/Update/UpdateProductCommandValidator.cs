@@ -34,5 +34,10 @@ public sealed class UpdateProductCommandValidator : AbstractValidator<UpdateProd
             .NotNull()
             .NotEmpty()
             .WithMessage("El identificador de la categoría del producto es requerido.");
+
+        RuleFor(x => x.Images)
+            .NotNull()
+            .NotEmpty()
+            .WithMessage("Las imágenes del producto son requeridas");
     }
 }

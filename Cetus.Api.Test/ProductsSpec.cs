@@ -201,7 +201,7 @@ public class ProductsSpec(ApplicationTestCase factory) : ApplicationContextTestC
             newProduct.Description,
             2000,
             20,
-            newProduct.Images[0].ImageUrl,
+            newProduct.Images,
             newProduct.CategoryId,
             true
         );
@@ -231,7 +231,7 @@ public class ProductsSpec(ApplicationTestCase factory) : ApplicationContextTestC
                 "test-update",
                 2000,
                 20,
-                "image-test",
+                [],
                 Guid.NewGuid(),
                 true
             );
@@ -262,7 +262,7 @@ public class ProductsSpec(ApplicationTestCase factory) : ApplicationContextTestC
                 "test-update",
                 2000,
                 20,
-                "image-test",
+                [],
                 Guid.NewGuid(),
                 true
             );

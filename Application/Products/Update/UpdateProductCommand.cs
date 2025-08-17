@@ -1,4 +1,5 @@
 using Application.Abstractions.Messaging;
+using Application.Products.Create;
 using Application.Products.SearchAll;
 
 namespace Application.Products.Update;
@@ -9,6 +10,6 @@ public sealed record UpdateProductCommand(
     string? Description,
     decimal Price,
     int Stock,
-    string? ImageUrl,
+    List<CreateProductImage> Images,
     Guid CategoryId,
     bool Enabled) : ICommand<ProductResponse>;
