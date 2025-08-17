@@ -15,7 +15,8 @@ internal sealed class FindProductQueryHandler(IApplicationDbContext context)
         var product = await context.Products
             .AsNoTracking()
             .Include(x => x.Category)
-            .Where(x => x.Id == request.Id)
+            .Include(x => x.Images)
+            .Where(p => p.Id == request.Id)
             .Select(ProductResponse.Map)
             .FirstOrDefaultAsync(cancellationToken);
 
