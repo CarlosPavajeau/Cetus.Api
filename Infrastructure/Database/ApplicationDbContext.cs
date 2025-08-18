@@ -1,5 +1,6 @@
 using System.Linq.Expressions;
 using Application.Abstractions.Data;
+using Domain.Auth;
 using Domain.Categories;
 using Domain.Coupons;
 using Domain.Orders;
@@ -40,6 +41,8 @@ public sealed class ApplicationDbContext(
     public DbSet<CouponUsage> CouponUsages { get; set; }
     
     public DbSet<Store> Stores { get; set; }
+    
+    public DbSet<User> Users { get; set; }
 
     private sealed class DateTimeToUtcConverter() : ValueConverter<DateTime, DateTime>(Serialize, Deserialize)
     {

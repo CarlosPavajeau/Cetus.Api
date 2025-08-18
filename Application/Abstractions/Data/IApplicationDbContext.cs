@@ -1,3 +1,4 @@
+using Domain.Auth;
 using Domain.Categories;
 using Domain.Coupons;
 using Domain.Orders;
@@ -32,6 +33,8 @@ public interface IApplicationDbContext
     DbSet<CouponUsage> CouponUsages { get; }
     
     DbSet<Store> Stores { get; }
+    
+    DbSet<User> Users { get; }
 
     Task<int> SaveChangesAsync(CancellationToken cancellationToken = default);
 
