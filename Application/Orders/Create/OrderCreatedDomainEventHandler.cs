@@ -43,21 +43,31 @@ internal sealed class OrderCreatedDomainEventHandler(
             return;
         }
 
-        if (store.Email is null)
+        var storeMembers = await db.Users
+            .FromSql($"""
+                        SELECT u.id, u.name, u.email
+                        FROM users u
+                        INNER JOIN members m ON u.id = m.user_id
+                        WHERE m.organization_id = {store.ExternalId} AND u.banned = FALSE;
+                        """)
+            .ToListAsync(cancellationToken);
+
+
+        if (storeMembers.Count == 0)
         {
-            logger.LogWarning("Store with ID {StoreId} does not have an email configured", order.StoreId);
+            logger.LogWarning("No store members found in the database");
             return;
         }
 
         var messageBody = BuildMessageBody(domainEvent);
-        var notificationEmail = store.Email;
+        var notificationEmails = storeMembers.Select(s => s.Email);
 
-        await SendNotificationEmail(notificationEmail, EmailSubject, messageBody, cancellationToken);
+        await SendNotificationEmail(notificationEmails, EmailSubject, messageBody, cancellationToken);
 
         logger.LogInformation("Notification email sent to admin for order {OrderId}", domainEvent.Id);
     }
 
-    private async Task SendNotificationEmail(string email, string subject, string body,
+    private async Task SendNotificationEmail(IEnumerable<string> emails, string subject, string body,
         CancellationToken cancellationToken = default)
     {
         try
@@ -71,7 +81,13 @@ internal sealed class OrderCreatedDomainEventHandler(
                 From = senderEmail
             };
 
-            message.To.Add(email);
+            var emailAddress = emails.Select(e => new EmailAddress
+            {
+                Email = e
+            });
+
+            message.To.AddRange(emailAddress);
+
             message.Subject = subject;
             message.HtmlBody = body;
 
@@ -79,7 +95,7 @@ internal sealed class OrderCreatedDomainEventHandler(
         }
         catch (Exception e)
         {
-            logger.LogError(e, "Error sending email to {Email}: {Error}", email, e.Message);
+            logger.LogError(e, "Error sending notification email");
         }
     }
 
