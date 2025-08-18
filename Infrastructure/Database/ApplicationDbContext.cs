@@ -24,6 +24,11 @@ public sealed class ApplicationDbContext(
     public DbSet<Category> Categories { get; set; }
     public DbSet<Product> Products { get; set; }
     public DbSet<ProductImage> ProductImages { get; set; }
+    public DbSet<ProductOptionType> ProductOptionTypes { get; set; }
+    public DbSet<ProductOptionValue> ProductOptionValues { get; set; }
+    public DbSet<ProductOption> ProductOptions { get; set; }
+    public DbSet<ProductVariant> ProductVariants { get; set; }
+    public DbSet<ProductVariantOptionValue> ProductVariantOptionsValues { get; set; }
 
     public DbSet<Customer> Customers { get; set; }
     public DbSet<Order> Orders { get; set; }
@@ -35,13 +40,13 @@ public sealed class ApplicationDbContext(
 
     public DbSet<ReviewRequest> ReviewRequests { get; set; }
     public DbSet<ProductReview> ProductReviews { get; set; }
-    
+
     public DbSet<Coupon> Coupons { get; set; }
     public DbSet<CouponRule> CouponRules { get; set; }
     public DbSet<CouponUsage> CouponUsages { get; set; }
-    
+
     public DbSet<Store> Stores { get; set; }
-    
+
     public DbSet<User> Users { get; set; }
 
     private sealed class DateTimeToUtcConverter() : ValueConverter<DateTime, DateTime>(Serialize, Deserialize)
