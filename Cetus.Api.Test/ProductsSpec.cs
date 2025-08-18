@@ -2,6 +2,7 @@ using System.Net;
 using System.Net.Http.Json;
 using Application.Abstractions.Data;
 using Application.Products;
+using Application.Products.Options.CreateType;
 using Application.Products.SearchAll;
 using Application.Products.TopSelling;
 using Application.Products.Update;
@@ -603,5 +604,19 @@ public class ProductsSpec(ApplicationTestCase factory) : ApplicationContextTestC
 
         products.ShouldNotBeEmpty();
         products.ShouldAllBe(p => p.CategoryId == category.Id);
+    }
+
+    [Fact(DisplayName = "Should create a product option type")]
+    public async Task ShouldCreateProductOptionType()
+    {
+        // Arrange
+        var command = new CreateProductOptionTypeCommand("Color", ["Red", "Blue", "Green"]);
+
+        // Act
+        var response = await Client.PostAsJsonAsync("api/products/option-types", command);
+
+        // Assert
+        response.EnsureSuccessStatusCode();
+        response.StatusCode.ShouldBe(HttpStatusCode.NoContent);
     }
 }
