@@ -2,6 +2,7 @@ using System.Net;
 using System.Net.Http.Json;
 using Application.Abstractions.Data;
 using Application.Products;
+using Application.Products.Options;
 using Application.Products.Options.CreateType;
 using Application.Products.SearchAll;
 using Application.Products.TopSelling;
@@ -618,5 +619,23 @@ public class ProductsSpec(ApplicationTestCase factory) : ApplicationContextTestC
         // Assert
         response.EnsureSuccessStatusCode();
         response.StatusCode.ShouldBe(HttpStatusCode.NoContent);
+    }
+
+    [Fact(DisplayName = "Should return all product option types")]
+    public async Task ShouldReturnAllProductOptionTypes()
+    {
+        // Arrange
+        var command = new CreateProductOptionTypeCommand("Size", ["Small", "Medium", "Large"]);
+        await Client.PostAsJsonAsync("api/products/option-types", command);
+
+        // Act
+        var response = await Client.GetAsync("api/products/option-types");
+
+        // Assert
+        response.EnsureSuccessStatusCode();
+
+        var optionTypes = await response.DeserializeAsync<List<ProductOptionTypeResponse>>();
+
+        optionTypes.ShouldNotBeEmpty();
     }
 }
