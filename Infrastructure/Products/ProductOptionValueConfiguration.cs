@@ -13,5 +13,10 @@ public class ProductOptionValueConfiguration : IEntityTypeConfiguration<ProductO
         builder.Property(p => p.Value)
             .HasMaxLength(100)
             .IsRequired();
+
+        builder.HasOne(p => p.ProductOptionType)
+            .WithMany(p => p.ProductOptionValues)
+            .HasForeignKey(p => p.OptionTypeId)
+            .OnDelete(DeleteBehavior.Cascade);
     }
 }

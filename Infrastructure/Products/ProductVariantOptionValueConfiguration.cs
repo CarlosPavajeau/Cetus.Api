@@ -9,5 +9,14 @@ public class ProductVariantOptionValueConfiguration : IEntityTypeConfiguration<P
     public void Configure(EntityTypeBuilder<ProductVariantOptionValue> builder)
     {
         builder.HasKey(p => new {p.VariantId, p.OptionValueId});
+        
+        builder.HasOne(p => p.ProductOptionValue)
+            .WithMany()
+            .HasForeignKey(p => p.OptionValueId);
+
+        builder.HasOne(p => p.ProductVariant)
+            .WithMany()
+            .HasForeignKey(p => p.VariantId)
+            .OnDelete(DeleteBehavior.Cascade);
     }
 }

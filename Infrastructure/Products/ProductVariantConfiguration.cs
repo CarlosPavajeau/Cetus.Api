@@ -13,5 +13,10 @@ public class ProductVariantConfiguration : IEntityTypeConfiguration<ProductVaria
         builder.Property(p => p.Sku)
             .HasMaxLength(100)
             .IsRequired();
+        
+        builder.HasOne(p => p.Product)
+            .WithMany(p => p.Variants)
+            .HasForeignKey(p => p.ProductId)
+            .OnDelete(DeleteBehavior.Cascade);
     }
 }

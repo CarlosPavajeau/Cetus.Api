@@ -24,6 +24,7 @@ public sealed class Product
     public Category? Category { get; set; }
 
     public IEnumerable<ProductImage> Images { get; set; } = new List<ProductImage>();
+    public IEnumerable<ProductVariant> Variants { get; set; } = new List<ProductVariant>();
 
     public Guid StoreId { get; set; }
 
