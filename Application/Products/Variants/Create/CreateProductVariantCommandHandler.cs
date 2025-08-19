@@ -56,12 +56,13 @@ internal sealed class CreateProductVariantCommandHandler(
                     ImageUrl = image.ImageUrl,
                     AltText = image.AltText,
                     SortOrder = image.SortOrder,
+                    ProductId = command.ProductId,
                     ProductVariant = variant
                 })
                 .ToList();
 
             await db.ProductVariants.AddAsync(variant, cancellationToken);
-            await db.ProductVariantOptionsValues.AddRangeAsync(variantOptionValues, cancellationToken);
+            await db.ProductVariantOptionValues.AddRangeAsync(variantOptionValues, cancellationToken);
             await db.ProductImages.AddRangeAsync(variantImages, cancellationToken);
 
             await db.SaveChangesAsync(cancellationToken);

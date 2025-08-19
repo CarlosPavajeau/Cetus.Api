@@ -28,7 +28,7 @@ public sealed class ApplicationDbContext(
     public DbSet<ProductOptionValue> ProductOptionValues { get; set; }
     public DbSet<ProductOption> ProductOptions { get; set; }
     public DbSet<ProductVariant> ProductVariants { get; set; }
-    public DbSet<ProductVariantOptionValue> ProductVariantOptionsValues { get; set; }
+    public DbSet<ProductVariantOptionValue> ProductVariantOptionValues { get; set; }
 
     public DbSet<Customer> Customers { get; set; }
     public DbSet<Order> Orders { get; set; }
