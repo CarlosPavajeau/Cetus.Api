@@ -676,4 +676,44 @@ public class ProductsSpec(ApplicationTestCase factory) : ApplicationContextTestC
         response.EnsureSuccessStatusCode();
         response.StatusCode.ShouldBe(HttpStatusCode.NoContent);
     }
+
+    [Fact(DisplayName = "Should return all product options for a product")]
+    public async Task ShouldReturnAllProductOptionsForAProduct()
+    {
+        // Arrange
+        var db = Services.GetRequiredService<IApplicationDbContext>();
+        var optionType = new ProductOptionType
+        {
+            Name = "Color",
+            ProductOptionValues =
+            [
+                new ProductOptionValue { Value = "Red" },
+                new ProductOptionValue { Value = "Blue" }
+            ]
+        };
+        
+        await db.ProductOptionTypes.AddAsync(optionType);
+        await db.SaveChangesAsync();
+
+        var product = _productCommandFaker.Generate();
+        var createProductResponse = await Client.PostAsJsonAsync("api/products", product);
+        createProductResponse.EnsureSuccessStatusCode();
+
+        var createdProduct = await createProductResponse.DeserializeAsync<ProductResponse>();
+        createdProduct.ShouldNotBeNull();
+
+        var command = new CreateProductOptionCommand(createdProduct.Id, optionType.Id);
+        await Client.PostAsJsonAsync($"api/products/{createdProduct.Id}/options", command);
+
+        // Act
+        var response = await Client.GetAsync($"api/products/{createdProduct.Id}/options");
+
+        // Assert
+        response.EnsureSuccessStatusCode();
+
+        var options = await response.DeserializeAsync<List<ProductOptionResponse>>();
+
+        options.ShouldNotBeEmpty();
+        options.ShouldAllBe(o => o.ProductId == createdProduct.Id && o.OptionTypeId == optionType.Id);
+    }
 }
