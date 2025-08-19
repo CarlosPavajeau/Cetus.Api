@@ -2,12 +2,15 @@ using Application.Abstractions.Data;
 using Application.Abstractions.Messaging;
 using Domain.Products;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 using SharedKernel;
 
 namespace Application.Products.Variants.Create;
 
-internal sealed class CreateProductVariantCommandHandler(IApplicationDbContext db)
-    : ICommandHandler<CreateProductVariantCommand>
+internal sealed class CreateProductVariantCommandHandler(
+    IApplicationDbContext db,
+    ILogger<CreateProductVariantCommandHandler> logger
+) : ICommandHandler<CreateProductVariantCommand>
 {
     public async Task<Result> Handle(CreateProductVariantCommand command, CancellationToken cancellationToken)
     {
@@ -27,40 +30,52 @@ internal sealed class CreateProductVariantCommandHandler(IApplicationDbContext d
             return Result.Failure(Error.Problem("Product.Variant", "Some option values do not exist"));
         }
 
-        var transaction = await db.BeginTransactionAsync(cancellationToken);
+        await using var transaction = await db.BeginTransactionAsync(cancellationToken);
 
-        var variant = new ProductVariant
+        try
         {
-            Sku = command.Sku,
-            Price = command.Price,
-            StockQuantity = command.StockQuantity,
-            ProductId = command.ProductId
-        };
-
-        var variantOptionValues = command.OptionValueIds
-            .Select(optionValueId => new ProductVariantOptionValue
+            var variant = new ProductVariant
             {
-                OptionValueId = optionValueId,
-                ProductVariant = variant
-            })
-            .ToList();
+                Sku = command.Sku,
+                Price = command.Price,
+                StockQuantity = command.StockQuantity,
+                ProductId = command.ProductId
+            };
 
-        var variantImages = command.Images
-            .Select(image => new ProductImage
-            {
-                ImageUrl = image.ImageUrl,
-                AltText = image.AltText,
-                SortOrder = image.SortOrder,
-                ProductVariant = variant
-            })
-            .ToList();
+            var variantOptionValues = command.OptionValueIds
+                .Select(optionValueId => new ProductVariantOptionValue
+                {
+                    OptionValueId = optionValueId,
+                    ProductVariant = variant
+                })
+                .ToList();
 
-        await db.ProductVariants.AddAsync(variant, cancellationToken);
-        await db.ProductVariantOptionsValues.AddRangeAsync(variantOptionValues, cancellationToken);
-        await db.ProductImages.AddRangeAsync(variantImages, cancellationToken);
+            var variantImages = command.Images
+                .Select(image => new ProductImage
+                {
+                    ImageUrl = image.ImageUrl,
+                    AltText = image.AltText,
+                    SortOrder = image.SortOrder,
+                    ProductVariant = variant
+                })
+                .ToList();
 
-        await db.SaveChangesAsync(cancellationToken);
+            await db.ProductVariants.AddAsync(variant, cancellationToken);
+            await db.ProductVariantOptionsValues.AddRangeAsync(variantOptionValues, cancellationToken);
+            await db.ProductImages.AddRangeAsync(variantImages, cancellationToken);
 
-        return Result.Success();
+            await db.SaveChangesAsync(cancellationToken);
+
+            await transaction.CommitAsync(cancellationToken);
+
+            return Result.Success();
+        }
+        catch (Exception e)
+        {
+            logger.LogError(e, "An error occured when creating a new product variant.");
+            await transaction.RollbackAsync(cancellationToken);
+
+            return Result.Failure(Error.None);
+        }
     }
 }
