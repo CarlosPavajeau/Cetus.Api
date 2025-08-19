@@ -12,7 +12,9 @@ public sealed record ProductOptionResponse(Guid ProductId, long OptionTypeId, Pr
             new ProductOptionTypeResponse(
                 option.ProductOptionType!.Id,
                 option.ProductOptionType.Name,
-                option.ProductOptionType.ProductOptionValues.Select(v => v.Value).ToArray()
+                option.ProductOptionType.ProductOptionValues
+                    .Select(v => new ProductOptionTypeValueResponse(v.Id, v.Value))
+                    .ToList()
             )
         );
 }

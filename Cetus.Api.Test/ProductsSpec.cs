@@ -8,6 +8,7 @@ using Application.Products.Options.CreateType;
 using Application.Products.SearchAll;
 using Application.Products.TopSelling;
 using Application.Products.Update;
+using Application.Products.Variants.Create;
 using Cetus.Api.Test.Shared;
 using Cetus.Api.Test.Shared.Fakers;
 using Domain.Categories;
@@ -715,5 +716,59 @@ public class ProductsSpec(ApplicationTestCase factory) : ApplicationContextTestC
 
         options.ShouldNotBeEmpty();
         options.ShouldAllBe(o => o.ProductId == createdProduct.Id && o.OptionTypeId == optionType.Id);
+    }
+
+    [Fact(DisplayName = "Should create a product variant")]
+    public async Task ShouldCreateAProductVariant()
+    {
+        // Arrange
+        var db = Services.GetRequiredService<IApplicationDbContext>();
+        var optionType = new ProductOptionType
+        {
+            Name = "Color",
+            ProductOptionValues =
+            [
+                new ProductOptionValue { Value = "Red" },
+                new ProductOptionValue { Value = "Blue" }
+            ]
+        };
+        
+        await db.ProductOptionTypes.AddAsync(optionType);
+        await db.SaveChangesAsync();
+        
+        var product = _productCommandFaker.Generate();
+        var createProductResponse = await Client.PostAsJsonAsync("api/products", product);
+        createProductResponse.EnsureSuccessStatusCode();
+
+        var createdProduct = await createProductResponse.DeserializeAsync<ProductResponse>();
+        createdProduct.ShouldNotBeNull();
+        
+        var createProductOptionCommand = new CreateProductOptionCommand(createdProduct.Id, optionType.Id);
+        await Client.PostAsJsonAsync($"api/products/{createdProduct.Id}/options", createProductOptionCommand);
+        
+        var createProductOptionResponse = await Client.GetAsync($"api/products/{createdProduct.Id}/options");
+        createProductOptionResponse.EnsureSuccessStatusCode();
+
+        var options = await createProductOptionResponse.DeserializeAsync<List<ProductOptionResponse>>();
+
+        options.ShouldNotBeEmpty();
+        
+        var productOption = options[0].OptionType.Values.First();
+
+        var command = new CreateProductVariantCommand(
+            createdProduct.Id,
+            "SKU123",
+            100.00m,
+            10,
+            [productOption.Id],
+            product.Images
+        );
+
+        // Act
+        var response = await Client.PostAsJsonAsync($"api/products/{createdProduct.Id}/variants", command);
+
+        // Assert
+        response.EnsureSuccessStatusCode();
+        response.StatusCode.ShouldBe(HttpStatusCode.NoContent);
     }
 }

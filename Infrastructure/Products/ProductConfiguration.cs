@@ -29,5 +29,13 @@ internal sealed class ProductConfiguration : IEntityTypeConfiguration<Product>
 
         builder.Property(p => p.ImageUrl)
             .HasMaxLength(512);
+        
+        builder.HasMany(p => p.Images)
+            .WithOne()
+            .HasForeignKey(p => p.ProductId);
+        
+        builder.HasMany(p => p.Variants)
+            .WithOne()
+            .HasForeignKey(p => p.ProductId);
     }
 }
