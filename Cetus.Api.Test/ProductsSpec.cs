@@ -3,6 +3,7 @@ using System.Net.Http.Json;
 using Application.Abstractions.Data;
 using Application.Products;
 using Application.Products.Options;
+using Application.Products.Options.Create;
 using Application.Products.Options.CreateType;
 using Application.Products.SearchAll;
 using Application.Products.TopSelling;
@@ -637,5 +638,42 @@ public class ProductsSpec(ApplicationTestCase factory) : ApplicationContextTestC
         var optionTypes = await response.DeserializeAsync<List<ProductOptionTypeResponse>>();
 
         optionTypes.ShouldNotBeEmpty();
+    }
+
+    [Fact(DisplayName = "Should create a product option")]
+    public async Task ShouldCreateProductOption()
+    {
+        // Arrange
+        var db = Services.GetRequiredService<IApplicationDbContext>();
+        var optionType = new ProductOptionType
+        {
+            Name = "Color",
+            ProductOptionValues =
+            [
+                new ProductOptionValue
+                {
+                    Value = "Red"
+                }
+            ]
+        };
+        
+        await db.ProductOptionTypes.AddAsync(optionType);
+        await db.SaveChangesAsync();
+
+        var product = _productCommandFaker.Generate();
+        var createProductResponse = await Client.PostAsJsonAsync("api/products", product);
+        createProductResponse.EnsureSuccessStatusCode();
+
+        var createdProduct = await createProductResponse.DeserializeAsync<ProductResponse>();
+        createdProduct.ShouldNotBeNull();
+
+        var command = new CreateProductOptionCommand(createdProduct.Id, optionType.Id);
+
+        // Act
+        var response = await Client.PostAsJsonAsync($"api/products/{createdProduct.Id}/options", command);
+
+        // Assert
+        response.EnsureSuccessStatusCode();
+        response.StatusCode.ShouldBe(HttpStatusCode.NoContent);
     }
 }
