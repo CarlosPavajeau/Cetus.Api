@@ -21,7 +21,10 @@ internal sealed class Create : IEndpoint
         {
             if (productId != command.ProductId)
             {
-                return Results.BadRequest("Product ID mismatch.");
+                return Results.ValidationProblem(new Dictionary<string, string[]>
+                {
+                    ["productId"] = ["Route 'productId' must match body 'productId'."]
+                });
             }
 
             var result = await handler.Handle(command, cancellationToken);
