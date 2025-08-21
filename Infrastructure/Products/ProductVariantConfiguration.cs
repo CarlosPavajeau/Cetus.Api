@@ -14,6 +14,10 @@ public class ProductVariantConfiguration : IEntityTypeConfiguration<ProductVaria
             .HasMaxLength(100)
             .IsRequired();
         
+        
+        builder.HasIndex(p => new {p.ProductId, p.Sku})
+            .IsUnique();
+
         builder.HasOne(p => p.Product)
             .WithMany(p => p.Variants)
             .HasForeignKey(p => p.ProductId)
