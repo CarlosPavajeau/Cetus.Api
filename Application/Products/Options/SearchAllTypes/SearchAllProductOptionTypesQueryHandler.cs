@@ -13,8 +13,8 @@ internal sealed class SearchAllProductOptionTypesQueryHandler(IApplicationDbCont
     {
         var types = await db.ProductOptionTypes
             .AsNoTracking()
-            .Include(p => p.ProductOptionValues)
             .Where(p => p.StoreId == tenant.Id)
+            .OrderBy(p => p.CreatedAt)
             .Select(ProductOptionTypeResponse.Map)
             .ToListAsync(cancellationToken);
 
