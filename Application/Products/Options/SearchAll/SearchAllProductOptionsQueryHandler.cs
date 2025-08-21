@@ -12,8 +12,6 @@ internal sealed class SearchAllProductOptionsQueryHandler(IApplicationDbContext 
     {
         var productOptions = await db.ProductOptions
             .AsNoTracking()
-            .Include(p => p.ProductOptionType)
-            .ThenInclude(p => p!.ProductOptionValues)
             .Where(p => p.ProductId == query.ProductId)
             .Select(ProductOptionResponse.Map)
             .ToListAsync(cancellationToken);
