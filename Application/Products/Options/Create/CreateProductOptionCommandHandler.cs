@@ -1,6 +1,7 @@
 using Application.Abstractions.Data;
 using Application.Abstractions.Messaging;
 using Domain.Products;
+using Microsoft.EntityFrameworkCore;
 using SharedKernel;
 
 namespace Application.Products.Options.Create;
@@ -10,6 +11,18 @@ internal sealed class CreateProductOptionCommandHandler(IApplicationDbContext db
 {
     public async Task<Result> Handle(CreateProductOptionCommand command, CancellationToken cancellationToken)
     {
+        var exists = await db.ProductOptions
+            .AsNoTracking()
+            .AnyAsync(
+                p => p.ProductId == command.ProductId && p.OptionTypeId == command.OptionTypeId,
+                cancellationToken
+            );
+
+        if (exists)
+        {
+            return Result.Success();
+        }
+
         var productOption = new ProductOption
         {
             ProductId = command.ProductId,
