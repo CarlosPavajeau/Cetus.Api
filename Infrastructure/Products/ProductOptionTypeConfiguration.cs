@@ -13,5 +13,9 @@ public class ProductOptionTypeConfiguration : IEntityTypeConfiguration<ProductOp
         builder.Property(p => p.Name)
             .HasMaxLength(100)
             .IsRequired();
+
+        // Prevent duplicate option type names per store
+        builder.HasIndex(p => new {p.StoreId, p.Name})
+            .IsUnique();
     }
 }
