@@ -5,7 +5,7 @@ public sealed class ProductOptionType
     public long Id { get; set; }
     public string Name { get; set; } = string.Empty;
 
-    public IEnumerable<ProductOptionValue> ProductOptionValues { get; set; } = new List<ProductOptionValue>();
+    public ICollection<ProductOptionValue> ProductOptionValues { get; set; } = new HashSet<ProductOptionValue>();
 
     public Guid StoreId { get; set; }
 
