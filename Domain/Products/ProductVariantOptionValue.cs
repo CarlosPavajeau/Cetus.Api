@@ -1,6 +1,6 @@
 namespace Domain.Products;
 
-public class ProductVariantOptionValue
+public sealed class ProductVariantOptionValue
 {
     public long VariantId { get; set; }
     public long OptionValueId { get; set; }
