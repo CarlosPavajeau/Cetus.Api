@@ -9,7 +9,7 @@ public class ProductOptionValueConfiguration : IEntityTypeConfiguration<ProductO
     public void Configure(EntityTypeBuilder<ProductOptionValue> builder)
     {
         builder.HasKey(p => p.Id);
-        
+
         builder.Property(p => p.Value)
             .HasMaxLength(100)
             .IsRequired();
@@ -18,5 +18,8 @@ public class ProductOptionValueConfiguration : IEntityTypeConfiguration<ProductO
             .WithMany(p => p.ProductOptionValues)
             .HasForeignKey(p => p.OptionTypeId)
             .OnDelete(DeleteBehavior.Cascade);
+
+        builder.HasIndex(p => new {p.OptionTypeId, p.Value})
+            .IsUnique();
     }
 }
