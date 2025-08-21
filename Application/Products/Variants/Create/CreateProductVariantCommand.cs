@@ -8,6 +8,6 @@ public sealed record CreateProductVariantCommand(
     string Sku,
     decimal Price,
     int StockQuantity,
-    long[] OptionValueIds,
-    List<CreateProductImage> Images
+    IReadOnlyList<long> OptionValueIds,
+    IReadOnlyList<CreateProductImage> Images
 ) : ICommand;
