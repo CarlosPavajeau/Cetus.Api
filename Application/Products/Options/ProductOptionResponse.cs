@@ -13,6 +13,7 @@ public sealed record ProductOptionResponse(Guid ProductId, long OptionTypeId, Pr
                 option.ProductOptionType!.Id,
                 option.ProductOptionType.Name,
                 option.ProductOptionType.ProductOptionValues
+                    .OrderBy(v => v.Value)
                     .Select(v => new ProductOptionTypeValueResponse(v.Id, v.Value))
                     .ToList()
             )
