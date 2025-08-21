@@ -5,22 +5,34 @@ using SharedKernel;
 
 namespace Application.Products.Options.CreateType;
 
-internal sealed class CreateProductOptionTypeCommandHandler(IApplicationDbContext db, ITenantContext context)
+internal sealed class CreateProductOptionTypeCommandHandler(
+    IApplicationDbContext db,
+    ITenantContext context,
+    IDateTimeProvider dateTimeProvider)
     : ICommandHandler<CreateProductOptionTypeCommand>
 {
     public async Task<Result> Handle(CreateProductOptionTypeCommand command, CancellationToken cancellationToken)
     {
+        var now = dateTimeProvider.UtcNow;
+        var normalizedName = command.Name.Trim();
+
+        var normalizedValues = command.Values
+            .Select(v => v.Trim())
+            .Where(v => !string.IsNullOrWhiteSpace(v))
+            .Distinct(StringComparer.OrdinalIgnoreCase)
+            .ToList();
+
         var productOptionType = new ProductOptionType
         {
-            Name = command.Name,
+            Name = normalizedName,
             StoreId = context.Id,
-            CreatedAt = DateTime.UtcNow,
-            UpdatedAt = DateTime.UtcNow,
-            ProductOptionValues = command.Values.Select(value => new ProductOptionValue
+            CreatedAt = now,
+            UpdatedAt = now,
+            ProductOptionValues = normalizedValues.Select(value => new ProductOptionValue
             {
                 Value = value,
-                CreatedAt = DateTime.UtcNow,
-                UpdatedAt = DateTime.UtcNow
+                CreatedAt = now,
+                UpdatedAt = now
             }).ToList()
         };
 
