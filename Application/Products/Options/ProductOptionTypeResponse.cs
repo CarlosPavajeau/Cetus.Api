@@ -12,6 +12,7 @@ public sealed record ProductOptionTypeResponse(long Id, string Name, IEnumerable
             optionType.Id,
             optionType.Name,
             optionType.ProductOptionValues
+                .OrderBy(v => v.Value)
                 .Select(v => new ProductOptionTypeValueResponse(v.Id, v.Value))
                 .ToList()
         );
