@@ -12,5 +12,5 @@ public sealed class ProductImage
     public long? VariantId { get; set; }
     public ProductVariant? ProductVariant { get; set; }
 
-    public DateTime CreatedAt { get; set; }
+    public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 }
