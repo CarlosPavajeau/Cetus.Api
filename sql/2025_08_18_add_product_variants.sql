@@ -8,6 +8,17 @@ CREATE TABLE product_option_types
     deleted_at TIMESTAMP
 );
 
+ALTER TABLE product_option_types
+    ADD CONSTRAINT chk_pot_nonempty_name CHECK (length(btrim(name)) > 0);
+
+CREATE UNIQUE INDEX ux_pot_store_name
+    ON product_option_types (store_id, lower(name)) WHERE deleted_at IS NULL;
+
+CREATE TRIGGER update_product_option_types_updated_at
+    BEFORE UPDATE
+    ON product_option_types
+    FOR EACH ROW
+EXECUTE FUNCTION update_updated_at_column();
 
 CREATE TABLE product_option_values
 (
@@ -23,6 +34,15 @@ CREATE TABLE product_option_values
         FOREIGN KEY (option_type_id) REFERENCES product_option_types (id) ON DELETE CASCADE
 );
 
+ALTER TABLE product_option_values
+    ADD CONSTRAINT chk_pov_nonempty_value CHECK (length(btrim(value)) > 0);
+
+CREATE UNIQUE INDEX ux_pov_type_value
+    ON product_option_values (option_type_id, lower(value)) WHERE deleted_at IS NULL;
+
+CREATE INDEX ix_pov_option_type_id
+    ON product_option_values (option_type_id);
+
 CREATE TABLE product_options
 (
     product_id     uuid   NOT NULL,
@@ -31,6 +51,9 @@ CREATE TABLE product_options
     CONSTRAINT fk_po_product FOREIGN KEY (product_id) REFERENCES products (id) ON DELETE CASCADE,
     CONSTRAINT fk_po_option FOREIGN KEY (option_type_id) REFERENCES product_option_types (id) ON DELETE CASCADE
 );
+
+CREATE INDEX ix_po_option_type_id
+    ON product_options (option_type_id);
 
 CREATE TABLE product_variants
 (
@@ -47,6 +70,23 @@ CREATE TABLE product_variants
         FOREIGN KEY (product_id) REFERENCES products (id) ON DELETE CASCADE
 );
 
+ALTER TABLE product_variants
+    ADD CONSTRAINT chk_variant_price_nonnegative CHECK (price >= 0),
+    ADD CONSTRAINT chk_variant_stock_nonnegative CHECK (stock_quantity >= 0);
+
+CREATE INDEX ix_variant_product_id
+    ON product_variants (product_id);
+
+DROP INDEX IF EXISTS product_variants_sku_key;
+CREATE UNIQUE INDEX ux_variant_sku_ci
+    ON product_variants (lower(sku)) WHERE sku IS NOT NULL AND deleted_at IS NULL;
+
+CREATE TRIGGER update_product_variants_updated_at
+    BEFORE UPDATE
+    ON product_variants
+    FOR EACH ROW
+EXECUTE FUNCTION update_updated_at_column();
+
 CREATE TABLE product_variant_option_values
 (
     variant_id      BIGINT NOT NULL,
@@ -57,6 +97,59 @@ CREATE TABLE product_variant_option_values
     CONSTRAINT fk_map_option_value
         FOREIGN KEY (option_value_id) REFERENCES product_option_values (id) ON DELETE CASCADE
 );
+
+CREATE INDEX ix_vov_variant_id
+    ON product_variant_option_values (variant_id);
+
+CREATE INDEX ix_vov_option_value_id
+    ON product_variant_option_values (option_value_id);
+
+CREATE
+    OR REPLACE FUNCTION validate_variant_option_value()
+    RETURNS trigger
+    LANGUAGE plpgsql AS
+$$
+DECLARE
+    v_product_id uuid;
+    v_option_type_id
+                 bigint;
+    ok
+                 boolean;
+BEGIN
+    SELECT product_id
+    INTO v_product_id
+    FROM product_variants
+    WHERE id = NEW.variant_id;
+    SELECT option_type_id
+    INTO v_option_type_id
+    FROM product_option_values
+    WHERE id = NEW.option_value_id;
+
+-- Ensure the product declares this option type
+    SELECT EXISTS(SELECT 1
+                  FROM product_options po
+                  WHERE po.product_id = v_product_id
+                    AND po.option_type_id = v_option_type_id)
+    INTO ok;
+
+    IF
+        NOT ok THEN
+        RAISE EXCEPTION 'Option value (%) not allowed for variant (%) due to missing product option type mapping',
+            NEW.option_value_id, NEW.variant_id;
+    END IF;
+
+    RETURN NEW;
+END
+$$;
+
+CREATE
+    CONSTRAINT TRIGGER trg_vov_validate
+    AFTER INSERT OR
+        UPDATE
+    ON product_variant_option_values
+    DEFERRABLE INITIALLY DEFERRED
+    FOR EACH ROW
+EXECUTE FUNCTION validate_variant_option_value();
 
 ALTER TABLE product_images
     ADD COLUMN variant_id BIGINT NULL;
