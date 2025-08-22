@@ -23,8 +23,8 @@ public sealed class Product
     public Guid CategoryId { get; set; }
     public Category? Category { get; set; }
 
-    public ICollection<ProductImage> Images { get; set; } = new HashSet<ProductImage>();
-    public ICollection<ProductVariant> Variants { get; set; } = new HashSet<ProductVariant>();
+    public ICollection<ProductImage> Images { get; private set; } = new HashSet<ProductImage>();
+    public ICollection<ProductVariant> Variants { get; private set; } = new HashSet<ProductVariant>();
 
     public Guid StoreId { get; set; }
 
