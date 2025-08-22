@@ -5,7 +5,7 @@ namespace Application.Products.Options.CreateType;
 public sealed class CreateProductOptionTypeCommandValidator : AbstractValidator<CreateProductOptionTypeCommand>
 {
     private const int NameMaxLength = 100;
-    private const int ValueMaxLength = 50;
+    private const int ValueMaxLength = 100;
     private const int MaxValuesPerType = 50;
 
     public CreateProductOptionTypeCommandValidator()
