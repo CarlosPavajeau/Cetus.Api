@@ -4,8 +4,8 @@ namespace Domain.Products;
 
 public static class ProductOptionTypeErrors
 {
-    public static Error NotFound(long Id) => Error.NotFound(
+    public static Error NotFound(long id) => Error.NotFound(
         "ProductOptionType.NotFound",
-        $"Product option type with ID '{Id}' was not found."
+        $"Product option type with ID '{id}' was not found."
     );
 }
