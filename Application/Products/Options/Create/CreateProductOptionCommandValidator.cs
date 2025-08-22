@@ -11,7 +11,6 @@ public sealed class CreateProductOptionCommandValidator : AbstractValidator<Crea
             .WithMessage("El id del producto es requerido");
 
         RuleFor(x => x.OptionTypeId)
-            .NotEmpty()
             .GreaterThan(0)
             .WithMessage("La opción es requerida");
     }
