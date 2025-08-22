@@ -31,7 +31,7 @@ internal sealed class ProductConfiguration : IEntityTypeConfiguration<Product>
             .HasMaxLength(512);
 
         builder.HasMany(p => p.Images)
-            .WithOne()
+            .WithOne() // ProductImage has no Product navigation
             .HasForeignKey(p => p.ProductId)
             .OnDelete(DeleteBehavior.Cascade);
 
