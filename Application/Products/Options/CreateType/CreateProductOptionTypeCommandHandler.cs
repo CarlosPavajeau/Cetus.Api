@@ -36,7 +36,8 @@ internal sealed class CreateProductOptionTypeCommandHandler(
             }).ToList()
         };
 
-        await db.ProductOptionTypes.AddAsync(productOptionType, cancellationToken);
+        db.ProductOptionTypes.Add(productOptionType);
+
         await db.SaveChangesAsync(cancellationToken);
 
         return Result.Success();
