@@ -23,14 +23,38 @@ internal sealed class CreateProductVariantCommandHandler(
             return Result.Failure(ProductErrors.NotFound(command.ProductId.ToString()));
         }
 
-        var optionValuesExist = await db.ProductOptionValues
-            .Where(v => command.OptionValueIds.Contains(v.Id))
-            .Select(v => v.Id)
+        // De-duplicate to avoid false negatives and duplicate join rows
+        var distinctOptionValueIds = command.OptionValueIds.Distinct().ToArray();
+
+        // Load option values with their OptionType and Store context
+        var optionValueInfos = await db.ProductOptionValues
+            .AsNoTracking()
+            .Where(v => distinctOptionValueIds.Contains(v.Id))
+            .Select(v => new {v.Id, v.OptionTypeId, v.ProductOptionType!.StoreId})
             .ToListAsync(cancellationToken);
 
-        if (optionValuesExist.Count != command.OptionValueIds.Count)
+        // All must exist
+        if (optionValueInfos.Count != distinctOptionValueIds.Length)
         {
             return Result.Failure(ProductVariantErrors.MissingOptionValues());
+        }
+
+        // All must belong to current tenant/store
+        if (optionValueInfos.Any(v => v.StoreId != tenant.Id))
+        {
+            return Result.Failure(ProductVariantErrors.OptionValuesCrossStore());
+        }
+
+        // All option types must be attached to the product
+        var attachedOptionTypeIds = await db.ProductOptions
+            .AsNoTracking()
+            .Where(po => po.ProductId == command.ProductId)
+            .Select(po => po.OptionTypeId)
+            .ToListAsync(cancellationToken);
+
+        if (optionValueInfos.Any(v => !attachedOptionTypeIds.Contains(v.OptionTypeId)))
+        {
+            return Result.Failure(ProductVariantErrors.OptionTypesNotAttached());
         }
 
         await using var transaction = await db.BeginTransactionAsync(cancellationToken);
@@ -46,6 +70,7 @@ internal sealed class CreateProductVariantCommandHandler(
             };
 
             var variantOptionValues = command.OptionValueIds
+                .Distinct()
                 .Select(optionValueId => new ProductVariantOptionValue
                 {
                     OptionValueId = optionValueId,
