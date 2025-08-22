@@ -9,12 +9,15 @@ namespace Application.Products.Variants.Create;
 
 internal sealed class CreateProductVariantCommandHandler(
     IApplicationDbContext db,
+    ITenantContext tenant,
     ILogger<CreateProductVariantCommandHandler> logger
 ) : ICommandHandler<CreateProductVariantCommand>
 {
     public async Task<Result> Handle(CreateProductVariantCommand command, CancellationToken cancellationToken)
     {
-        var productExists = await db.Products.AnyAsync(p => p.Id == command.ProductId, cancellationToken);
+        var productExists = await db.Products
+            .AnyAsync(p => p.Id == command.ProductId && p.StoreId == tenant.Id, cancellationToken);
+
         if (!productExists)
         {
             return Result.Failure(ProductErrors.NotFound(command.ProductId.ToString()));
@@ -27,7 +30,7 @@ internal sealed class CreateProductVariantCommandHandler(
 
         if (optionValuesExist.Count != command.OptionValueIds.Count)
         {
-            return Result.Failure(Error.Problem("Product.Variant", "Some option values do not exist"));
+            return Result.Failure(ProductVariantErrors.MissingOptionValues());
         }
 
         await using var transaction = await db.BeginTransactionAsync(cancellationToken);
@@ -73,10 +76,12 @@ internal sealed class CreateProductVariantCommandHandler(
         }
         catch (Exception e)
         {
-            logger.LogError(e, "An error occured when creating a new product variant.");
+            logger.LogError(e,
+                "An error occurred when creating a new product variant for product {ProductId} with SKU {Sku}.",
+                command.ProductId, command.Sku);
             await transaction.RollbackAsync(cancellationToken);
 
-            return Result.Failure(Error.None);
+            return Result.Failure(ProductVariantErrors.UnexpectedError());
         }
     }
 }
