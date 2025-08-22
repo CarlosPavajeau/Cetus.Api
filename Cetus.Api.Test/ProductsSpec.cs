@@ -685,9 +685,12 @@ public class ProductsSpec(ApplicationTestCase factory) : ApplicationContextTestC
     {
         // Arrange
         var db = Services.GetRequiredService<IApplicationDbContext>();
+        var tenant = Services.GetRequiredService<ITenantContext>();
+        
         var optionType = new ProductOptionType
         {
             Name = "Color",
+            StoreId = tenant.Id,
             ProductOptionValues =
             [
                 new ProductOptionValue { Value = "Red" },
@@ -725,9 +728,12 @@ public class ProductsSpec(ApplicationTestCase factory) : ApplicationContextTestC
     {
         // Arrange
         var db = Services.GetRequiredService<IApplicationDbContext>();
+        var tenant = Services.GetRequiredService<ITenantContext>();
+        
         var optionType = new ProductOptionType
         {
             Name = "Color",
+            StoreId = tenant.Id,
             ProductOptionValues =
             [
                 new ProductOptionValue { Value = "Red" },
