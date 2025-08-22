@@ -11,6 +11,31 @@ internal sealed class CreateProductOptionCommandHandler(IApplicationDbContext db
 {
     public async Task<Result> Handle(CreateProductOptionCommand command, CancellationToken cancellationToken)
     {
+        var productStoreId = await db.Products
+            .Where(p => p.Id == command.ProductId)
+            .Select(p => p.StoreId)
+            .SingleOrDefaultAsync(cancellationToken);
+
+        var optionTypeStoreId = await db.ProductOptionTypes
+            .Where(t => t.Id == command.OptionTypeId)
+            .Select(t => t.StoreId)
+            .SingleOrDefaultAsync(cancellationToken);
+
+        if (productStoreId == Guid.Empty)
+        {
+            return Result.Failure(ProductErrors.NotFound(command.ProductId.ToString()));
+        }
+
+        if (optionTypeStoreId == Guid.Empty)
+        {
+            return Result.Failure(ProductOptionTypeErrors.NotFound(command.OptionTypeId));
+        }
+
+        if (productStoreId != optionTypeStoreId)
+        {
+            return Result.Failure(ProductOptionErrors.CrossStoreAssociation());
+        }
+
         var exists = await db.ProductOptions
             .AsNoTracking()
             .AnyAsync(
