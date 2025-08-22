@@ -25,7 +25,7 @@ internal sealed class CreateProductVariantCommandHandler(
             .Select(v => v.Id)
             .ToListAsync(cancellationToken);
 
-        if (optionValuesExist.Count != command.OptionValueIds.Length)
+        if (optionValuesExist.Count != command.OptionValueIds.Count)
         {
             return Result.Failure(Error.Problem("Product.Variant", "Some option values do not exist"));
         }
