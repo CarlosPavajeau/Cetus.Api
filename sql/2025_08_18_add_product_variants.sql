@@ -104,6 +104,9 @@ CREATE INDEX ix_vov_variant_id
 CREATE INDEX ix_vov_option_value_id
     ON product_variant_option_values (option_value_id);
 
+CREATE UNIQUE INDEX ux_product_variant_option_values_variant_option
+    ON product_variant_option_values (variant_id, option_value_id);
+
 CREATE
     OR REPLACE FUNCTION validate_variant_option_value()
     RETURNS trigger
