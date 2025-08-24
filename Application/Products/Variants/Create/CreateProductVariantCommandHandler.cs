@@ -22,7 +22,7 @@ internal sealed class CreateProductVariantCommandHandler(
         {
             return Result.Failure(ProductErrors.NotFound(command.ProductId.ToString()));
         }
-        
+
         var normalizedSku = command.Sku.Trim().ToLowerInvariant();
         var skuExists = await db.ProductVariants
             .AsNoTracking()
@@ -31,7 +31,7 @@ internal sealed class CreateProductVariantCommandHandler(
                     v.Sku == normalizedSku &&
                     v.DeletedAt == null,
                 cancellationToken);
-        
+
         if (skuExists)
         {
             return Result.Failure(ProductVariantErrors.DuplicateSku(normalizedSku));
@@ -69,6 +69,27 @@ internal sealed class CreateProductVariantCommandHandler(
         if (optionValueInfos.Any(v => !attachedOptionTypeIds.Contains(v.OptionTypeId)))
         {
             return Result.Failure(ProductVariantErrors.OptionTypesNotAttached());
+        }
+
+        if (distinctOptionValueIds.Length > 0)
+        {
+            var candidates = await db.ProductVariantOptionValues
+                .AsNoTracking()
+                .Where(x => x.ProductVariant!.ProductId == command.ProductId)
+                .GroupBy(x => x.VariantId)
+                .Select(g => new
+                {
+                    VariantId = g.Key,
+                    Total = g.Count(),
+                    Matched = g.Count(x => distinctOptionValueIds.Contains(x.OptionValueId))
+                })
+                .ToListAsync(cancellationToken);
+
+            if (candidates.Any(c =>
+                    c.Total == distinctOptionValueIds.Length && c.Matched == distinctOptionValueIds.Length))
+            {
+                return Result.Failure(ProductVariantErrors.DuplicateCombination());
+            }
         }
 
         await using var transaction = await db.BeginTransactionAsync(cancellationToken);
