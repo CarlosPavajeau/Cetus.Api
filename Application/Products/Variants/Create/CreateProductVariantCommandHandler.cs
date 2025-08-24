@@ -27,7 +27,6 @@ internal sealed class CreateProductVariantCommandHandler(
         var skuExists = await db.ProductVariants
             .AsNoTracking()
             .AnyAsync(v =>
-                    v.ProductId == command.ProductId &&
                     v.Sku == normalizedSku &&
                     v.DeletedAt == null,
                 cancellationToken);
@@ -110,7 +109,7 @@ internal sealed class CreateProductVariantCommandHandler(
         {
             var variant = new ProductVariant
             {
-                Sku = command.Sku,
+                Sku = normalizedSku,
                 Price = command.Price,
                 StockQuantity = command.StockQuantity,
                 ProductId = command.ProductId
