@@ -26,7 +26,7 @@ public static class ProductVariantErrors
 
     public static Error DuplicateSku(string sku) => Error.Conflict(
         "Product.Variant.DuplicateSku",
-        $"A variant with SKU '{sku}' already exists for this product."
+        $"A variant with SKU '{sku}' already exists."
     );
 
     public static Error DuplicateCombination() => Error.Conflict(
