@@ -113,11 +113,12 @@ CREATE
     LANGUAGE plpgsql AS
 $$
 DECLARE
-    v_product_id uuid;
+    v_product_id        uuid;
     v_option_type_id
-                 bigint;
+                        bigint;
+    v_existing_conflict bigint;
     ok
-                 boolean;
+                        boolean;
 BEGIN
     SELECT product_id
     INTO v_product_id
@@ -139,6 +140,21 @@ BEGIN
         NOT ok THEN
         RAISE EXCEPTION 'Option value (%) not allowed for variant (%) due to missing product option type mapping',
             NEW.option_value_id, NEW.variant_id;
+    END IF;
+
+    -- Enforce at most one value per option type per variant
+    SELECT 1
+    INTO v_existing_conflict
+    FROM product_variant_option_values vov
+             JOIN product_option_values pov ON pov.id = vov.option_value_id
+    WHERE vov.variant_id = NEW.variant_id
+      AND pov.option_type_id = v_option_type_id
+      AND vov.option_value_id <> NEW.option_value_id
+    LIMIT 1;
+
+    IF v_existing_conflict IS NOT NULL THEN
+        RAISE EXCEPTION 'Variant (%) already has a value for option type (%)',
+            NEW.variant_id, v_option_type_id;
     END IF;
 
     RETURN NEW;
