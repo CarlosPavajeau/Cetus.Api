@@ -22,6 +22,20 @@ internal sealed class CreateProductVariantCommandHandler(
         {
             return Result.Failure(ProductErrors.NotFound(command.ProductId.ToString()));
         }
+        
+        var normalizedSku = command.Sku.Trim().ToLowerInvariant();
+        var skuExists = await db.ProductVariants
+            .AsNoTracking()
+            .AnyAsync(v =>
+                    v.ProductId == command.ProductId &&
+                    v.Sku == normalizedSku &&
+                    v.DeletedAt == null,
+                cancellationToken);
+        
+        if (skuExists)
+        {
+            return Result.Failure(ProductVariantErrors.DuplicateSku(normalizedSku));
+        }
 
         // De-duplicate to avoid false negatives and duplicate join rows
         var distinctOptionValueIds = command.OptionValueIds.Distinct().ToArray();

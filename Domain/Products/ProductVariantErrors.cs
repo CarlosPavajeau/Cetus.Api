@@ -23,4 +23,14 @@ public static class ProductVariantErrors
         "Product.Variant.OptionTypesNotAttached",
         "Option values must belong to option types attached to the product."
     );
+
+    public static Error DuplicateSku(string sku) => Error.Conflict(
+        "Product.Variant.DuplicateSku",
+        $"A variant with SKU '{sku}' already exists for this product."
+    );
+
+    public static Error DuplicateCombination() => Error.Conflict(
+        "Product.Variant.DuplicateCombination",
+        "A variant with the same option value combination already exists for this product."
+    );
 }
