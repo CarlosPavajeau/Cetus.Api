@@ -14,7 +14,7 @@ public sealed class CreateProductVariantCommandValidator : AbstractValidator<Cre
             .Cascade(CascadeMode.Stop)
             .NotEmpty().WithMessage("Sku is required.")
             .MaximumLength(100).WithMessage("Sku must not exceed 100 characters.")
-            .Matches("^[A-Za-z0-9_-]$").WithMessage("Sku may contain letters, numbers, '-' and '_' only.");
+            .Matches("^[a-zA-Z0-9-]+$").WithMessage("Sku may contain letters, numbers, '-' only.");
 
         RuleFor(p => p.Price)
             .GreaterThan(0)
