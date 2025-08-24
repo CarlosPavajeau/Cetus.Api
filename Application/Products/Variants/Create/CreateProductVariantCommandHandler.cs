@@ -71,6 +71,18 @@ internal sealed class CreateProductVariantCommandHandler(
             return Result.Failure(ProductVariantErrors.OptionTypesNotAttached());
         }
 
+        // Each option type must have at most one selected value
+        var duplicateTypeIds = optionValueInfos
+            .GroupBy(v => v.OptionTypeId)
+            .Where(g => g.Count() > 1)
+            .Select(g => g.Key)
+            .ToArray();
+
+        if (duplicateTypeIds.Length > 0)
+        {
+            return Result.Failure(ProductVariantErrors.MultipleValuesPerOptionType());
+        }
+
         if (distinctOptionValueIds.Length > 0)
         {
             var candidates = await db.ProductVariantOptionValues

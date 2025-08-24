@@ -33,4 +33,9 @@ public static class ProductVariantErrors
         "Product.Variant.DuplicateCombination",
         "A variant with the same option value combination already exists for this product."
     );
+
+    public static Error MultipleValuesPerOptionType() => Error.Problem(
+        "Product.Variant.MultipleValuesPerOptionType",
+        "Only one option value per option type is allowed."
+    );
 }
