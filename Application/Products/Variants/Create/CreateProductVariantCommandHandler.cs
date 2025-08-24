@@ -151,7 +151,7 @@ internal sealed class CreateProductVariantCommandHandler(
                 command.ProductId, command.Sku);
             await transaction.RollbackAsync(cancellationToken);
 
-            return Result.Failure(ProductVariantErrors.UnexpectedError());
+            return Result.Failure(ProductVariantErrors.UnexpectedError(e.Message));
         }
     }
 }

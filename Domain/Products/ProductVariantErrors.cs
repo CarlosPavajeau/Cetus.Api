@@ -9,9 +9,9 @@ public static class ProductVariantErrors
         "Some option values do not exist."
     );
 
-    public static Error UnexpectedError() => Error.Problem(
+    public static Error UnexpectedError(string message) => Error.Problem(
         "Product.Variant.Create",
-        "An unexpected error occurred while creating the product variant."
+        $"An unexpected error occurred while creating the product variant. Details: {message}"
     );
 
     public static Error OptionValuesCrossStore() => Error.Problem(
