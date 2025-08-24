@@ -64,7 +64,7 @@ internal sealed class CreateProductVariantCommandHandler(
             .AsNoTracking()
             .Where(po => po.ProductId == command.ProductId)
             .Select(po => po.OptionTypeId)
-            .ToListAsync(cancellationToken);
+            .ToHashSetAsync(cancellationToken);
 
         if (optionValueInfos.Any(v => !attachedOptionTypeIds.Contains(v.OptionTypeId)))
         {
@@ -116,8 +116,7 @@ internal sealed class CreateProductVariantCommandHandler(
                 ProductId = command.ProductId
             };
 
-            var variantOptionValues = command.OptionValueIds
-                .Distinct()
+            var variantOptionValues = distinctOptionValueIds
                 .Select(optionValueId => new ProductVariantOptionValue
                 {
                     OptionValueId = optionValueId,
