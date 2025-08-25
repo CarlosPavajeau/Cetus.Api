@@ -49,10 +49,13 @@ internal sealed class FindProductBySlugQueryHandler(IApplicationDbContext contex
                 v.Price,
                 v.StockQuantity,
                 Images = v.Images
+                    .OrderBy(i => i.SortOrder)
+                    .ThenBy(i => i.Id)
                     .Select(i => new ProductImageResponse(i.Id, i.ImageUrl, i.AltText, i.SortOrder))
                     .ToList()
             })
             .OrderBy(v => v.Price)
+            .ThenBy(v => v.Id)
             .ToListAsync(cancellationToken);
 
         var variantIds = variants.Select(v => v.Id).ToList();
