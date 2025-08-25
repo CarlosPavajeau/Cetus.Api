@@ -9,5 +9,8 @@ public sealed class ProductImage
     public string? AltText { get; set; }
     public int SortOrder { get; set; }
 
-    public DateTime CreatedAt { get; set; }
+    public long? VariantId { get; set; }
+    public ProductVariant? ProductVariant { get; set; }
+
+    public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 }

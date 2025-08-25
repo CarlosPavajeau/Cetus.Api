@@ -2,9 +2,13 @@ using System.Net;
 using System.Net.Http.Json;
 using Application.Abstractions.Data;
 using Application.Products;
+using Application.Products.Options;
+using Application.Products.Options.Create;
+using Application.Products.Options.CreateType;
 using Application.Products.SearchAll;
 using Application.Products.TopSelling;
 using Application.Products.Update;
+using Application.Products.Variants.Create;
 using Cetus.Api.Test.Shared;
 using Cetus.Api.Test.Shared.Fakers;
 using Domain.Categories;
@@ -603,5 +607,176 @@ public class ProductsSpec(ApplicationTestCase factory) : ApplicationContextTestC
 
         products.ShouldNotBeEmpty();
         products.ShouldAllBe(p => p.CategoryId == category.Id);
+    }
+
+    [Fact(DisplayName = "Should create a product option type")]
+    public async Task ShouldCreateProductOptionType()
+    {
+        // Arrange
+        var command = new CreateProductOptionTypeCommand("Color", ["Red", "Blue", "Green"]);
+
+        // Act
+        var response = await Client.PostAsJsonAsync("api/products/option-types", command);
+
+        // Assert
+        response.EnsureSuccessStatusCode();
+        response.StatusCode.ShouldBe(HttpStatusCode.NoContent);
+    }
+
+    [Fact(DisplayName = "Should return all product option types")]
+    public async Task ShouldReturnAllProductOptionTypes()
+    {
+        // Arrange
+        var command = new CreateProductOptionTypeCommand("Size", ["Small", "Medium", "Large"]);
+        await Client.PostAsJsonAsync("api/products/option-types", command);
+
+        // Act
+        var response = await Client.GetAsync("api/products/option-types");
+
+        // Assert
+        response.EnsureSuccessStatusCode();
+
+        var optionTypes = await response.DeserializeAsync<List<ProductOptionTypeResponse>>();
+
+        optionTypes.ShouldNotBeEmpty();
+    }
+
+    [Fact(DisplayName = "Should create a product option")]
+    public async Task ShouldCreateProductOption()
+    {
+        // Arrange
+        var db = Services.GetRequiredService<IApplicationDbContext>();
+        var tenant = Services.GetRequiredService<ITenantContext>();
+        var optionType = new ProductOptionType
+        {
+            Name = "Color",
+            StoreId = tenant.Id,
+            ProductOptionValues =
+            [
+                new ProductOptionValue
+                {
+                    Value = "Red"
+                }
+            ]
+        };
+        
+        await db.ProductOptionTypes.AddAsync(optionType);
+        await db.SaveChangesAsync();
+
+        var product = _productCommandFaker.Generate();
+        var createProductResponse = await Client.PostAsJsonAsync("api/products", product);
+        createProductResponse.EnsureSuccessStatusCode();
+
+        var createdProduct = await createProductResponse.DeserializeAsync<ProductResponse>();
+        createdProduct.ShouldNotBeNull();
+
+        var command = new CreateProductOptionCommand(createdProduct.Id, optionType.Id);
+
+        // Act
+        var response = await Client.PostAsJsonAsync($"api/products/{createdProduct.Id}/options", command);
+
+        // Assert
+        response.EnsureSuccessStatusCode();
+        response.StatusCode.ShouldBe(HttpStatusCode.NoContent);
+    }
+
+    [Fact(DisplayName = "Should return all product options for a product")]
+    public async Task ShouldReturnAllProductOptionsForAProduct()
+    {
+        // Arrange
+        var db = Services.GetRequiredService<IApplicationDbContext>();
+        var tenant = Services.GetRequiredService<ITenantContext>();
+        
+        var optionType = new ProductOptionType
+        {
+            Name = "Color",
+            StoreId = tenant.Id,
+            ProductOptionValues =
+            [
+                new ProductOptionValue { Value = "Red" },
+                new ProductOptionValue { Value = "Blue" }
+            ]
+        };
+        
+        await db.ProductOptionTypes.AddAsync(optionType);
+        await db.SaveChangesAsync();
+
+        var product = _productCommandFaker.Generate();
+        var createProductResponse = await Client.PostAsJsonAsync("api/products", product);
+        createProductResponse.EnsureSuccessStatusCode();
+
+        var createdProduct = await createProductResponse.DeserializeAsync<ProductResponse>();
+        createdProduct.ShouldNotBeNull();
+
+        var command = new CreateProductOptionCommand(createdProduct.Id, optionType.Id);
+        await Client.PostAsJsonAsync($"api/products/{createdProduct.Id}/options", command);
+
+        // Act
+        var response = await Client.GetAsync($"api/products/{createdProduct.Id}/options");
+
+        // Assert
+        response.EnsureSuccessStatusCode();
+
+        var options = await response.DeserializeAsync<List<ProductOptionResponse>>();
+
+        options.ShouldNotBeEmpty();
+        options.ShouldAllBe(o => o.ProductId == createdProduct.Id && o.OptionTypeId == optionType.Id);
+    }
+
+    [Fact(DisplayName = "Should create a product variant")]
+    public async Task ShouldCreateAProductVariant()
+    {
+        // Arrange
+        var db = Services.GetRequiredService<IApplicationDbContext>();
+        var tenant = Services.GetRequiredService<ITenantContext>();
+        
+        var optionType = new ProductOptionType
+        {
+            Name = "Color",
+            StoreId = tenant.Id,
+            ProductOptionValues =
+            [
+                new ProductOptionValue { Value = "Red" },
+                new ProductOptionValue { Value = "Blue" }
+            ]
+        };
+        
+        await db.ProductOptionTypes.AddAsync(optionType);
+        await db.SaveChangesAsync();
+        
+        var product = _productCommandFaker.Generate();
+        var createProductResponse = await Client.PostAsJsonAsync("api/products", product);
+        createProductResponse.EnsureSuccessStatusCode();
+
+        var createdProduct = await createProductResponse.DeserializeAsync<ProductResponse>();
+        createdProduct.ShouldNotBeNull();
+        
+        var createProductOptionCommand = new CreateProductOptionCommand(createdProduct.Id, optionType.Id);
+        await Client.PostAsJsonAsync($"api/products/{createdProduct.Id}/options", createProductOptionCommand);
+        
+        var createProductOptionResponse = await Client.GetAsync($"api/products/{createdProduct.Id}/options");
+        createProductOptionResponse.EnsureSuccessStatusCode();
+
+        var options = await createProductOptionResponse.DeserializeAsync<List<ProductOptionResponse>>();
+
+        options.ShouldNotBeEmpty();
+        
+        var productOption = options[0].OptionType.Values.First();
+
+        var command = new CreateProductVariantCommand(
+            createdProduct.Id,
+            "SKU123",
+            100.00m,
+            10,
+            [productOption.Id],
+            product.Images
+        );
+
+        // Act
+        var response = await Client.PostAsJsonAsync($"api/products/{createdProduct.Id}/variants", command);
+
+        // Assert
+        response.EnsureSuccessStatusCode();
+        response.StatusCode.ShouldBe(HttpStatusCode.NoContent);
     }
 }
