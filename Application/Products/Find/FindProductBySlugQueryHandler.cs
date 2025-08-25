@@ -96,7 +96,9 @@ internal sealed class FindProductBySlugQueryHandler(IApplicationDbContext contex
 
         var availableOptions = await context.ProductOptions
             .AsNoTracking()
-            .Where(po => po.ProductId == baseProduct.Id)
+            .Where(po =>
+                po.ProductId == baseProduct.Id
+                && po.ProductOptionType!.DeletedAt == null)
             .Select(po => new ProductOptionTypeResponse(
                 po.OptionTypeId,
                 po.ProductOptionType!.Name,
