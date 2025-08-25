@@ -38,7 +38,7 @@ internal sealed class FindProductBySlugQueryHandler(IApplicationDbContext contex
         {
             return Result.Failure<ProductResponse>(ProductErrors.NotFound(request.Slug));
         }
-        
+
         var variants = await context.ProductVariants
             .AsNoTracking()
             .Where(v => v.ProductId == baseProduct.Id && v.DeletedAt == null)
@@ -54,7 +54,7 @@ internal sealed class FindProductBySlugQueryHandler(IApplicationDbContext contex
             })
             .OrderBy(v => v.Price)
             .ToListAsync(cancellationToken);
-        
+
         var variantIds = variants.Select(v => v.Id).ToList();
         var variantOptionValues = new Dictionary<long, List<VariantOptionValueResponse>>();
 
@@ -87,7 +87,7 @@ internal sealed class FindProductBySlugQueryHandler(IApplicationDbContext contex
                         .ToList()
                 );
         }
-        
+
         var availableOptions = await context.ProductOptions
             .AsNoTracking()
             .Where(po => po.ProductId == baseProduct.Id)
@@ -101,7 +101,7 @@ internal sealed class FindProductBySlugQueryHandler(IApplicationDbContext contex
                     .ToList()
             ))
             .ToListAsync(cancellationToken);
-        
+
         var finalVariants = variants.Select(v => new ProductVariantResponse(
             v.Id,
             v.Sku,
@@ -110,7 +110,7 @@ internal sealed class FindProductBySlugQueryHandler(IApplicationDbContext contex
             v.Images,
             variantOptionValues.GetValueOrDefault(v.Id, [])
         )).ToList();
-        
+
         var response = new ProductResponse(
             baseProduct.Id,
             baseProduct.Name,
