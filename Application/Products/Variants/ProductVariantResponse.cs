@@ -4,7 +4,7 @@ public sealed record ProductVariantResponse(
     long Id,
     string Sku,
     decimal Price,
-    int StockQuantity,
-    IEnumerable<ProductImageResponse> Images,
-    IEnumerable<VariantOptionValueResponse> OptionValues
+    int Stock,
+    IReadOnlyList<ProductImageResponse> Images,
+    IReadOnlyList<VariantOptionValueResponse> OptionValues
 );
