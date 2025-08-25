@@ -14,4 +14,7 @@ public sealed class OrderItem
 
     public Guid ProductId { get; set; }
     public Product? Product { get; set; }
+
+    public long VariantId { get; set; }
+    public ProductVariant? ProductVariant { get; set; }
 }
