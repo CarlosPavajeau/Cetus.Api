@@ -17,7 +17,7 @@ internal sealed class FindProductBySlugQueryHandler(IApplicationDbContext contex
         var baseProduct = await context.Products
             .AsNoTracking()
             .Include(x => x.Category)
-            .Where(p => p.Slug == request.Slug)
+            .Where(p => p.Slug == request.Slug && p.DeletedAt == null && p.Enabled)
             .Select(p => new
             {
                 p.Id,
@@ -28,7 +28,7 @@ internal sealed class FindProductBySlugQueryHandler(IApplicationDbContext contex
                 p.ReviewsCount,
                 p.CategoryId,
                 CategoryName = p.Category!.Name,
-                CategorySlug = p.Category.Slug,
+                CategorySlug = p.Category!.Slug,
                 p.Enabled,
                 p.StoreId
             })
@@ -36,7 +36,7 @@ internal sealed class FindProductBySlugQueryHandler(IApplicationDbContext contex
 
         if (baseProduct is null)
         {
-            return Result.Failure<ProductResponse>(ProductErrors.NotFound(request.Slug));
+            return Result.Failure<ProductResponse>(ProductErrors.NotFoundBySlug(request.Slug));
         }
 
         var variants = await context.ProductVariants
