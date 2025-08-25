@@ -10,6 +10,8 @@ public sealed class ProductVariant
     public Guid ProductId { get; set; }
     public Product? Product { get; set; }
 
+    public ICollection<ProductImage> Images { get; set; } = new HashSet<ProductImage>();
+
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
     public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
     public DateTime? DeletedAt { get; set; }
