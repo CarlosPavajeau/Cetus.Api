@@ -123,10 +123,6 @@ internal sealed class FindProductBySlugQueryHandler(IApplicationDbContext contex
             baseProduct.Name,
             baseProduct.Slug,
             baseProduct.Description,
-            0m, // Excluded as requested
-            0, // Excluded as requested  
-            null, // Excluded as requested
-            [], // Excluded as requested
             baseProduct.Rating,
             baseProduct.ReviewsCount,
             baseProduct.CategoryId,

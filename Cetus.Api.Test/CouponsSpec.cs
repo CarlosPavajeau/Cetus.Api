@@ -515,7 +515,7 @@ public class CouponsSpec(ApplicationTestCase factory) : ApplicationContextTestCa
         var newCustomer = _orderCustomerFaker.Generate();
         var newOrderItems = new List<CreateOrderItem>
         {
-            new(newProduct.Name, newProduct.Images[0].ImageUrl, 2, product.Price, product.Id)
+            new(newProduct.Name, newProduct.Images[0].ImageUrl, 2, 5000, product.Id)
         };
 
         var newOrder = new CreateOrderCommand(
