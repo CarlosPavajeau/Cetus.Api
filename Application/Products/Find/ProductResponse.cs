@@ -1,4 +1,6 @@
 using System.Linq.Expressions;
+using Application.Products.Options;
+using Application.Products.Variants;
 using Domain.Products;
 
 namespace Application.Products.Find;
@@ -18,7 +20,9 @@ public sealed record ProductResponse(
     string? Category,
     string CategorySlug,
     bool Enabled,
-    Guid StoreId)
+    Guid StoreId,
+    IEnumerable<ProductVariantResponse> Variants,
+    IEnumerable<ProductOptionTypeResponse> AvailableOptions)
 {
     public static ProductResponse FromProduct(Product product) => Map.Compile()(product);
 
@@ -38,6 +42,10 @@ public sealed record ProductResponse(
             product.Category!.Name,
             product.Category.Slug,
             product.Enabled,
-            product.StoreId
+            product.StoreId,
+            // Variants - will be populated by the updated handler query
+            Enumerable.Empty<ProductVariantResponse>(),
+            // Available options - will be populated by the updated handler query  
+            Enumerable.Empty<ProductOptionTypeResponse>()
         );
 }
