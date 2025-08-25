@@ -65,7 +65,10 @@ internal sealed class FindProductBySlugQueryHandler(IApplicationDbContext contex
         {
             var optionValues = await context.ProductVariantOptionValues
                 .AsNoTracking()
-                .Where(vov => variantIds.Contains(vov.VariantId))
+                .Where(vov =>
+                    variantIds.Contains(vov.VariantId) &&
+                    vov.ProductOptionValue!.DeletedAt == null &&
+                    vov.ProductOptionValue.ProductOptionType!.DeletedAt == null)
                 .Select(vov => new
                 {
                     vov.VariantId,
