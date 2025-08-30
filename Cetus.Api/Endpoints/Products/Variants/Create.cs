@@ -1,5 +1,6 @@
 using Application.Abstractions.Data;
 using Application.Abstractions.Messaging;
+using Application.Products.Variants;
 using Application.Products.Variants.Create;
 using Cetus.Api.Extensions;
 using Cetus.Api.Infrastructure;
@@ -14,7 +15,7 @@ internal sealed class Create : IEndpoint
         app.MapPost("products/{productId:guid}/variants", async (
             Guid productId,
             CreateProductVariantCommand command,
-            ICommandHandler<CreateProductVariantCommand> handler,
+            ICommandHandler<CreateProductVariantCommand, ProductVariantResponse> handler,
             HybridCache cache,
             ITenantContext tenant,
             CancellationToken cancellationToken) =>
