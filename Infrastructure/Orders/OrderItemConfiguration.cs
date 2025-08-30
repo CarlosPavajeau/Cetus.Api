@@ -23,7 +23,10 @@ internal sealed class OrderItemConfiguration : IEntityTypeConfiguration<OrderIte
         builder.Property(oi => oi.Price)
             .IsRequired();
 
-        builder.Property(oi => oi.ProductId)
+        builder.Property(oi => oi.VariantId)
             .IsRequired();
+
+        builder.Ignore(oi => oi.Product);
+        builder.Ignore(oi => oi.ProductId);
     }
 }

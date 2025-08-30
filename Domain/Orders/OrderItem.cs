@@ -12,8 +12,8 @@ public sealed class OrderItem
     public int Quantity { get; set; }
     public decimal Price { get; set; }
 
-    public Guid ProductId { get; set; }
-    public Product? Product { get; set; }
+    public Guid ProductId => ProductVariant!.ProductId;
+    public Product? Product => ProductVariant!.Product;
 
     public long VariantId { get; set; }
     public ProductVariant? ProductVariant { get; set; }
