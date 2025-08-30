@@ -62,7 +62,7 @@ public class OrdersSpec(ApplicationTestCase factory) : ApplicationContextTestCas
         var newCustomer = _orderCustomerFaker.Generate();
         var newOrderItems = new List<CreateOrderItem>
         {
-            new(product.Name, product.ImageUrl, 1, product.Price, product.VariantId)
+            new(product.Name, product.ImageUrl, 11, product.Price, product.VariantId)
         };
 
         var newOrder =
