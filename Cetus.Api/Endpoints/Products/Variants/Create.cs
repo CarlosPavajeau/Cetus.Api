@@ -35,7 +35,7 @@ internal sealed class Create : IEndpoint
                 await cache.RemoveAsync($"product-variants-{tenant.Id}-{productId}", cancellationToken);
             }
 
-            return result.Match(Results.NoContent, CustomResults.Problem);
+            return result.Match(Results.Ok, CustomResults.Problem);
         }).WithTags(Tags.Products);
     }
 }
