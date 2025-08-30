@@ -8,10 +8,10 @@ using Application.Orders.DeliveryFees.Create;
 using Application.Orders.DeliveryFees.Find;
 using Application.Orders.Find;
 using Application.Orders.Summary;
-using Application.Products.SearchAll;
 using Bogus;
 using Cetus.Api.Test.Shared;
 using Cetus.Api.Test.Shared.Fakers;
+using Cetus.Api.Test.Shared.Helpers;
 using Domain.Orders;
 using Domain.States;
 using Microsoft.Extensions.DependencyInjection;
@@ -24,7 +24,6 @@ public class OrdersSpec(ApplicationTestCase factory) : ApplicationContextTestCas
     private readonly Guid cityId = Guid.Parse("f97957e9-d820-4858-ac26-b5d03d658370");
     private const decimal DeliveryFee = 100m;
 
-    private readonly CreateProductCommandFaker _productCommandFaker = new();
     private readonly CreateOrderCustomerFaker _orderCustomerFaker = new();
     private readonly Faker _faker = new();
 
@@ -32,18 +31,12 @@ public class OrdersSpec(ApplicationTestCase factory) : ApplicationContextTestCas
     public async Task ShouldCreateANewOrder()
     {
         // Arrange 
-        var newProduct = _productCommandFaker.Generate();
-        var createResponse = await Client.PostAsJsonAsync("api/products", newProduct);
-
-        createResponse.EnsureSuccessStatusCode();
-
-        var product = await createResponse.DeserializeAsync<ProductResponse>();
-        product.ShouldNotBeNull();
+        var product = await ProductHelper.CreateProductWithVariant(Client);
 
         var newCustomer = _orderCustomerFaker.Generate();
         var newOrderItems = new List<CreateOrderItem>
         {
-            new(newProduct.Name, newProduct.Images[0].ImageUrl, 1, product.Price, product.Id)
+            new(product.Name, product.ImageUrl, 1, product.Price, product.VariantId)
         };
 
         var newOrder = new CreateOrderCommand(_faker.Address.FullAddress(), cityId, product.Price, newOrderItems,
@@ -64,18 +57,12 @@ public class OrdersSpec(ApplicationTestCase factory) : ApplicationContextTestCas
     public async Task ShouldNotCreateANewOrderWithInvalidProduct()
     {
         // Arrange
-        var newProduct = _productCommandFaker.WithStock(1).Generate();
-        var createResponse = await Client.PostAsJsonAsync("api/products", newProduct);
-
-        createResponse.EnsureSuccessStatusCode();
-
-        var product = await createResponse.DeserializeAsync<ProductResponse>();
-        product.ShouldNotBeNull();
+        var product = await ProductHelper.CreateProductWithVariant(Client);
 
         var newCustomer = _orderCustomerFaker.Generate();
         var newOrderItems = new List<CreateOrderItem>
         {
-            new(newProduct.Name, newProduct.Images[0].ImageUrl, 10, product.Price, product.Id)
+            new(product.Name, product.ImageUrl, 1, product.Price, product.VariantId)
         };
 
         var newOrder =
@@ -92,18 +79,12 @@ public class OrdersSpec(ApplicationTestCase factory) : ApplicationContextTestCas
     public async Task ShouldGetAnOrder()
     {
         // Arrange
-        var newProduct = _productCommandFaker.Generate();
-        var createResponse = await Client.PostAsJsonAsync("api/products", newProduct);
-
-        createResponse.EnsureSuccessStatusCode();
-
-        var product = await createResponse.DeserializeAsync<ProductResponse>();
-        product.ShouldNotBeNull();
+        var product = await ProductHelper.CreateProductWithVariant(Client);
 
         var newCustomer = _orderCustomerFaker.Generate();
         var newOrderItems = new List<CreateOrderItem>
         {
-            new(newProduct.Name, newProduct.Images[0].ImageUrl, 1, product.Price, product.Id)
+            new(product.Name, product.ImageUrl, 1, product.Price, product.VariantId)
         };
 
         var newOrder =
@@ -133,18 +114,12 @@ public class OrdersSpec(ApplicationTestCase factory) : ApplicationContextTestCas
     public async Task ShouldGetAllOrders()
     {
         // Arrange
-        var newProduct = _productCommandFaker.Generate();
-        var createResponse = await Client.PostAsJsonAsync("api/products", newProduct);
-
-        createResponse.EnsureSuccessStatusCode();
-
-        var product = await createResponse.DeserializeAsync<ProductResponse>();
-        product.ShouldNotBeNull();
+        var product = await ProductHelper.CreateProductWithVariant(Client);
 
         var newCustomer = _orderCustomerFaker.Generate();
         var newOrderItems = new List<CreateOrderItem>
         {
-            new(newProduct.Name, newProduct.Images[0].ImageUrl, 1, product.Price, product.Id)
+            new(product.Name, product.ImageUrl, 1, product.Price, product.VariantId)
         };
 
         var newOrder =
@@ -171,18 +146,12 @@ public class OrdersSpec(ApplicationTestCase factory) : ApplicationContextTestCas
     public async Task ShouldDeliverAnOrder()
     {
         // Arrange
-        var newProduct = _productCommandFaker.Generate();
-        var createResponse = await Client.PostAsJsonAsync("api/products", newProduct);
-
-        createResponse.EnsureSuccessStatusCode();
-
-        var product = await createResponse.DeserializeAsync<ProductResponse>();
-        product.ShouldNotBeNull();
+        var product = await ProductHelper.CreateProductWithVariant(Client);
 
         var newCustomer = _orderCustomerFaker.Generate();
         var newOrderItems = new List<CreateOrderItem>
         {
-            new(newProduct.Name, newProduct.Images[0].ImageUrl, 1, product.Price, product.Id)
+            new(product.Name, product.ImageUrl, 1, product.Price, product.VariantId)
         };
 
         var newOrder =
@@ -216,18 +185,12 @@ public class OrdersSpec(ApplicationTestCase factory) : ApplicationContextTestCas
     public async Task ShouldCancelAnOrder()
     {
         // Arrange
-        var newProduct = _productCommandFaker.Generate();
-        var createResponse = await Client.PostAsJsonAsync("api/products", newProduct);
-
-        createResponse.EnsureSuccessStatusCode();
-
-        var product = await createResponse.DeserializeAsync<ProductResponse>();
-        product.ShouldNotBeNull();
+        var product = await ProductHelper.CreateProductWithVariant(Client);
 
         var newCustomer = _orderCustomerFaker.Generate();
         var newOrderItems = new List<CreateOrderItem>
         {
-            new(newProduct.Name, newProduct.Images[0].ImageUrl, 1, product.Price, product.Id)
+            new(product.Name, product.ImageUrl, 1, product.Price, product.VariantId)
         };
 
         var newOrder =
@@ -261,18 +224,12 @@ public class OrdersSpec(ApplicationTestCase factory) : ApplicationContextTestCas
     public async Task ShouldGetOrdersInsights()
     {
         // Arrange
-        var newProduct = _productCommandFaker.Generate();
-        var createResponse = await Client.PostAsJsonAsync("api/products", newProduct);
-
-        createResponse.EnsureSuccessStatusCode();
-
-        var product = await createResponse.DeserializeAsync<ProductResponse>();
-        product.ShouldNotBeNull();
+        var product = await ProductHelper.CreateProductWithVariant(Client);
 
         var newCustomer = _orderCustomerFaker.Generate();
         var newOrderItems = new List<CreateOrderItem>
         {
-            new(newProduct.Name, newProduct.Images[0].ImageUrl, 1, product.Price, product.Id)
+            new(product.Name, product.ImageUrl, 1, product.Price, product.VariantId)
         };
 
         var newOrder =
@@ -308,18 +265,12 @@ public class OrdersSpec(ApplicationTestCase factory) : ApplicationContextTestCas
     public async Task ShouldGetOrdersSummary()
     {
         // Arrange
-        var newProduct = _productCommandFaker.Generate();
-        var createResponse = await Client.PostAsJsonAsync("api/products", newProduct);
-
-        createResponse.EnsureSuccessStatusCode();
-
-        var product = await createResponse.DeserializeAsync<ProductResponse>();
-        product.ShouldNotBeNull();
+        var product = await ProductHelper.CreateProductWithVariant(Client);
 
         var newCustomer = _orderCustomerFaker.Generate();
         var newOrderItems = new List<CreateOrderItem>
         {
-            new(newProduct.Name, newProduct.Images[0].ImageUrl, 1, product.Price, product.Id)
+            new(product.Name, product.ImageUrl, 1, product.Price, product.VariantId)
         };
 
         var newOrder =
