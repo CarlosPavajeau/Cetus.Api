@@ -1,4 +1,3 @@
-using System.Collections.Immutable;
 using Application.Abstractions.Data;
 using Application.Abstractions.Messaging;
 using Application.Orders.DeliveryFees.Find;
@@ -25,7 +24,7 @@ internal sealed class CreateOrderCommandHandler(
         {
             var customer = await GetOrCreateCustomer(request.Customer, cancellationToken);
 
-            var items = request.Items.ToImmutableList();
+            var items = request.Items;
             var productsResult = await ValidateAndGetProducts(items, cancellationToken);
 
             if (productsResult.IsFailure)
@@ -34,11 +33,12 @@ internal sealed class CreateOrderCommandHandler(
             }
 
             var order = await CreateOrderEntity(request, customer.Id);
+            
             order.Raise(new OrderCreatedDomainEvent(order.Id, order.OrderNumber));
+            
             await context.Orders.AddAsync(order, cancellationToken);
-
-            var products = productsResult.Value;
-            UpdateProductStocks(products, items);
+            
+            UpdateProductStocks(productsResult.Value, items);
 
             await context.SaveChangesAsync(cancellationToken);
             await transaction.CommitAsync(cancellationToken);
@@ -82,24 +82,24 @@ internal sealed class CreateOrderCommandHandler(
         return customer;
     }
 
-    private async Task<Result<List<Product>>> ValidateAndGetProducts(ImmutableList<CreateOrderItem> items,
+    private async Task<Result<List<ProductVariant>>> ValidateAndGetProducts(IReadOnlyList<CreateOrderItem> items,
         CancellationToken cancellationToken)
     {
-        var productIds = items.Select(i => i.ProductId).ToList();
-        var products = await context.Products
-            .Where(p => productIds.Contains(p.Id))
+        var variantIds = items.Select(i => i.VariantId).ToList();
+        var products = await context.ProductVariants
+            .Where(p => variantIds.Contains(p.Id))
             .ToListAsync(cancellationToken);
 
-        var missingProducts = productIds.Except(products.Select(p => p.Id)).ToList();
+        var missingProducts = variantIds.Except(products.Select(p => p.Id)).ToList();
         if (missingProducts.Count != 0)
         {
             var productCodes = missingProducts.Select(p => p.ToString()).ToList();
-            return Result.Failure<List<Product>>(OrderErrors.ProductsNotFound(productCodes));
+            return Result.Failure<List<ProductVariant>>(OrderErrors.ProductsNotFound(productCodes));
         }
 
         var outOfStockProducts = products
-            .Where(p => !items.Any(i => i.ProductId == p.Id && p.Stock >= i.Quantity))
-            .Select(p => new {p.Id, p.Stock})
+            .Where(p => !items.Any(i => i.VariantId == p.Id && p.StockQuantity >= i.Quantity))
+            .Select(p => new {p.Id, p.StockQuantity})
             .ToList();
 
         if (outOfStockProducts.Count == 0)
@@ -108,15 +108,15 @@ internal sealed class CreateOrderCommandHandler(
         }
 
         var outOfStockProductsDetails = outOfStockProducts
-            .Select(p => $"{p.Id} (stock: {p.Stock})")
+            .Select(p => $"{p.Id} (stock: {p.StockQuantity})")
             .ToList();
 
         var requestedProducts = items
-            .Where(i => outOfStockProducts.Any(p => p.Id == i.ProductId))
-            .Select(i => $"{i.ProductId} (requested: {i.Quantity})")
+            .Where(i => outOfStockProducts.Any(p => p.Id == i.VariantId))
+            .Select(i => $"{i.VariantId} (requested: {i.Quantity})")
             .ToList();
 
-        return Result.Failure<List<Product>>(
+        return Result.Failure<List<ProductVariant>>(
             OrderErrors.InsufficientStock(outOfStockProductsDetails, requestedProducts));
     }
 
@@ -141,7 +141,7 @@ internal sealed class CreateOrderCommandHandler(
                 ImageUrl = i.ImageUrl,
                 Quantity = i.Quantity,
                 Price = i.Price,
-                ProductId = i.ProductId
+                VariantId = i.VariantId
             }).ToList()
         };
     }
@@ -155,12 +155,12 @@ internal sealed class CreateOrderCommandHandler(
         return deliveryFee?.Fee ?? DeliveryFeeResponse.Empty.Fee;
     }
 
-    private static void UpdateProductStocks(List<Product> products, ImmutableList<CreateOrderItem> items)
+    private static void UpdateProductStocks(List<ProductVariant> products, IReadOnlyList<CreateOrderItem> items)
     {
         foreach (var product in products)
         {
-            var item = items.First(i => i.ProductId == product.Id);
-            product.Stock -= item.Quantity;
+            var item = items.First(i => i.VariantId == product.Id);
+            product.StockQuantity -= item.Quantity;
         }
     }
 }

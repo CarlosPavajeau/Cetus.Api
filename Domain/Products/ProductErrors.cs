@@ -9,4 +9,10 @@ public static class ProductErrors
             "Products.NotFound",
             $"Product with ID {productId} was not found."
         );
+
+    public static Error NotFoundBySlug(string slug) =>
+        Error.NotFound(
+            "Products.NotFoundBySlug",
+            $"Product with slug '{slug}' was not found."
+        );
 }
