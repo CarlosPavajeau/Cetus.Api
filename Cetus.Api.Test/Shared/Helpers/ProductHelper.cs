@@ -26,7 +26,7 @@ public static class ProductHelper
 
         var command = new CreateProductVariantCommand(
             product.Id,
-            "SKU123",
+            Guid.NewGuid().ToString(),
             100.00m,
             10,
             [],
