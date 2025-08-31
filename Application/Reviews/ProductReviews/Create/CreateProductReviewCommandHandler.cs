@@ -27,7 +27,7 @@ internal sealed class CreateProductReviewCommandHandler(IApplicationDbContext co
             Rating = command.Rating,
             IsVerified = true,
             ReviewRequestId = command.ReviewRequestId,
-            ProductId = reviewRequest.OrderItem.ProductId,
+            ProductId = reviewRequest.OrderItem.ProductVariant!.ProductId,
             CustomerId = reviewRequest.CustomerId,
             CreatedAt = DateTime.UtcNow
         };
