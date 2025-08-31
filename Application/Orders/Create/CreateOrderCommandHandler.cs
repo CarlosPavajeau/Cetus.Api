@@ -176,10 +176,13 @@ internal sealed class CreateOrderCommandHandler(
 
     private static void UpdateProductStocks(List<ProductVariant> products, IReadOnlyList<CreateOrderItem> items)
     {
+        var quantitiesByVariant = items
+            .GroupBy(i => i.VariantId)
+            .ToDictionary(g => g.Key, g => g.Sum(x => x.Quantity));
+
         foreach (var product in products)
         {
-            var item = items.First(i => i.VariantId == product.Id);
-            product.StockQuantity -= item.Quantity;
+            product.StockQuantity -= quantitiesByVariant[product.Id];
         }
     }
 }
