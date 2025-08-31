@@ -349,7 +349,7 @@ public class CouponsSpec(ApplicationTestCase factory) : ApplicationContextTestCa
         var minPurchaseCoupon = _couponCommandFaker
             .RuleFor(c => c.Rules, _ => new List<CreateCouponRuleCommand>
             {
-                new(CouponRuleType.MinPurchaseAmount, "1000.00")
+                new(CouponRuleType.MinPurchaseAmount, "100000.00")
             })
             .Generate();
 
