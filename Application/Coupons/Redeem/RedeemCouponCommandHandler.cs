@@ -38,7 +38,7 @@ internal sealed class RedeemCouponCommandHandler(
 
         var order = await context.Orders
             .Include(o => o.Items)
-            .ThenInclude(i => i.Product)
+            .ThenInclude(i => i.ProductVariant)
             .FirstOrDefaultAsync(o => o.Id == command.OrderId, cancellationToken);
 
         if (order == null)
