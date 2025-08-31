@@ -85,6 +85,16 @@ internal sealed class CreateOrderCommandHandler(
     private async Task<Result<List<ProductVariant>>> ValidateAndGetProducts(IReadOnlyList<CreateOrderItem> items,
         CancellationToken cancellationToken)
     {
+        if (items.Count == 0)
+        {
+            return Result.Failure<List<ProductVariant>>(OrderErrors.EmptyOrder());
+        }
+
+        if (items.Any(i => i.Quantity <= 0))
+        {
+            return Result.Failure<List<ProductVariant>>(OrderErrors.InvalidItemQuantities());
+        }
+
         var quantitiesByVariant = items
             .GroupBy(i => i.VariantId)
             .ToDictionary(g => g.Key, g => g.Sum(x => x.Quantity));
