@@ -11,7 +11,8 @@ public sealed record SimpleProductForSaleResponse(
     Guid CategoryId,
     decimal Price,
     decimal Rating,
-    int ReviewsCount)
+    int ReviewsCount,
+    long VariantId)
 {
     public static Expression<Func<Product, SimpleProductForSaleResponse>> Map => product =>
         new SimpleProductForSaleResponse(
@@ -22,6 +23,20 @@ public sealed record SimpleProductForSaleResponse(
             product.CategoryId,
             product.Price,
             product.Rating,
-            product.ReviewsCount
+            product.ReviewsCount,
+            0
+        );
+
+    public static Expression<Func<ProductVariant, SimpleProductForSaleResponse>> MapV => variant =>
+        new SimpleProductForSaleResponse(
+            variant.ProductId,
+            variant.Product!.Name,
+            variant.Product!.Slug,
+            variant.Images.FirstOrDefault()!.ImageUrl,
+            variant.Product!.CategoryId,
+            variant.Price,
+            variant.Product!.Rating,
+            variant.Product!.ReviewsCount,
+            variant.Id
         );
 }
