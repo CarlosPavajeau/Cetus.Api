@@ -182,7 +182,10 @@ internal sealed class CreateOrderCommandHandler(
 
         foreach (var product in products)
         {
-            product.StockQuantity -= quantitiesByVariant[product.Id];
+            if (quantitiesByVariant.TryGetValue(product.Id, out var qty))
+            {
+                product.StockQuantity -= qty;
+            }
         }
     }
 }
