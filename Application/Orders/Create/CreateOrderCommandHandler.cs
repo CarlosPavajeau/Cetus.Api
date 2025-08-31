@@ -144,18 +144,21 @@ internal sealed class CreateOrderCommandHandler(
     {
         var deliveryFee = await CalculateDeliveryFee(request.CityId, tenant.Id);
 
-        var items = request.Items.Select(i =>
-        {
-            var variant = variants.First(v => v.Id == i.VariantId);
-            return new OrderItem
+        var variantById = variants.ToDictionary(v => v.Id);
+        var items = request.Items
+            .Select(i =>
             {
-                ProductName = i.ProductName,
-                ImageUrl = i.ImageUrl,
-                Quantity = i.Quantity,
-                Price = variant.Price, // authoritative price
-                VariantId = i.VariantId
-            };
-        }).ToList();
+                var variant = variantById[i.VariantId];
+                return new OrderItem
+                {
+                    ProductName = i.ProductName,
+                    ImageUrl = i.ImageUrl,
+                    Quantity = i.Quantity,
+                    Price = variant.Price, // authoritative price
+                    VariantId = i.VariantId
+                };
+            })
+            .ToList();
 
         var subtotal = items.Sum(x => x.Price * x.Quantity);
         const decimal discount = 0m; // placeholder for future promotions
