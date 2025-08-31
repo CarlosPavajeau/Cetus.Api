@@ -80,7 +80,7 @@ public class ReviewsSpec(ApplicationTestCase factory) : ApplicationContextTestCa
             .Replace("=", "")[..22];
 
         // Act
-        var response = await Client.GetAsync($"reviews/requests/{nonExistingToken}");
+        var response = await Client.GetAsync($"api/reviews/requests/{nonExistingToken}");
 
         // Assert
         response.StatusCode.ShouldBe(HttpStatusCode.NotFound);
