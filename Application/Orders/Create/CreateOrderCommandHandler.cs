@@ -151,7 +151,7 @@ internal sealed class CreateOrderCommandHandler(
                 var variant = variantById[i.VariantId];
                 return new OrderItem
                 {
-                    ProductName = i.ProductName,
+                    ProductName = variant.Product?.Name ?? i.ProductName,
                     ImageUrl = i.ImageUrl,
                     Quantity = i.Quantity,
                     Price = variant.Price, // authoritative price
