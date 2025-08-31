@@ -10,6 +10,8 @@ public sealed class ProductVariant
     public bool Enabled { get; set; }
     public bool Featured { get; set; }
 
+    public int SalesCount { get; set; }
+
     public Guid ProductId { get; set; }
     public Product? Product { get; set; }
 
