@@ -92,6 +92,6 @@ public sealed class CreateOrderItemValidator : AbstractValidator<CreateOrderItem
 
         RuleFor(x => x.Price)
             .GreaterThanOrEqualTo(0)
-            .WithMessage("El precio debe ser mayor que 0.");
+            .WithMessage("El precio debe ser mayor o igual a 0.");
     }
 }
