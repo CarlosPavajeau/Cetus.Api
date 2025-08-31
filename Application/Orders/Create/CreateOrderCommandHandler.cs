@@ -52,7 +52,9 @@ internal sealed class CreateOrderCommandHandler(
         {
             logger.LogError(ex, "Error creating order for customer {CustomerId}", request.Customer.Id);
             await transaction.RollbackAsync(cancellationToken);
-            return Result.Failure<OrderResponse>(OrderErrors.CreationFailed(request.Customer.Id, ex.Message));
+
+            return Result.Failure<OrderResponse>(OrderErrors.CreationFailed(request.Customer.Id,
+                "Unexpected error while creating order."));
         }
     }
 
