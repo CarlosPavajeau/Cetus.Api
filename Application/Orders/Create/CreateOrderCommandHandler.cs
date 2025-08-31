@@ -32,12 +32,12 @@ internal sealed class CreateOrderCommandHandler(
                 return Result.Failure<OrderResponse>(productsResult.Error);
             }
 
-            var order = await CreateOrderEntity(request, customer.Id);
-            
+            var order = await CreateOrderEntity(request, customer.Id, productsResult.Value);
+
             order.Raise(new OrderCreatedDomainEvent(order.Id, order.OrderNumber));
-            
+
             await context.Orders.AddAsync(order, cancellationToken);
-            
+
             UpdateProductStocks(productsResult.Value, items);
 
             await context.SaveChangesAsync(cancellationToken);
@@ -85,9 +85,19 @@ internal sealed class CreateOrderCommandHandler(
     private async Task<Result<List<ProductVariant>>> ValidateAndGetProducts(IReadOnlyList<CreateOrderItem> items,
         CancellationToken cancellationToken)
     {
-        var variantIds = items.Select(i => i.VariantId).ToList();
+        var quantitiesByVariant = items
+            .GroupBy(i => i.VariantId)
+            .ToDictionary(g => g.Key, g => g.Sum(x => x.Quantity));
+
+        var variantIds = quantitiesByVariant.Keys.ToList();
         var products = await context.ProductVariants
-            .Where(p => variantIds.Contains(p.Id))
+            .Include(v => v.Product)
+            .Where(v =>
+                variantIds.Contains(v.Id) &&
+                v.DeletedAt == null &&
+                v.Product != null &&
+                v.Product.DeletedAt == null &&
+                v.Product.StoreId == tenant.Id)
             .ToListAsync(cancellationToken);
 
         var missingProducts = variantIds.Except(products.Select(p => p.Id)).ToList();
@@ -98,8 +108,8 @@ internal sealed class CreateOrderCommandHandler(
         }
 
         var outOfStockProducts = products
-            .Where(p => !items.Any(i => i.VariantId == p.Id && p.StockQuantity >= i.Quantity))
-            .Select(p => new {p.Id, p.StockQuantity})
+            .Where(p => p.StockQuantity < quantitiesByVariant[p.Id])
+            .Select(p => new {p.Id, p.StockQuantity, Requested = quantitiesByVariant[p.Id]})
             .ToList();
 
         if (outOfStockProducts.Count == 0)
@@ -111,38 +121,47 @@ internal sealed class CreateOrderCommandHandler(
             .Select(p => $"{p.Id} (stock: {p.StockQuantity})")
             .ToList();
 
-        var requestedProducts = items
-            .Where(i => outOfStockProducts.Any(p => p.Id == i.VariantId))
-            .Select(i => $"{i.VariantId} (requested: {i.Quantity})")
+        var requestedProducts = outOfStockProducts
+            .Select(p => $"{p.Id} (requested: {p.Requested})")
             .ToList();
 
         return Result.Failure<List<ProductVariant>>(
             OrderErrors.InsufficientStock(outOfStockProductsDetails, requestedProducts));
     }
 
-    private async Task<Order> CreateOrderEntity(CreateOrderCommand request, string customerId)
+    private async Task<Order> CreateOrderEntity(CreateOrderCommand request, string customerId,
+        IReadOnlyList<ProductVariant> variants)
     {
         var deliveryFee = await CalculateDeliveryFee(request.CityId);
+
+        var items = request.Items.Select(i =>
+        {
+            var variant = variants.First(v => v.Id == i.VariantId);
+            return new OrderItem
+            {
+                ProductName = i.ProductName,
+                ImageUrl = i.ImageUrl,
+                Quantity = i.Quantity,
+                Price = variant.Price, // authoritative price
+                VariantId = i.VariantId
+            };
+        }).ToList();
+
+        var subtotal = items.Sum(x => x.Price * x.Quantity);
+        const decimal discount = 0m; // placeholder for future promotions
 
         return new Order
         {
             Id = Guid.NewGuid(),
             Address = request.Address,
             CityId = request.CityId,
-            Subtotal = request.Total,
-            Discount = 0, // Assuming no discount for simplicity
+            Subtotal = subtotal,
+            Discount = discount,
             DeliveryFee = deliveryFee,
-            Total = request.Total,
+            Total = subtotal + deliveryFee - discount,
             CustomerId = customerId,
             StoreId = tenant.Id,
-            Items = request.Items.Select(i => new OrderItem
-            {
-                ProductName = i.ProductName,
-                ImageUrl = i.ImageUrl,
-                Quantity = i.Quantity,
-                Price = i.Price,
-                VariantId = i.VariantId
-            }).ToList()
+            Items = items
         };
     }
 
