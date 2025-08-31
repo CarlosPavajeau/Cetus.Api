@@ -132,7 +132,7 @@ internal sealed class CreateOrderCommandHandler(
     private async Task<Order> CreateOrderEntity(CreateOrderCommand request, string customerId,
         IReadOnlyList<ProductVariant> variants)
     {
-        var deliveryFee = await CalculateDeliveryFee(request.CityId);
+        var deliveryFee = await CalculateDeliveryFee(request.CityId, tenant.Id);
 
         var items = request.Items.Select(i =>
         {
@@ -165,11 +165,11 @@ internal sealed class CreateOrderCommandHandler(
         };
     }
 
-    private async Task<decimal> CalculateDeliveryFee(Guid cityId)
+    private async Task<decimal> CalculateDeliveryFee(Guid cityId, Guid tenantId)
     {
         var deliveryFee = await context.DeliveryFees
             .AsNoTracking()
-            .FirstOrDefaultAsync(x => x.CityId == cityId);
+            .FirstOrDefaultAsync(x => x.CityId == cityId && x.StoreId == tenantId);
 
         return deliveryFee?.Fee ?? DeliveryFeeResponse.Empty.Fee;
     }
