@@ -7,6 +7,9 @@ public sealed class ProductVariant
     public decimal Price { get; set; }
     public int StockQuantity { get; set; }
 
+    public bool Enabled { get; set; }
+    public bool Featured { get; set; }
+
     public Guid ProductId { get; set; }
     public Product? Product { get; set; }
 
