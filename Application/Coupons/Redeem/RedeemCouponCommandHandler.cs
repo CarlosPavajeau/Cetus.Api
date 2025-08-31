@@ -151,12 +151,12 @@ internal sealed class RedeemCouponCommandHandler(
 
     private static Result ValidateSpecificProduct(CouponRule rule, Order order)
     {
-        if (!Guid.TryParse(rule.Value, out var productId))
+        if (!long.TryParse(rule.Value, out var variantId))
         {
             return Result.Failure(CouponErrors.InvalidRule);
         }
 
-        var hasProduct = order.Items.Any(i => i.ProductId == productId);
+        var hasProduct = order.Items.Any(i => i.VariantId == variantId);
         if (!hasProduct)
         {
             return Result.Failure(CouponErrors.ProductNotInOrder);
