@@ -32,7 +32,7 @@ internal sealed class CreateOrderCommandHandler(
                 return Result.Failure<OrderResponse>(productsResult.Error);
             }
 
-            var order = await CreateOrderEntity(request, customer.Id, productsResult.Value);
+            var order = await CreateOrderEntity(request, customer.Id, productsResult.Value, cancellationToken);
 
             order.Raise(new OrderCreatedDomainEvent(order.Id, order.OrderNumber));
 
@@ -140,9 +140,9 @@ internal sealed class CreateOrderCommandHandler(
     }
 
     private async Task<Order> CreateOrderEntity(CreateOrderCommand request, string customerId,
-        IReadOnlyList<ProductVariant> variants)
+        IReadOnlyList<ProductVariant> variants, CancellationToken cancellationToken)
     {
-        var deliveryFee = await CalculateDeliveryFee(request.CityId, tenant.Id);
+        var deliveryFee = await CalculateDeliveryFee(request.CityId, tenant.Id, cancellationToken);
 
         var variantById = variants.ToDictionary(v => v.Id);
         var items = request.Items
@@ -178,11 +178,14 @@ internal sealed class CreateOrderCommandHandler(
         };
     }
 
-    private async Task<decimal> CalculateDeliveryFee(Guid cityId, Guid tenantId)
+    private async Task<decimal> CalculateDeliveryFee(Guid cityId, Guid tenantId, CancellationToken cancellationToken)
     {
         var deliveryFee = await context.DeliveryFees
             .AsNoTracking()
-            .FirstOrDefaultAsync(x => x.CityId == cityId && x.StoreId == tenantId);
+            .FirstOrDefaultAsync(
+                x => x.CityId == cityId && x.StoreId == tenantId && x.DeletedAt == null,
+                cancellationToken
+            );
 
         return deliveryFee?.Fee ?? DeliveryFeeResponse.Empty.Fee;
     }
