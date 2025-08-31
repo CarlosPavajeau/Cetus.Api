@@ -87,7 +87,8 @@ internal sealed class CreateProductVariantCommandHandler(
         {
             var candidates = await db.ProductVariantOptionValues
                 .AsNoTracking()
-                .Where(x => x.ProductVariant!.ProductId == command.ProductId)
+                .Where(x => x.ProductVariant!.DeletedAt == null &&
+                            x.ProductVariant.ProductId == command.ProductId)
                 .GroupBy(x => x.VariantId)
                 .Select(g => new
                 {
