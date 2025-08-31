@@ -12,7 +12,4 @@ public sealed record CreateProductImage(
 public sealed record CreateProductCommand(
     string Name,
     string? Description,
-    decimal Price,
-    int Stock,
-    List<CreateProductImage> Images,
     Guid CategoryId) : ICommand<ProductResponse>;

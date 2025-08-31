@@ -10,17 +10,8 @@ public sealed class CreateProductCommandFaker : Faker<CreateProductCommand>
         CustomInstantiator(faker => new CreateProductCommand(
             faker.Commerce.ProductName(),
             faker.Commerce.ProductDescription(),
-            faker.Random.Decimal(10, 1000),
-            faker.Random.Int(10, 1000),
-            [new CreateProductImage(faker.Image.PicsumUrl(), faker.Commerce.ProductName(), 0)],
             faker.Random.Guid()
         ));
-    }
-
-    public CreateProductCommandFaker WithStock(int stock)
-    {
-        RuleFor(x => x.Stock, stock);
-        return this;
     }
 
     public CreateProductCommandFaker WithCategoryId(Guid categoryId)

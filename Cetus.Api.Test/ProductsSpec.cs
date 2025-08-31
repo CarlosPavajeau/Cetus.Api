@@ -2,6 +2,7 @@ using System.Net;
 using System.Net.Http.Json;
 using Application.Abstractions.Data;
 using Application.Products;
+using Application.Products.Create;
 using Application.Products.Options;
 using Application.Products.Options.Create;
 using Application.Products.Options.CreateType;
@@ -9,6 +10,7 @@ using Application.Products.SearchAll;
 using Application.Products.TopSelling;
 using Application.Products.Update;
 using Application.Products.Variants.Create;
+using Bogus;
 using Cetus.Api.Test.Shared;
 using Cetus.Api.Test.Shared.Fakers;
 using Domain.Categories;
@@ -22,6 +24,7 @@ public class ProductsSpec(ApplicationTestCase factory) : ApplicationContextTestC
 {
     private readonly Guid categoryId = Guid.Parse("f97957e9-d820-4858-ac26-b5d03d658370");
     private readonly CreateProductCommandFaker _productCommandFaker = new();
+    private readonly Faker _faker = new();
 
     [Fact(DisplayName = "Should create a new product")]
     public async Task ShouldCreateANewProduct()
@@ -203,9 +206,6 @@ public class ProductsSpec(ApplicationTestCase factory) : ApplicationContextTestC
             product.Id,
             newProduct.Name,
             newProduct.Description,
-            2000,
-            20,
-            newProduct.Images,
             newProduct.CategoryId,
             true
         );
@@ -227,16 +227,12 @@ public class ProductsSpec(ApplicationTestCase factory) : ApplicationContextTestC
     public async Task ShouldReturnNotFoundWhenUpdatingAProductThatNotExists()
     {
         // Arrange
-        var newProduct = _productCommandFaker.Generate();
         var id = Guid.NewGuid();
         var updateProduct =
             new UpdateProductCommand(
                 id,
                 "test-update",
                 "test-update",
-                2000,
-                20,
-                newProduct.Images,
                 Guid.NewGuid(),
                 true
             );
@@ -265,9 +261,6 @@ public class ProductsSpec(ApplicationTestCase factory) : ApplicationContextTestC
                 Guid.NewGuid(),
                 "test-update",
                 "test-update",
-                2000,
-                20,
-                [],
                 Guid.NewGuid(),
                 true
             );
@@ -659,7 +652,7 @@ public class ProductsSpec(ApplicationTestCase factory) : ApplicationContextTestC
                 }
             ]
         };
-        
+
         await db.ProductOptionTypes.AddAsync(optionType);
         await db.SaveChangesAsync();
 
@@ -686,18 +679,18 @@ public class ProductsSpec(ApplicationTestCase factory) : ApplicationContextTestC
         // Arrange
         var db = Services.GetRequiredService<IApplicationDbContext>();
         var tenant = Services.GetRequiredService<ITenantContext>();
-        
+
         var optionType = new ProductOptionType
         {
             Name = "Color",
             StoreId = tenant.Id,
             ProductOptionValues =
             [
-                new ProductOptionValue { Value = "Red" },
-                new ProductOptionValue { Value = "Blue" }
+                new ProductOptionValue {Value = "Red"},
+                new ProductOptionValue {Value = "Blue"}
             ]
         };
-        
+
         await db.ProductOptionTypes.AddAsync(optionType);
         await db.SaveChangesAsync();
 
@@ -729,38 +722,38 @@ public class ProductsSpec(ApplicationTestCase factory) : ApplicationContextTestC
         // Arrange
         var db = Services.GetRequiredService<IApplicationDbContext>();
         var tenant = Services.GetRequiredService<ITenantContext>();
-        
+
         var optionType = new ProductOptionType
         {
             Name = "Color",
             StoreId = tenant.Id,
             ProductOptionValues =
             [
-                new ProductOptionValue { Value = "Red" },
-                new ProductOptionValue { Value = "Blue" }
+                new ProductOptionValue {Value = "Red"},
+                new ProductOptionValue {Value = "Blue"}
             ]
         };
-        
+
         await db.ProductOptionTypes.AddAsync(optionType);
         await db.SaveChangesAsync();
-        
+
         var product = _productCommandFaker.Generate();
         var createProductResponse = await Client.PostAsJsonAsync("api/products", product);
         createProductResponse.EnsureSuccessStatusCode();
 
         var createdProduct = await createProductResponse.DeserializeAsync<ProductResponse>();
         createdProduct.ShouldNotBeNull();
-        
+
         var createProductOptionCommand = new CreateProductOptionCommand(createdProduct.Id, optionType.Id);
         await Client.PostAsJsonAsync($"api/products/{createdProduct.Id}/options", createProductOptionCommand);
-        
+
         var createProductOptionResponse = await Client.GetAsync($"api/products/{createdProduct.Id}/options");
         createProductOptionResponse.EnsureSuccessStatusCode();
 
         var options = await createProductOptionResponse.DeserializeAsync<List<ProductOptionResponse>>();
 
         options.ShouldNotBeEmpty();
-        
+
         var productOption = options[0].OptionType.Values.First();
 
         var command = new CreateProductVariantCommand(
@@ -769,7 +762,7 @@ public class ProductsSpec(ApplicationTestCase factory) : ApplicationContextTestC
             100.00m,
             10,
             [productOption.Id],
-            product.Images
+            [new CreateProductImage(_faker.Image.PicsumUrl(), _faker.Commerce.ProductName(), 0)]
         );
 
         // Act
