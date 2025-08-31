@@ -515,7 +515,7 @@ public class CouponsSpec(ApplicationTestCase factory) : ApplicationContextTestCa
         var newOrder = new CreateOrderCommand(
             "123 Test Street",
             _cityId,
-            150.00m,
+            product.Price,
             newOrderItems,
             newCustomer
         );
