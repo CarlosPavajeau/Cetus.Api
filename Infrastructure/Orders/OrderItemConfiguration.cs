@@ -26,7 +26,17 @@ internal sealed class OrderItemConfiguration : IEntityTypeConfiguration<OrderIte
         builder.Property(oi => oi.VariantId)
             .IsRequired();
 
+        builder.HasOne(oi => oi.ProductVariant)
+            .WithMany()
+            .HasForeignKey(oi => oi.VariantId)
+            .OnDelete(DeleteBehavior.Restrict);
+
+        builder.HasIndex(oi => oi.VariantId);
+
         builder.Ignore(oi => oi.Product);
         builder.Ignore(oi => oi.ProductId);
+
+        // Ensure ProductVariant is available for projections that derive ProductId
+        builder.Navigation(oi => oi.ProductVariant).AutoInclude();
     }
 }
