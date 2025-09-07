@@ -24,7 +24,7 @@ public class ProductVariantConfiguration : IEntityTypeConfiguration<ProductVaria
             .OnDelete(DeleteBehavior.Cascade);
         
         builder.HasMany(p => p.Images)
-            .WithOne()
+            .WithOne(i => i.ProductVariant)
             .HasForeignKey(i => i.VariantId)
             .OnDelete(DeleteBehavior.Cascade);
     }

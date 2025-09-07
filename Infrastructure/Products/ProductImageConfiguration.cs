@@ -11,7 +11,7 @@ public class ProductImageConfiguration : IEntityTypeConfiguration<ProductImage>
         builder.HasKey(p => p.Id);
 
         builder.HasOne(p => p.ProductVariant)
-            .WithMany()
+            .WithMany(p => p.Images)
             .HasForeignKey(p => p.VariantId);
     }
 }
