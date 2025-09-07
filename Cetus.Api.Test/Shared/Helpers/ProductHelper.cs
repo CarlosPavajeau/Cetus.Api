@@ -1,7 +1,9 @@
 using System.Net.Http.Json;
+using Application.Products.Create;
 using Application.Products.SearchAll;
 using Application.Products.Variants;
 using Application.Products.Variants.Create;
+using Bogus;
 using Cetus.Api.Test.Shared.Fakers;
 using Shouldly;
 
@@ -12,6 +14,7 @@ public sealed record CreateProductWithVariantResponse(Guid Id, long VariantId, s
 public static class ProductHelper
 {
     private static readonly CreateProductCommandFaker _productCommandFaker = new();
+    private static readonly Faker _faker = new();
 
     public static async Task<CreateProductWithVariantResponse> CreateProductWithVariant(HttpClient client)
     {
@@ -30,7 +33,7 @@ public static class ProductHelper
             100.00m,
             10,
             [],
-            newProduct.Images
+            [new CreateProductImage(_faker.Image.PicsumUrl(), _faker.Commerce.ProductName(), 0)]
         );
 
         // Act
@@ -47,7 +50,7 @@ public static class ProductHelper
             productVariant.Id,
             product.Name,
             productVariant.Price,
-            newProduct.Images[0].ImageUrl
+            command.Images[0].ImageUrl
         );
     }
 }
