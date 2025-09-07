@@ -5,13 +5,13 @@ using SharedKernel;
 
 namespace Application.Products.SearchSuggestions;
 
-internal sealed class SearchProductSuggestionsQueryHandler(IApplicationDbContext context)
+internal sealed class SearchProductSuggestionsQueryHandler(IApplicationDbContext db)
     : IQueryHandler<SearchProductSuggestionsQuery, IEnumerable<SimpleProductForSaleResponse>>
 {
     public async Task<Result<IEnumerable<SimpleProductForSaleResponse>>> Handle(SearchProductSuggestionsQuery request,
         CancellationToken cancellationToken)
     {
-        var category = await context.Products
+        var category = await db.Products
             .AsNoTracking()
             .Include(x => x.Category)
             .Where(p => p.Id == request.ProductId)
@@ -24,14 +24,14 @@ internal sealed class SearchProductSuggestionsQueryHandler(IApplicationDbContext
         }
 
         // Select only 3 random products in the same category but not the same product
-        var products = await context.Products
+        var products = await db.ProductVariants
             .AsNoTracking()
-            .Include(p => p.Images.OrderBy(i => i.SortOrder).Take(1))
-            .Where(p => p.DeletedAt == null && p.Enabled && p.Stock > 0)
-            .Where(p => p.CategoryId == category && p.Id != request.ProductId)
+            .Include(p => p.Product)
+            .Where(p => p.DeletedAt == null && p.Enabled)
+            .Where(p => p.Product!.CategoryId == category && p.ProductId != request.ProductId)
             .OrderBy(_ => Guid.NewGuid())
             .Take(4)
-            .Select(SimpleProductForSaleResponse.Map)
+            .Select(SimpleProductForSaleResponse.MapV)
             .ToListAsync(cancellationToken);
 
         return products;
