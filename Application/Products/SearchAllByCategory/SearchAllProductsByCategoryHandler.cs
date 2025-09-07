@@ -11,12 +11,17 @@ internal sealed class SearchAllProductsByCategoryHandler(IApplicationDbContext d
     public async Task<Result<IEnumerable<SimpleProductForSaleResponse>>> Handle(SearchAllProductsByCategory query,
         CancellationToken cancellationToken)
     {
-        var products = await db.Products
+        var products = await db.ProductVariants
             .AsNoTracking()
-            .Where(p => p.CategoryId == query.CategoryId)
-            .Select(SimpleProductForSaleResponse.Map)
+            .Include(p => p.Product)
+            .Where(p => p.Product!.CategoryId == query.CategoryId)
+            .Select(SimpleProductForSaleResponse.MapV)
             .ToListAsync(cancellationToken);
 
-        return products;
+        var response = products
+            .DistinctBy(p => p.Id)
+            .ToList();
+
+        return response;
     }
 }
