@@ -32,7 +32,7 @@ public sealed record SimpleProductForSaleResponse(
             variant.ProductId,
             variant.Product!.Name,
             variant.Product!.Slug,
-            variant.Images.FirstOrDefault()!.ImageUrl,
+            variant.Images.OrderBy(i => i.SortOrder).FirstOrDefault()!.ImageUrl,
             variant.Product!.CategoryId,
             variant.Price,
             variant.Product!.Rating,
