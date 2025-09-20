@@ -32,7 +32,7 @@ internal sealed partial class CreateProductCommandHandler(IApplicationDbContext 
         return ProductResponse.FromProduct(product);
     }
 
-    private static string GenerateSlug(string name, Guid id)
+    public static string GenerateSlug(string name, Guid id)
     {
         // Convert name to lowercase and replace non-alphanumeric chars with hyphens
         var baseSlug = ProductNameRegex().Replace(name.ToLower(), "-");
