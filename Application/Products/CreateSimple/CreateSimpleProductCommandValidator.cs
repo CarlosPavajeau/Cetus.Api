@@ -9,12 +9,12 @@ public sealed class CreateSimpleProductCommandValidator : AbstractValidator<Crea
         RuleFor(x => x.Name)
             .NotNull()
             .NotEmpty()
-            .WithMessage("El nombre del producto es requerido.");
+            .WithMessage("El nombre del producto es requerido");
 
         RuleFor(x => x.CategoryId)
             .NotNull()
             .NotEmpty()
-            .WithMessage("El identificador de la categoría del producto es requerido.");
+            .WithMessage("El identificador de la categoría del producto es requerido");
 
         RuleFor(p => p.Sku)
             .Cascade(CascadeMode.Stop)
