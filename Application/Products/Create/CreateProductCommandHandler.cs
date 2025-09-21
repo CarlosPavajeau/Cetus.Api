@@ -32,16 +32,18 @@ internal sealed partial class CreateProductCommandHandler(IApplicationDbContext 
         return ProductResponse.FromProduct(product);
     }
 
-    public static string GenerateSlug(string name, Guid id)
+    internal static string GenerateSlug(string name, Guid id)
     {
         // Convert name to lowercase and replace non-alphanumeric chars with hyphens
-        var baseSlug = ProductNameRegex().Replace(name.ToLower(), "-");
+        var baseSlug = ProductNameRegex().Replace(name.ToLowerInvariant(), "-");
 
         // Get last 4 chars of the ID
-        var idSuffix = id.ToString()[(id.ToString().Length - 4)..];
+        var idSuffix = id.ToString("N")[^8..];
 
         // Combine and ensure no double hyphens
-        return SlugRegex().Replace($"{baseSlug}-{idSuffix}", "-");
+        var combined = $"{baseSlug}-{idSuffix}";
+        
+        return SlugRegex().Replace(combined, "-").Trim('-');
     }
 
     [GeneratedRegex("[^a-z0-9]")]
