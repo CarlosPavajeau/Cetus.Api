@@ -114,7 +114,8 @@ internal sealed class CreateProductVariantCommandHandler(
                 Sku = normalizedSku,
                 Price = command.Price,
                 StockQuantity = command.StockQuantity,
-                ProductId = command.ProductId
+                ProductId = command.ProductId,
+                Enabled = true
             };
 
             var variantOptionValues = distinctOptionValueIds

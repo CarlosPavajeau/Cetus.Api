@@ -22,15 +22,15 @@ internal sealed class CreateSimpleProductCommandHandler(IApplicationDbContext db
                     v.Sku == normalizedSku &&
                     v.DeletedAt == null,
                 cancellationToken);
-        
+
         if (skuExists)
         {
             return Result.Failure<ProductResponse>(ProductVariantErrors.DuplicateSku(normalizedSku));
         }
-        
+
         var productId = Guid.NewGuid();
         var slug = CreateProductCommandHandler.GenerateSlug(command.Name, productId);
-        
+
         var product = new Product
         {
             Id = productId,
@@ -47,9 +47,10 @@ internal sealed class CreateSimpleProductCommandHandler(IApplicationDbContext db
             Sku = normalizedSku,
             Price = command.Price,
             StockQuantity = command.StockQuantity,
-            ProductId = productId
+            ProductId = productId,
+            Enabled = true
         };
-        
+
         var variantImages = command.Images
             .Select(image => new ProductImage
             {
@@ -60,11 +61,11 @@ internal sealed class CreateSimpleProductCommandHandler(IApplicationDbContext db
                 ProductVariant = variant
             })
             .ToList();
-        
+
         await db.Products.AddAsync(product, cancellationToken);
         await db.ProductVariants.AddAsync(variant, cancellationToken);
         await db.ProductImages.AddRangeAsync(variantImages, cancellationToken);
-        
+
         await db.SaveChangesAsync(cancellationToken);
 
         return ProductResponse.FromProduct(product);
