@@ -24,10 +24,11 @@ internal sealed class Update : IEndpoint
             }
 
             var result = await handler.Handle(command, cancellationToken);
-
+            
             if (result.IsSuccess)
             {
-                await cache.RemoveAsync($"products-{command.Id}", cancellationToken);
+                var cacheKey = $"product-{id}";
+                await cache.RemoveAsync(cacheKey, cancellationToken);
             }
 
             return result.Match(Results.Ok, CustomResults.Problem);
