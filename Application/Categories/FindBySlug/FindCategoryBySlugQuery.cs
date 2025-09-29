@@ -1,5 +1,4 @@
 using Application.Abstractions.Messaging;
-using Application.Categories.SearchAll;
 
 namespace Application.Categories.FindBySlug;
 
