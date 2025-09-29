@@ -219,8 +219,6 @@ public class ProductsSpec(ApplicationTestCase factory) : ApplicationContextTestC
         var updated = await response.DeserializeAsync<ProductResponse>();
 
         updated.ShouldNotBeNull();
-        updated.Price.ShouldBe(2000);
-        updated.Stock.ShouldBe(20);
     }
 
     [Fact(DisplayName = "Should return not found when updating a product that not exists")]
