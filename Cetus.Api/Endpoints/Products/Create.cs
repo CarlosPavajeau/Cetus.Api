@@ -1,7 +1,7 @@
 using Application.Abstractions.Data;
 using Application.Abstractions.Messaging;
+using Application.Products;
 using Application.Products.Create;
-using Application.Products.SearchAll;
 using Cetus.Api.Extensions;
 using Cetus.Api.Infrastructure;
 using Microsoft.Extensions.Caching.Hybrid;

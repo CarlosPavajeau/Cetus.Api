@@ -3,9 +3,9 @@ using Application.Products.Options;
 using Application.Products.Variants;
 using Domain.Products;
 
-namespace Application.Products.Find;
+namespace Application.Products;
 
-public sealed record ProductResponse(
+public sealed record ProductForSaleResponse(
     Guid Id,
     string Name,
     string Slug,
@@ -20,10 +20,8 @@ public sealed record ProductResponse(
     IEnumerable<ProductVariantResponse> Variants,
     IEnumerable<ProductOptionTypeResponse> AvailableOptions)
 {
-    public static ProductResponse FromProduct(Product product) => Map.Compile()(product);
-
-    public static Expression<Func<Product, ProductResponse>> Map => product =>
-        new ProductResponse(
+    public static Expression<Func<Product, ProductForSaleResponse>> Map => product =>
+        new ProductForSaleResponse(
             product.Id,
             product.Name,
             product.Slug,
@@ -40,4 +38,6 @@ public sealed record ProductResponse(
             // Available options - will be populated by the updated handler query  
             Enumerable.Empty<ProductOptionTypeResponse>()
         );
+
+    public static ProductForSaleResponse FromProduct(Product product) => Map.Compile()(product);
 }

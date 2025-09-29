@@ -9,9 +9,9 @@ using SharedKernel;
 namespace Application.Products.Find;
 
 internal sealed class FindProductBySlugQueryHandler(IApplicationDbContext context)
-    : IQueryHandler<FindProductBySlugQuery, ProductResponse>
+    : IQueryHandler<FindProductBySlugQuery, ProductForSaleResponse>
 {
-    public async Task<Result<ProductResponse>> Handle(FindProductBySlugQuery request,
+    public async Task<Result<ProductForSaleResponse>> Handle(FindProductBySlugQuery request,
         CancellationToken cancellationToken)
     {
         var baseProduct = await context.Products
@@ -35,7 +35,7 @@ internal sealed class FindProductBySlugQueryHandler(IApplicationDbContext contex
 
         if (baseProduct is null)
         {
-            return Result.Failure<ProductResponse>(ProductErrors.NotFoundBySlug(request.Slug));
+            return Result.Failure<ProductForSaleResponse>(ProductErrors.NotFoundBySlug(request.Slug));
         }
 
         var variants = await context.ProductVariants
@@ -120,7 +120,7 @@ internal sealed class FindProductBySlugQueryHandler(IApplicationDbContext contex
             variantOptionValues.GetValueOrDefault(v.Id, [])
         )).ToList();
 
-        var response = new ProductResponse(
+        var response = new ProductForSaleResponse(
             baseProduct.Id,
             baseProduct.Name,
             baseProduct.Slug,

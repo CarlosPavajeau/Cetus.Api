@@ -1,5 +1,5 @@
 using Application.Abstractions.Messaging;
-using Application.Products.SearchAll;
+using Application.Products;
 using Application.Products.Update;
 using Cetus.Api.Extensions;
 using Cetus.Api.Infrastructure;

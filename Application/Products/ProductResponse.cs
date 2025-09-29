@@ -1,7 +1,7 @@
 using System.Linq.Expressions;
 using Domain.Products;
 
-namespace Application.Products.SearchAll;
+namespace Application.Products;
 
 public sealed record ProductResponse(
     Guid Id,
@@ -20,7 +20,7 @@ public sealed record ProductResponse(
         product.Slug,
         product.Description,
         product.CategoryId,
-        product.Category!.Name,
+        product.Category != null ? product.Category.Name : string.Empty,
         product.Enabled,
         product.CreatedAt,
         product.UpdatedAt

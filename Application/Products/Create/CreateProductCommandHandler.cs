@@ -1,7 +1,6 @@
 using System.Text.RegularExpressions;
 using Application.Abstractions.Data;
 using Application.Abstractions.Messaging;
-using Application.Products.SearchAll;
 using Domain.Products;
 using SharedKernel;
 

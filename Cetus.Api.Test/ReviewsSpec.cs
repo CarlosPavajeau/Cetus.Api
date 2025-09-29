@@ -3,7 +3,7 @@ using System.Net.Http.Json;
 using Application.Abstractions.Data;
 using Application.Orders.Create;
 using Application.Orders.Find;
-using Application.Products.SearchAll;
+using Application.Products;
 using Application.Reviews.ProductReviews.Create;
 using Application.Reviews.ProductReviews.Reject;
 using Application.Reviews.ProductReviews.SearchAll;
@@ -21,10 +21,10 @@ namespace Cetus.Api.Test;
 
 public class ReviewsSpec(ApplicationTestCase factory) : ApplicationContextTestCase(factory)
 {
-    private readonly Guid cityId = Guid.Parse("f97957e9-d820-4858-ac26-b5d03d658370");
-    private readonly CreateProductCommandFaker _productCommandFaker = new();
-    private readonly CreateOrderCustomerFaker _orderCustomerFaker = new();
     private readonly Faker _faker = new();
+    private readonly CreateOrderCustomerFaker _orderCustomerFaker = new();
+    private readonly CreateProductCommandFaker _productCommandFaker = new();
+    private readonly Guid cityId = Guid.Parse("f97957e9-d820-4858-ac26-b5d03d658370");
 
     [Fact(DisplayName = "Should find a review request by token")]
     public async Task ShouldFindReviewRequestByToken()
@@ -310,7 +310,7 @@ public class ReviewsSpec(ApplicationTestCase factory) : ApplicationContextTestCa
         {
             new(product.Name, product.ImageUrl, 1, product.Price, product.VariantId)
         };
-        
+
         var newOrder = new CreateOrderCommand(_faker.Address.FullAddress(), cityId, product.Price, newOrderItems,
             newCustomer);
         var createOrderResponse = await Client.PostAsJsonAsync("api/orders", newOrder);
@@ -367,7 +367,7 @@ public class ReviewsSpec(ApplicationTestCase factory) : ApplicationContextTestCa
         {
             new(product.Name, product.ImageUrl, 1, product.Price, product.VariantId)
         };
-        
+
         var newOrder = new CreateOrderCommand(_faker.Address.FullAddress(), cityId, product.Price, newOrderItems,
             newCustomer);
         var createOrderResponse = await Client.PostAsJsonAsync("api/orders", newOrder);

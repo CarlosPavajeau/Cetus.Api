@@ -1,4 +1,5 @@
 using Application.Abstractions.Messaging;
+using Application.Products;
 using Application.Products.Find;
 using Cetus.Api.Extensions;
 using Cetus.Api.Infrastructure;
@@ -12,7 +13,7 @@ internal sealed class FindBySlug : IEndpoint
     {
         app.MapGet("products/slug/{slug}", async (
             string slug,
-            IQueryHandler<FindProductBySlugQuery, ProductResponse> handler,
+            IQueryHandler<FindProductBySlugQuery, ProductForSaleResponse> handler,
             HybridCache cache,
             CancellationToken cancellationToken) =>
         {

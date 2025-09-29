@@ -1,6 +1,6 @@
 using System.Net.Http.Json;
+using Application.Products;
 using Application.Products.Create;
-using Application.Products.SearchAll;
 using Application.Products.Variants;
 using Application.Products.Variants.Create;
 using Bogus;
@@ -9,7 +9,12 @@ using Shouldly;
 
 namespace Cetus.Api.Test.Shared.Helpers;
 
-public sealed record CreateProductWithVariantResponse(Guid Id, long VariantId, string Name, decimal Price, string ImageUrl);
+public sealed record CreateProductWithVariantResponse(
+    Guid Id,
+    long VariantId,
+    string Name,
+    decimal Price,
+    string ImageUrl);
 
 public static class ProductHelper
 {
