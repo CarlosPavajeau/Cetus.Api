@@ -86,12 +86,12 @@ public sealed class CreateOrderItemValidator : AbstractValidator<CreateOrderItem
             .NotEmpty()
             .WithMessage("La cantidad es requerida.");
 
-        RuleFor(x => x.ProductId)
-            .NotEmpty()
-            .WithMessage("El id del producto es requerido.");
+        RuleFor(x => x.VariantId)
+            .GreaterThan(0)
+            .WithMessage("El id de la variante es requerido.");
 
         RuleFor(x => x.Price)
-            .NotEmpty()
-            .WithMessage("El precio es requerido.");
+            .GreaterThanOrEqualTo(0)
+            .WithMessage("El precio debe ser mayor o igual a 0.");
     }
 }

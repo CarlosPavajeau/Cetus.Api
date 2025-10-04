@@ -13,6 +13,7 @@ internal sealed class CreateProductReviewCommandHandler(IApplicationDbContext co
     {
         var reviewRequest = await context.ReviewRequests
             .Include(rr => rr.OrderItem)
+            .ThenInclude(oi => oi!.ProductVariant)
             .FirstOrDefaultAsync(rr => rr.Id == command.ReviewRequestId, cancellationToken);
 
         if (reviewRequest?.OrderItem is null)
@@ -27,7 +28,7 @@ internal sealed class CreateProductReviewCommandHandler(IApplicationDbContext co
             Rating = command.Rating,
             IsVerified = true,
             ReviewRequestId = command.ReviewRequestId,
-            ProductId = reviewRequest.OrderItem.ProductId,
+            ProductId = reviewRequest.OrderItem.ProductVariant!.ProductId,
             CustomerId = reviewRequest.CustomerId,
             CreatedAt = DateTime.UtcNow
         };

@@ -5,9 +5,9 @@ using Application.Coupons.Create;
 using Application.Coupons.Redeem;
 using Application.Orders.Create;
 using Application.Orders.Find;
-using Application.Products.Find;
 using Cetus.Api.Test.Shared;
 using Cetus.Api.Test.Shared.Fakers;
+using Cetus.Api.Test.Shared.Helpers;
 using Domain.Coupons;
 using Shouldly;
 
@@ -349,7 +349,7 @@ public class CouponsSpec(ApplicationTestCase factory) : ApplicationContextTestCa
         var minPurchaseCoupon = _couponCommandFaker
             .RuleFor(c => c.Rules, _ => new List<CreateCouponRuleCommand>
             {
-                new(CouponRuleType.MinPurchaseAmount, "1000.00")
+                new(CouponRuleType.MinPurchaseAmount, "100000.00")
             })
             .Generate();
 
@@ -504,24 +504,18 @@ public class CouponsSpec(ApplicationTestCase factory) : ApplicationContextTestCa
     private async Task<OrderResponse> CreateTestOrder()
     {
         // Create a test product first
-        var newProduct = _productCommandFaker.Generate();
-        var createProductResponse = await Client.PostAsJsonAsync("api/products", newProduct);
-        createProductResponse.EnsureSuccessStatusCode();
+        var product = await ProductHelper.CreateProductWithVariant(Client);
 
-        var product = await createProductResponse.DeserializeAsync<ProductResponse>();
-        product.ShouldNotBeNull();
-
-        // Create a test order
         var newCustomer = _orderCustomerFaker.Generate();
         var newOrderItems = new List<CreateOrderItem>
         {
-            new(newProduct.Name, newProduct.Images[0].ImageUrl, 2, product.Price, product.Id)
+            new(product.Name, product.ImageUrl, 1, product.Price, product.VariantId)
         };
 
         var newOrder = new CreateOrderCommand(
             "123 Test Street",
             _cityId,
-            150.00m,
+            product.Price,
             newOrderItems,
             newCustomer
         );

@@ -1,0 +1,4 @@
+ALTER TABLE product_variants
+    ADD COLUMN enabled BOOLEAN NOT NULL DEFAULT TRUE;
+ALTER TABLE product_variants
+    ADD COLUMN featured BOOLEAN NOT NULL DEFAULT FALSE;

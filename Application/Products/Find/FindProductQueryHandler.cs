@@ -6,7 +6,7 @@ using SharedKernel;
 
 namespace Application.Products.Find;
 
-internal sealed class FindProductQueryHandler(IApplicationDbContext context)
+internal sealed class FindProductQueryHandler(IApplicationDbContext context, ITenantContext tenant)
     : IQueryHandler<FindProductQuery, ProductResponse>
 {
     public async Task<Result<ProductResponse>> Handle(FindProductQuery request,
@@ -14,9 +14,7 @@ internal sealed class FindProductQueryHandler(IApplicationDbContext context)
     {
         var product = await context.Products
             .AsNoTracking()
-            .Include(x => x.Category)
-            .Include(x => x.Images)
-            .Where(p => p.Id == request.Id)
+            .Where(p => p.Id == request.Id && p.StoreId == tenant.Id)
             .Select(ProductResponse.Map)
             .FirstOrDefaultAsync(cancellationToken);
 

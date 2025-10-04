@@ -6,7 +6,8 @@ using SharedKernel;
 
 namespace Application.Categories.FindBySlug;
 
-internal sealed class FindCategoryBySlugQueryHandler(IApplicationDbContext db) : IQueryHandler<FindCategoryBySlugQuery, FindCategoryBySlugResponse>
+internal sealed class FindCategoryBySlugQueryHandler(IApplicationDbContext db)
+    : IQueryHandler<FindCategoryBySlugQuery, FindCategoryBySlugResponse>
 {
     public async Task<Result<FindCategoryBySlugResponse>> Handle(FindCategoryBySlugQuery query,
         CancellationToken cancellationToken)

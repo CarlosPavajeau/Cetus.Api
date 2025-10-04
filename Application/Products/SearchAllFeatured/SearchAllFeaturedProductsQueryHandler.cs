@@ -11,15 +11,12 @@ internal sealed class SearchAllFeaturedProductsQueryHandler(IApplicationDbContex
     public async Task<Result<IEnumerable<SimpleProductForSaleResponse>>> Handle(SearchAllFeaturedProductsQuery query,
         CancellationToken cancellationToken)
     {
-        var products = await db.Products
+        var products = await db.ProductVariants
             .AsNoTracking()
-            .Include(p => p.Images.OrderBy(i => i.SortOrder).Take(1))
-            .Where(p => p.DeletedAt == null && p.Enabled && p.StoreId == tenant.Id)
-            .OrderByDescending(p => p.Rating)
-            .ThenByDescending(p => p.SalesCount)
-            .ThenByDescending(p => p.CreatedAt)
+            .Include(p => p.Product)
+            .Where(p => p.DeletedAt == null && p.Enabled && p.Featured && p.Product!.StoreId == tenant.Id)
             .Take(10)
-            .Select(SimpleProductForSaleResponse.Map)
+            .Select(SimpleProductForSaleResponse.MapV)
             .ToListAsync(cancellationToken);
 
         return products;

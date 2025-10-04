@@ -45,4 +45,10 @@ public static class OrderErrors
             "Orders.PaymentCreationFailed",
             $"Failed to create payment for order {OrderId}."
         );
+
+    public static Error EmptyOrder() =>
+        Error.Problem("Orders.EmptyOrder", "Order must contain at least one item.");
+
+    public static Error InvalidItemQuantities() =>
+        Error.Problem("Orders.InvalidItemQuantities", "All item quantities must be positive.");
 }

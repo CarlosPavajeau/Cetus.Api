@@ -2,11 +2,18 @@ using System.Net;
 using System.Net.Http.Json;
 using Application.Abstractions.Data;
 using Application.Products;
-using Application.Products.SearchAll;
+using Application.Products.Create;
+using Application.Products.Options;
+using Application.Products.Options.Create;
+using Application.Products.Options.CreateType;
 using Application.Products.TopSelling;
 using Application.Products.Update;
+using Application.Products.Variants;
+using Application.Products.Variants.Create;
+using Bogus;
 using Cetus.Api.Test.Shared;
 using Cetus.Api.Test.Shared.Fakers;
+using Cetus.Api.Test.Shared.Helpers;
 using Domain.Categories;
 using Domain.Products;
 using Microsoft.Extensions.DependencyInjection;
@@ -18,6 +25,7 @@ public class ProductsSpec(ApplicationTestCase factory) : ApplicationContextTestC
 {
     private readonly Guid categoryId = Guid.Parse("f97957e9-d820-4858-ac26-b5d03d658370");
     private readonly CreateProductCommandFaker _productCommandFaker = new();
+    private readonly Faker _faker = new();
 
     [Fact(DisplayName = "Should create a new product")]
     public async Task ShouldCreateANewProduct()
@@ -68,18 +76,68 @@ public class ProductsSpec(ApplicationTestCase factory) : ApplicationContextTestC
             Name = "Category Test 2",
             CreatedAt = DateTime.UtcNow
         };
+        
+        var tenant = Services.GetRequiredService<ITenantContext>();
+
+        // Create featured products directly in the database
+        var products = new List<Product>
+        {
+            new()
+            {
+                Id = Guid.NewGuid(),
+                Name = "Featured Product 1",
+                Description = "Description 1",
+                Price = 100,
+                Stock = 10,
+                Enabled = true,
+                CategoryId = category.Id,
+                StoreId = tenant.Id,
+                CreatedAt = DateTime.UtcNow,
+                UpdatedAt = DateTime.UtcNow,
+                Variants = new List<ProductVariant>
+                {
+                    new()
+                    {
+                        Sku = "featured-1",
+                        Price = 100,
+                        StockQuantity = 10,
+                        Enabled = true,
+                        Featured = true
+                    }
+                }
+            },
+            new()
+            {
+                Id = Guid.NewGuid(),
+                Name = "Featured Product 2",
+                Description = "Description 2",
+                Price = 200,
+                Stock = 20,
+                Enabled = true,
+                CategoryId = category.Id,
+                StoreId = tenant.Id,
+                CreatedAt = DateTime.UtcNow,
+                UpdatedAt = DateTime.UtcNow,
+                Variants = new List<ProductVariant>
+                {
+                    new()
+                    {
+                        Sku = "featured-2",
+                        Price = 100,
+                        StockQuantity = 10,
+                        Enabled = true,
+                        Featured = true
+                    }
+                }
+            }
+        };
 
         var db = Services.GetRequiredService<IApplicationDbContext>();
+        
         await db.Categories.AddAsync(category);
+        await db.Products.AddRangeAsync(products);
+        
         await db.SaveChangesAsync();
-
-        var newProduct = _productCommandFaker
-            .WithCategoryId(category.Id)
-            .Generate();
-
-        var createResponse = await Client.PostAsJsonAsync("api/products", newProduct);
-
-        createResponse.EnsureSuccessStatusCode();
 
         // Act
         var response = await Client.GetAsync("api/products/for-sale");
@@ -87,9 +145,9 @@ public class ProductsSpec(ApplicationTestCase factory) : ApplicationContextTestC
         // Assert
         response.EnsureSuccessStatusCode();
 
-        var products = await response.DeserializeAsync<IEnumerable<SimpleProductForSaleResponse>>();
+        var productsResponse = await response.DeserializeAsync<IEnumerable<SimpleProductForSaleResponse>>();
 
-        products.ShouldNotBeEmpty();
+        productsResponse.ShouldNotBeEmpty();
     }
 
     [Fact(DisplayName = "Should return a product by id")]
@@ -151,25 +209,69 @@ public class ProductsSpec(ApplicationTestCase factory) : ApplicationContextTestC
             CreatedAt = DateTime.UtcNow
         };
 
+        var tenant = Services.GetRequiredService<ITenantContext>();
+
+        // Create featured products directly in the database
+        var products = new List<Product>
+        {
+            new()
+            {
+                Id = Guid.NewGuid(),
+                Name = "Featured Product 1",
+                Description = "Description 1",
+                Price = 100,
+                Stock = 10,
+                Enabled = true,
+                CategoryId = category.Id,
+                StoreId = tenant.Id,
+                CreatedAt = DateTime.UtcNow,
+                UpdatedAt = DateTime.UtcNow,
+                Variants = new List<ProductVariant>
+                {
+                    new()
+                    {
+                        Sku = "featured-1",
+                        Price = 100,
+                        StockQuantity = 10,
+                        Enabled = true,
+                        Featured = true
+                    }
+                }
+            },
+            new()
+            {
+                Id = Guid.NewGuid(),
+                Name = "Featured Product 2",
+                Description = "Description 2",
+                Price = 200,
+                Stock = 20,
+                Enabled = true,
+                CategoryId = category.Id,
+                StoreId = tenant.Id,
+                CreatedAt = DateTime.UtcNow,
+                UpdatedAt = DateTime.UtcNow,
+                Variants = new List<ProductVariant>
+                {
+                    new()
+                    {
+                        Sku = "featured-2",
+                        Price = 100,
+                        StockQuantity = 10,
+                        Enabled = true,
+                        Featured = true
+                    }
+                }
+            }
+        };
+
         var db = Services.GetRequiredService<IApplicationDbContext>();
+        
         await db.Categories.AddAsync(category);
+        await db.Products.AddRangeAsync(products);
+        
         await db.SaveChangesAsync();
-
-        var newProduct = _productCommandFaker.WithCategoryId(category.Id).Generate();
-        var createResponse = await Client.PostAsJsonAsync("api/products", newProduct);
-
-        createResponse.EnsureSuccessStatusCode();
-
-        var product = await createResponse.DeserializeAsync<ProductResponse>();
-        product.ShouldNotBeNull();
-
-        newProduct = _productCommandFaker.WithCategoryId(category.Id).Generate();
-        createResponse = await Client.PostAsJsonAsync("api/products", newProduct);
-
-        createResponse.EnsureSuccessStatusCode();
-
-        product = await createResponse.DeserializeAsync<ProductResponse>();
-        product.ShouldNotBeNull();
+        
+        var product = products[0];
 
         // Act
         var response =
@@ -199,9 +301,6 @@ public class ProductsSpec(ApplicationTestCase factory) : ApplicationContextTestC
             product.Id,
             newProduct.Name,
             newProduct.Description,
-            2000,
-            20,
-            newProduct.Images,
             newProduct.CategoryId,
             true
         );
@@ -215,24 +314,18 @@ public class ProductsSpec(ApplicationTestCase factory) : ApplicationContextTestC
         var updated = await response.DeserializeAsync<ProductResponse>();
 
         updated.ShouldNotBeNull();
-        updated.Price.ShouldBe(2000);
-        updated.Stock.ShouldBe(20);
     }
 
     [Fact(DisplayName = "Should return not found when updating a product that not exists")]
     public async Task ShouldReturnNotFoundWhenUpdatingAProductThatNotExists()
     {
         // Arrange
-        var newProduct = _productCommandFaker.Generate();
         var id = Guid.NewGuid();
         var updateProduct =
             new UpdateProductCommand(
                 id,
                 "test-update",
                 "test-update",
-                2000,
-                20,
-                newProduct.Images,
                 Guid.NewGuid(),
                 true
             );
@@ -261,9 +354,6 @@ public class ProductsSpec(ApplicationTestCase factory) : ApplicationContextTestC
                 Guid.NewGuid(),
                 "test-update",
                 "test-update",
-                2000,
-                20,
-                [],
                 Guid.NewGuid(),
                 true
             );
@@ -473,7 +563,18 @@ public class ProductsSpec(ApplicationTestCase factory) : ApplicationContextTestC
                 CategoryId = category.Id,
                 StoreId = tenant.Id,
                 CreatedAt = DateTime.UtcNow,
-                UpdatedAt = DateTime.UtcNow
+                UpdatedAt = DateTime.UtcNow,
+                Variants = new List<ProductVariant>
+                {
+                    new()
+                    {
+                        Sku = "featured-1",
+                        Price = 100,
+                        StockQuantity = 10,
+                        Enabled = true,
+                        Featured = true
+                    }
+                }
             },
             new()
             {
@@ -486,7 +587,18 @@ public class ProductsSpec(ApplicationTestCase factory) : ApplicationContextTestC
                 CategoryId = category.Id,
                 StoreId = tenant.Id,
                 CreatedAt = DateTime.UtcNow,
-                UpdatedAt = DateTime.UtcNow
+                UpdatedAt = DateTime.UtcNow,
+                Variants = new List<ProductVariant>
+                {
+                    new()
+                    {
+                        Sku = "featured-2",
+                        Price = 100,
+                        StockQuantity = 10,
+                        Enabled = true,
+                        Featured = true
+                    }
+                }
             }
         };
 
@@ -583,15 +695,40 @@ public class ProductsSpec(ApplicationTestCase factory) : ApplicationContextTestC
             Name = "Category Test By Category",
             CreatedAt = DateTime.UtcNow
         };
+        
+        var tenant = Services.GetRequiredService<ITenantContext>();
+        
+        var newProduct = new Product
+        {
+            Id = Guid.NewGuid(),
+            Name = "Featured Product 1",
+            Description = "Description 1",
+            Price = 100,
+            Stock = 10,
+            Enabled = true,
+            CategoryId = category.Id,
+            StoreId = tenant.Id,
+            CreatedAt = DateTime.UtcNow,
+            UpdatedAt = DateTime.UtcNow,
+            Variants = new List<ProductVariant>
+            {
+                new()
+                {
+                    Sku = "featured-1",
+                    Price = 100,
+                    StockQuantity = 10,
+                    Enabled = true,
+                    Featured = true
+                }
+            }
+        };
 
         var db = Services.GetRequiredService<IApplicationDbContext>();
+        
         await db.Categories.AddAsync(category);
+        await db.Products.AddAsync(newProduct);
+        
         await db.SaveChangesAsync();
-
-        var newProduct = _productCommandFaker.WithCategoryId(category.Id).Generate();
-        var createResponse = await Client.PostAsJsonAsync("api/products", newProduct);
-
-        createResponse.EnsureSuccessStatusCode();
 
         // Act
         var response = await Client.GetAsync($"api/products/category/{category.Id}");
@@ -603,5 +740,193 @@ public class ProductsSpec(ApplicationTestCase factory) : ApplicationContextTestC
 
         products.ShouldNotBeEmpty();
         products.ShouldAllBe(p => p.CategoryId == category.Id);
+    }
+
+    [Fact(DisplayName = "Should create a product option type")]
+    public async Task ShouldCreateProductOptionType()
+    {
+        // Arrange
+        var command = new CreateProductOptionTypeCommand("Color", ["Red", "Blue", "Green"]);
+
+        // Act
+        var response = await Client.PostAsJsonAsync("api/products/option-types", command);
+
+        // Assert
+        response.EnsureSuccessStatusCode();
+        response.StatusCode.ShouldBe(HttpStatusCode.NoContent);
+    }
+
+    [Fact(DisplayName = "Should return all product option types")]
+    public async Task ShouldReturnAllProductOptionTypes()
+    {
+        // Arrange
+        var command = new CreateProductOptionTypeCommand("Size", ["Small", "Medium", "Large"]);
+        await Client.PostAsJsonAsync("api/products/option-types", command);
+
+        // Act
+        var response = await Client.GetAsync("api/products/option-types");
+
+        // Assert
+        response.EnsureSuccessStatusCode();
+
+        var optionTypes = await response.DeserializeAsync<List<ProductOptionTypeResponse>>();
+
+        optionTypes.ShouldNotBeEmpty();
+    }
+
+    [Fact(DisplayName = "Should create a product option")]
+    public async Task ShouldCreateProductOption()
+    {
+        // Arrange
+        var db = Services.GetRequiredService<IApplicationDbContext>();
+        var tenant = Services.GetRequiredService<ITenantContext>();
+        var optionType = new ProductOptionType
+        {
+            Name = "Color",
+            StoreId = tenant.Id,
+            ProductOptionValues =
+            [
+                new ProductOptionValue
+                {
+                    Value = "Red"
+                }
+            ]
+        };
+
+        await db.ProductOptionTypes.AddAsync(optionType);
+        await db.SaveChangesAsync();
+
+        var product = _productCommandFaker.Generate();
+        var createProductResponse = await Client.PostAsJsonAsync("api/products", product);
+        createProductResponse.EnsureSuccessStatusCode();
+
+        var createdProduct = await createProductResponse.DeserializeAsync<ProductResponse>();
+        createdProduct.ShouldNotBeNull();
+
+        var command = new CreateProductOptionCommand(createdProduct.Id, optionType.Id);
+
+        // Act
+        var response = await Client.PostAsJsonAsync($"api/products/{createdProduct.Id}/options", command);
+
+        // Assert
+        response.EnsureSuccessStatusCode();
+        response.StatusCode.ShouldBe(HttpStatusCode.NoContent);
+    }
+
+    [Fact(DisplayName = "Should return all product options for a product")]
+    public async Task ShouldReturnAllProductOptionsForAProduct()
+    {
+        // Arrange
+        var db = Services.GetRequiredService<IApplicationDbContext>();
+        var tenant = Services.GetRequiredService<ITenantContext>();
+
+        var optionType = new ProductOptionType
+        {
+            Name = "Color",
+            StoreId = tenant.Id,
+            ProductOptionValues =
+            [
+                new ProductOptionValue {Value = "Red"},
+                new ProductOptionValue {Value = "Blue"}
+            ]
+        };
+
+        await db.ProductOptionTypes.AddAsync(optionType);
+        await db.SaveChangesAsync();
+
+        var product = _productCommandFaker.Generate();
+        var createProductResponse = await Client.PostAsJsonAsync("api/products", product);
+        createProductResponse.EnsureSuccessStatusCode();
+
+        var createdProduct = await createProductResponse.DeserializeAsync<ProductResponse>();
+        createdProduct.ShouldNotBeNull();
+
+        var command = new CreateProductOptionCommand(createdProduct.Id, optionType.Id);
+        await Client.PostAsJsonAsync($"api/products/{createdProduct.Id}/options", command);
+
+        // Act
+        var response = await Client.GetAsync($"api/products/{createdProduct.Id}/options");
+
+        // Assert
+        response.EnsureSuccessStatusCode();
+
+        var options = await response.DeserializeAsync<List<ProductOptionResponse>>();
+
+        options.ShouldNotBeEmpty();
+        options.ShouldAllBe(o => o.ProductId == createdProduct.Id && o.OptionTypeId == optionType.Id);
+    }
+
+    [Fact(DisplayName = "Should create a product variant")]
+    public async Task ShouldCreateAProductVariant()
+    {
+        // Arrange
+        var db = Services.GetRequiredService<IApplicationDbContext>();
+        var tenant = Services.GetRequiredService<ITenantContext>();
+
+        var optionType = new ProductOptionType
+        {
+            Name = "Color",
+            StoreId = tenant.Id,
+            ProductOptionValues =
+            [
+                new ProductOptionValue {Value = "Red"},
+                new ProductOptionValue {Value = "Blue"}
+            ]
+        };
+
+        await db.ProductOptionTypes.AddAsync(optionType);
+        await db.SaveChangesAsync();
+
+        var product = _productCommandFaker.Generate();
+        var createProductResponse = await Client.PostAsJsonAsync("api/products", product);
+        createProductResponse.EnsureSuccessStatusCode();
+
+        var createdProduct = await createProductResponse.DeserializeAsync<ProductResponse>();
+        createdProduct.ShouldNotBeNull();
+
+        var createProductOptionCommand = new CreateProductOptionCommand(createdProduct.Id, optionType.Id);
+        await Client.PostAsJsonAsync($"api/products/{createdProduct.Id}/options", createProductOptionCommand);
+
+        var createProductOptionResponse = await Client.GetAsync($"api/products/{createdProduct.Id}/options");
+        createProductOptionResponse.EnsureSuccessStatusCode();
+
+        var options = await createProductOptionResponse.DeserializeAsync<List<ProductOptionResponse>>();
+
+        options.ShouldNotBeEmpty();
+
+        var productOption = options[0].OptionType.Values.First();
+
+        var command = new CreateProductVariantCommand(
+            createdProduct.Id,
+            $"SKU-{Guid.NewGuid():N}",
+            100.00m,
+            10,
+            [productOption.Id],
+            [new CreateProductImage(_faker.Image.PicsumUrl(), _faker.Commerce.ProductName(), 0)]
+        );
+
+        // Act
+        var response = await Client.PostAsJsonAsync($"api/products/{createdProduct.Id}/variants", command);
+
+        // Assert
+        response.EnsureSuccessStatusCode();
+        response.StatusCode.ShouldBe(HttpStatusCode.OK);
+    }
+
+    [Fact(DisplayName = "Should return all product variants for a product")]
+    public async Task ShouldReturnAllProductVariantsForAProduct()
+    {
+        // Arrange
+        var product = await ProductHelper.CreateProductWithVariant(Client);
+        
+        // Act
+        var response = await Client.GetAsync($"api/products/{product.Id}/variants");
+        
+        // Assert
+        response.EnsureSuccessStatusCode();
+        
+        var variants = await response.DeserializeAsync<List<ProductVariantResponse>>();
+        
+        variants.ShouldNotBeEmpty();
     }
 }

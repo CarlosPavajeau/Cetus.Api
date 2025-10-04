@@ -1,7 +1,6 @@
 using System.Text.RegularExpressions;
 using Application.Abstractions.Data;
 using Application.Abstractions.Messaging;
-using Application.Products.SearchAll;
 using Domain.Products;
 using SharedKernel;
 
@@ -15,24 +14,13 @@ internal sealed partial class CreateProductCommandHandler(IApplicationDbContext 
         var productId = Guid.NewGuid();
         var slug = GenerateSlug(request.Name, productId);
 
-        var images = request.Images.Select(img => new ProductImage
-        {
-            ProductId = productId,
-            ImageUrl = img.ImageUrl,
-            AltText = img.AltText,
-            SortOrder = img.SortOrder
-        }).ToList();
-
         var product = new Product
         {
             Id = productId,
             Name = request.Name,
             Slug = slug,
             Description = request.Description,
-            Price = request.Price,
-            Stock = request.Stock,
             Enabled = true,
-            Images = images,
             CategoryId = request.CategoryId,
             StoreId = tenant.Id
         };
@@ -43,16 +31,18 @@ internal sealed partial class CreateProductCommandHandler(IApplicationDbContext 
         return ProductResponse.FromProduct(product);
     }
 
-    private static string GenerateSlug(string name, Guid id)
+    internal static string GenerateSlug(string name, Guid id)
     {
         // Convert name to lowercase and replace non-alphanumeric chars with hyphens
-        var baseSlug = ProductNameRegex().Replace(name.ToLower(), "-");
+        var baseSlug = ProductNameRegex().Replace(name.ToLowerInvariant(), "-");
 
         // Get last 4 chars of the ID
-        var idSuffix = id.ToString()[(id.ToString().Length - 4)..];
+        var idSuffix = id.ToString("N")[^8..];
 
         // Combine and ensure no double hyphens
-        return SlugRegex().Replace($"{baseSlug}-{idSuffix}", "-");
+        var combined = $"{baseSlug}-{idSuffix}";
+        
+        return SlugRegex().Replace(combined, "-").Trim('-');
     }
 
     [GeneratedRegex("[^a-z0-9]")]

@@ -14,8 +14,14 @@ namespace Application.Abstractions.Data;
 public interface IApplicationDbContext
 {
     DbSet<Category> Categories { get; }
+    
     DbSet<Product> Products { get; }
     DbSet<ProductImage> ProductImages { get; }
+    DbSet<ProductOptionType> ProductOptionTypes { get; }
+    DbSet<ProductOptionValue> ProductOptionValues { get; }
+    DbSet<ProductOption> ProductOptions { get; }
+    DbSet<ProductVariant> ProductVariants { get; }
+    DbSet<ProductVariantOptionValue> ProductVariantOptionValues { get; }
 
     DbSet<Customer> Customers { get; }
     DbSet<Order> Orders { get; }

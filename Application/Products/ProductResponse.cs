@@ -1,16 +1,15 @@
 using System.Linq.Expressions;
 using Domain.Products;
 
-namespace Application.Products.SearchAll;
+namespace Application.Products;
 
 public sealed record ProductResponse(
     Guid Id,
     string Name,
     string Slug,
     string? Description,
-    decimal Price,
-    int Stock,
     Guid CategoryId,
+    string Category,
     bool Enabled,
     DateTime CreatedAt,
     DateTime UpdatedAt)
@@ -20,9 +19,8 @@ public sealed record ProductResponse(
         product.Name,
         product.Slug,
         product.Description,
-        product.Price,
-        product.Stock,
         product.CategoryId,
+        product.Category != null ? product.Category.Name : string.Empty,
         product.Enabled,
         product.CreatedAt,
         product.UpdatedAt
