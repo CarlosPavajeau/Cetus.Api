@@ -60,6 +60,14 @@ internal sealed class UpdateOrderCommandHandler(IApplicationDbContext context)
                 )));
                 break;
             case OrderStatus.Delivered:
+                order.Raise(new SentOrderDomainEvent(new SentOrder(
+                    order.Id,
+                    order.OrderNumber,
+                    customer.Name,
+                    customer.Address,
+                    customer.Email
+                    )));
+                
                 order.Raise(new DeliveredOrderDomainEvent(new DeliveredOrder(
                     order.Id,
                     order.OrderNumber,
