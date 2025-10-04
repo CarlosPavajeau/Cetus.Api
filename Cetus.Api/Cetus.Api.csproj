@@ -22,7 +22,7 @@
     <PackageReference Include="Serilog.AspNetCore" Version="9.0.0"/>
     <PackageReference Include="Serilog.Sinks.ApplicationInsights" Version="4.0.0"/>
     <PackageReference Include="Serilog.Sinks.OpenTelemetry" Version="4.2.0" />
-    <PackageReference Include="Swashbuckle.AspNetCore" Version="9.0.3"/>
+    <PackageReference Include="Swashbuckle.AspNetCore" Version="9.0.6"/>
     <PackageReference Include="ZiggyCreatures.FusionCache" Version="2.4.0"/>
   </ItemGroup>
 
