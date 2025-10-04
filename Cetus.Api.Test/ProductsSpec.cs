@@ -898,7 +898,7 @@ public class ProductsSpec(ApplicationTestCase factory) : ApplicationContextTestC
 
         var command = new CreateProductVariantCommand(
             createdProduct.Id,
-            "SKU123",
+            $"SKU-{Guid.NewGuid():N}",
             100.00m,
             10,
             [productOption.Id],
