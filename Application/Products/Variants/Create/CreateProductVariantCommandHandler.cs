@@ -10,6 +10,7 @@ namespace Application.Products.Variants.Create;
 internal sealed class CreateProductVariantCommandHandler(
     IApplicationDbContext db,
     ITenantContext tenant,
+    IDateTimeProvider dateTimeProvider,
     ILogger<CreateProductVariantCommandHandler> logger
 ) : ICommandHandler<CreateProductVariantCommand, ProductVariantResponse>
 {
@@ -109,13 +110,17 @@ internal sealed class CreateProductVariantCommandHandler(
 
         try
         {
+            var utcNow = dateTimeProvider.UtcNow;
+            
             var variant = new ProductVariant
             {
                 Sku = normalizedSku,
                 Price = command.Price,
                 StockQuantity = command.StockQuantity,
                 ProductId = command.ProductId,
-                Enabled = true
+                Enabled = true,
+                CreatedAt = utcNow,
+                UpdatedAt = utcNow
             };
 
             var variantOptionValues = distinctOptionValueIds
