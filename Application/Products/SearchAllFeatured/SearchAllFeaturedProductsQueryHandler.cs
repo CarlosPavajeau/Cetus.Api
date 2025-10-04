@@ -14,9 +14,15 @@ internal sealed class SearchAllFeaturedProductsQueryHandler(IApplicationDbContex
         var products = await db.ProductVariants
             .AsNoTracking()
             .Include(p => p.Product)
-            .Where(p => p.DeletedAt == null && p.Enabled && p.Featured && p.Product!.StoreId == tenant.Id)
+            .Where(p => p.DeletedAt == null
+                        && p.Enabled
+                        && p.Featured
+                        && p.Product!.Enabled
+                        && p.Product!.DeletedAt == null
+                        && p.Product!.StoreId == tenant.Id
+            )
             .Take(10)
-            .Select(SimpleProductForSaleResponse.MapV)
+            .Select(SimpleProductForSaleResponse.Map)
             .ToListAsync(cancellationToken);
 
         return products;

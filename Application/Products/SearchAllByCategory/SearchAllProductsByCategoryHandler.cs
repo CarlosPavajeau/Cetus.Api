@@ -5,7 +5,7 @@ using SharedKernel;
 
 namespace Application.Products.SearchAllByCategory;
 
-internal sealed class SearchAllProductsByCategoryHandler(IApplicationDbContext db)
+internal sealed class SearchAllProductsByCategoryHandler(IApplicationDbContext db, ITenantContext tenant)
     : IQueryHandler<SearchAllProductsByCategory, IEnumerable<SimpleProductForSaleResponse>>
 {
     public async Task<Result<IEnumerable<SimpleProductForSaleResponse>>> Handle(SearchAllProductsByCategory query,
@@ -14,8 +14,14 @@ internal sealed class SearchAllProductsByCategoryHandler(IApplicationDbContext d
         var products = await db.ProductVariants
             .AsNoTracking()
             .Include(p => p.Product)
-            .Where(p => p.Product!.CategoryId == query.CategoryId)
-            .Select(SimpleProductForSaleResponse.MapV)
+            .Where(p => p.DeletedAt == null
+                        && p.Enabled
+                        && p.Product!.Enabled
+                        && p.Product!.DeletedAt == null
+                        && p.Product!.StoreId == tenant.Id
+                        && p.Product!.CategoryId == query.CategoryId
+            )
+            .Select(SimpleProductForSaleResponse.Map)
             .ToListAsync(cancellationToken);
 
         var response = products

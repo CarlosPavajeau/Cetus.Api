@@ -27,11 +27,16 @@ internal sealed class SearchProductSuggestionsQueryHandler(IApplicationDbContext
         var products = await db.ProductVariants
             .AsNoTracking()
             .Include(p => p.Product)
-            .Where(p => p.DeletedAt == null && p.Enabled)
-            .Where(p => p.Product!.CategoryId == category && p.ProductId != request.ProductId)
+            .Where(p => p.DeletedAt == null
+                        && p.Enabled
+                        && p.Product!.Enabled
+                        && p.Product!.DeletedAt == null
+                        && p.Product!.CategoryId == category
+                        && p.ProductId != request.ProductId
+            )
             .OrderBy(_ => Guid.NewGuid())
             .Take(4)
-            .Select(SimpleProductForSaleResponse.MapV)
+            .Select(SimpleProductForSaleResponse.Map)
             .ToListAsync(cancellationToken);
 
         return products;

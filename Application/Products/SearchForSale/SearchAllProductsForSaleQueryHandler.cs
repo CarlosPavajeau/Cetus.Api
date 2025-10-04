@@ -14,9 +14,14 @@ internal sealed class SearchAllProductsForSaleQueryHandler(IApplicationDbContext
         var products = await context.ProductVariants
             .AsNoTracking()
             .Include(p => p.Product)
-            .Where(p => p.DeletedAt == null && p.Enabled && p.Product!.StoreId == tenant.Id)
+            .Where(p => p.DeletedAt == null
+                        && p.Enabled
+                        && p.Product!.Enabled
+                        && p.Product!.DeletedAt == null
+                        && p.Product!.StoreId == tenant.Id
+            )
             .OrderByDescending(p => p.CreatedAt)
-            .Select(SimpleProductForSaleResponse.MapV)
+            .Select(SimpleProductForSaleResponse.Map)
             .ToListAsync(cancellationToken);
 
         var response = products
