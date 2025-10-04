@@ -21,20 +21,6 @@ internal sealed class ProductConfiguration : IEntityTypeConfiguration<Product>
         builder.Property(p => p.Description)
             .HasMaxLength(512);
 
-        builder.Property(p => p.Price)
-            .IsRequired();
-
-        builder.Property(p => p.Stock)
-            .IsRequired();
-
-        builder.Property(p => p.ImageUrl)
-            .HasMaxLength(512);
-
-        builder.HasMany(p => p.Images)
-            .WithOne() // ProductImage has no Product navigation
-            .HasForeignKey(p => p.ProductId)
-            .OnDelete(DeleteBehavior.Cascade);
-
         builder.HasMany(p => p.Variants)
             .WithOne(v => v.Product)
             .HasForeignKey(p => p.ProductId)
