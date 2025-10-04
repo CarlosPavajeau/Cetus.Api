@@ -8,10 +8,12 @@ using Application.Products.Options.Create;
 using Application.Products.Options.CreateType;
 using Application.Products.TopSelling;
 using Application.Products.Update;
+using Application.Products.Variants;
 using Application.Products.Variants.Create;
 using Bogus;
 using Cetus.Api.Test.Shared;
 using Cetus.Api.Test.Shared.Fakers;
+using Cetus.Api.Test.Shared.Helpers;
 using Domain.Categories;
 using Domain.Products;
 using Microsoft.Extensions.DependencyInjection;
@@ -909,5 +911,22 @@ public class ProductsSpec(ApplicationTestCase factory) : ApplicationContextTestC
         // Assert
         response.EnsureSuccessStatusCode();
         response.StatusCode.ShouldBe(HttpStatusCode.OK);
+    }
+
+    [Fact(DisplayName = "Should return all product variants for a product")]
+    public async Task ShouldReturnAllProductVariantsForAProduct()
+    {
+        // Arrange
+        var product = await ProductHelper.CreateProductWithVariant(Client);
+        
+        // Act
+        var response = await Client.GetAsync($"api/products/{product.Id}/variants");
+        
+        // Assert
+        response.EnsureSuccessStatusCode();
+        
+        var variants = await response.DeserializeAsync<List<ProductVariantResponse>>();
+        
+        variants.ShouldNotBeEmpty();
     }
 }
