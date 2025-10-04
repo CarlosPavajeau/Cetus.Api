@@ -21,6 +21,6 @@ public sealed record PendingApprovalProductReviewResponse(
             productReview.Customer!.Name,
             new PendingApprovalProductReviewProduct(
                 productReview.Product!.Name,
-                productReview.Product!.ImageUrl),
+                string.Empty),
             productReview.CreatedAt);
 }

@@ -16,8 +16,6 @@ internal sealed class SearchPendingApprovalProductReviewsQueryHandler(
         CancellationToken cancellationToken)
     {
         var pendingReviews = await context.ProductReviews
-            .Include(pr => pr.Customer)
-            .Include(pr => pr.Product)
             .Where(r => r.Status == ProductReviewStatus.PendingApproval && r.Product!.StoreId == tenant.Id)
             .Select(PendingApprovalProductReviewResponse.Map)
             .ToListAsync(cancellationToken);
