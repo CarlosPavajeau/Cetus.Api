@@ -25,15 +25,15 @@ internal sealed class UpdateProductSalesCountDomainEventHandler(
             return;
         }
 
-        var productIds = order.Items.Select(i => i.ProductId).ToList();
-        var products = await context.Products
-            .Where(p => productIds.Contains(p.Id))
+        var variantIds = order.Items.Select(i => i.VariantId).ToList();
+        var variants = await context.ProductVariants
+            .Where(p => variantIds.Contains(p.Id))
             .ToListAsync(cancellationToken);
 
-        foreach (var product in products)
+        foreach (var variant in variants)
         {
-            var orderItem = order.Items.First(i => i.ProductId == product.Id);
-            product.SalesCount += orderItem.Quantity;
+            var orderItem = order.Items.First(i => i.VariantId == variant.Id);
+            variant.SalesCount += orderItem.Quantity;
         }
 
         await context.SaveChangesAsync(cancellationToken);
