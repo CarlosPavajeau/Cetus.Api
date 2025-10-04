@@ -18,7 +18,7 @@ public class ProductVariantOptionValueConfiguration : IEntityTypeConfiguration<P
             .OnDelete(DeleteBehavior.Cascade);
 
         builder.HasOne(p => p.ProductVariant)
-            .WithMany()
+            .WithMany(p => p.OptionValues)
             .HasForeignKey(p => p.VariantId)
             .OnDelete(DeleteBehavior.Cascade);
     }
