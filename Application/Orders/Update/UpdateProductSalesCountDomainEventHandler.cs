@@ -32,7 +32,15 @@ internal sealed class UpdateProductSalesCountDomainEventHandler(
 
         foreach (var variant in variants)
         {
-            var orderItem = order.Items.First(i => i.VariantId == variant.Id);
+            var orderItem = order.Items.FirstOrDefault(i => i.VariantId == variant.Id);
+
+            if (orderItem is null)
+            {
+                logger.LogWarning("Order item not found for variant {VariantId} in order {OrderId}", variant.Id,
+                    order.Id);
+                continue;
+            }
+
             variant.SalesCount += orderItem.Quantity;
         }
 
@@ -40,4 +48,4 @@ internal sealed class UpdateProductSalesCountDomainEventHandler(
 
         logger.LogInformation("Successfully updated sales count for products in order {OrderId}", domainEvent.Order.Id);
     }
-} 
+}
