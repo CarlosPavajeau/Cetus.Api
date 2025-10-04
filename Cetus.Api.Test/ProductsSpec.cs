@@ -6,7 +6,6 @@ using Application.Products.Create;
 using Application.Products.Options;
 using Application.Products.Options.Create;
 using Application.Products.Options.CreateType;
-using Application.Products.SearchAll;
 using Application.Products.TopSelling;
 using Application.Products.Update;
 using Application.Products.Variants.Create;
@@ -75,18 +74,68 @@ public class ProductsSpec(ApplicationTestCase factory) : ApplicationContextTestC
             Name = "Category Test 2",
             CreatedAt = DateTime.UtcNow
         };
+        
+        var tenant = Services.GetRequiredService<ITenantContext>();
+
+        // Create featured products directly in the database
+        var products = new List<Product>
+        {
+            new()
+            {
+                Id = Guid.NewGuid(),
+                Name = "Featured Product 1",
+                Description = "Description 1",
+                Price = 100,
+                Stock = 10,
+                Enabled = true,
+                CategoryId = category.Id,
+                StoreId = tenant.Id,
+                CreatedAt = DateTime.UtcNow,
+                UpdatedAt = DateTime.UtcNow,
+                Variants = new List<ProductVariant>
+                {
+                    new()
+                    {
+                        Sku = "featured-1",
+                        Price = 100,
+                        StockQuantity = 10,
+                        Enabled = true,
+                        Featured = true
+                    }
+                }
+            },
+            new()
+            {
+                Id = Guid.NewGuid(),
+                Name = "Featured Product 2",
+                Description = "Description 2",
+                Price = 200,
+                Stock = 20,
+                Enabled = true,
+                CategoryId = category.Id,
+                StoreId = tenant.Id,
+                CreatedAt = DateTime.UtcNow,
+                UpdatedAt = DateTime.UtcNow,
+                Variants = new List<ProductVariant>
+                {
+                    new()
+                    {
+                        Sku = "featured-2",
+                        Price = 100,
+                        StockQuantity = 10,
+                        Enabled = true,
+                        Featured = true
+                    }
+                }
+            }
+        };
 
         var db = Services.GetRequiredService<IApplicationDbContext>();
+        
         await db.Categories.AddAsync(category);
+        await db.Products.AddRangeAsync(products);
+        
         await db.SaveChangesAsync();
-
-        var newProduct = _productCommandFaker
-            .WithCategoryId(category.Id)
-            .Generate();
-
-        var createResponse = await Client.PostAsJsonAsync("api/products", newProduct);
-
-        createResponse.EnsureSuccessStatusCode();
 
         // Act
         var response = await Client.GetAsync("api/products/for-sale");
@@ -94,9 +143,9 @@ public class ProductsSpec(ApplicationTestCase factory) : ApplicationContextTestC
         // Assert
         response.EnsureSuccessStatusCode();
 
-        var products = await response.DeserializeAsync<IEnumerable<SimpleProductForSaleResponse>>();
+        var productsResponse = await response.DeserializeAsync<IEnumerable<SimpleProductForSaleResponse>>();
 
-        products.ShouldNotBeEmpty();
+        productsResponse.ShouldNotBeEmpty();
     }
 
     [Fact(DisplayName = "Should return a product by id")]
@@ -158,25 +207,69 @@ public class ProductsSpec(ApplicationTestCase factory) : ApplicationContextTestC
             CreatedAt = DateTime.UtcNow
         };
 
+        var tenant = Services.GetRequiredService<ITenantContext>();
+
+        // Create featured products directly in the database
+        var products = new List<Product>
+        {
+            new()
+            {
+                Id = Guid.NewGuid(),
+                Name = "Featured Product 1",
+                Description = "Description 1",
+                Price = 100,
+                Stock = 10,
+                Enabled = true,
+                CategoryId = category.Id,
+                StoreId = tenant.Id,
+                CreatedAt = DateTime.UtcNow,
+                UpdatedAt = DateTime.UtcNow,
+                Variants = new List<ProductVariant>
+                {
+                    new()
+                    {
+                        Sku = "featured-1",
+                        Price = 100,
+                        StockQuantity = 10,
+                        Enabled = true,
+                        Featured = true
+                    }
+                }
+            },
+            new()
+            {
+                Id = Guid.NewGuid(),
+                Name = "Featured Product 2",
+                Description = "Description 2",
+                Price = 200,
+                Stock = 20,
+                Enabled = true,
+                CategoryId = category.Id,
+                StoreId = tenant.Id,
+                CreatedAt = DateTime.UtcNow,
+                UpdatedAt = DateTime.UtcNow,
+                Variants = new List<ProductVariant>
+                {
+                    new()
+                    {
+                        Sku = "featured-2",
+                        Price = 100,
+                        StockQuantity = 10,
+                        Enabled = true,
+                        Featured = true
+                    }
+                }
+            }
+        };
+
         var db = Services.GetRequiredService<IApplicationDbContext>();
+        
         await db.Categories.AddAsync(category);
+        await db.Products.AddRangeAsync(products);
+        
         await db.SaveChangesAsync();
-
-        var newProduct = _productCommandFaker.WithCategoryId(category.Id).Generate();
-        var createResponse = await Client.PostAsJsonAsync("api/products", newProduct);
-
-        createResponse.EnsureSuccessStatusCode();
-
-        var product = await createResponse.DeserializeAsync<ProductResponse>();
-        product.ShouldNotBeNull();
-
-        newProduct = _productCommandFaker.WithCategoryId(category.Id).Generate();
-        createResponse = await Client.PostAsJsonAsync("api/products", newProduct);
-
-        createResponse.EnsureSuccessStatusCode();
-
-        product = await createResponse.DeserializeAsync<ProductResponse>();
-        product.ShouldNotBeNull();
+        
+        var product = products[0];
 
         // Act
         var response =
@@ -468,7 +561,18 @@ public class ProductsSpec(ApplicationTestCase factory) : ApplicationContextTestC
                 CategoryId = category.Id,
                 StoreId = tenant.Id,
                 CreatedAt = DateTime.UtcNow,
-                UpdatedAt = DateTime.UtcNow
+                UpdatedAt = DateTime.UtcNow,
+                Variants = new List<ProductVariant>
+                {
+                    new()
+                    {
+                        Sku = "featured-1",
+                        Price = 100,
+                        StockQuantity = 10,
+                        Enabled = true,
+                        Featured = true
+                    }
+                }
             },
             new()
             {
@@ -481,7 +585,18 @@ public class ProductsSpec(ApplicationTestCase factory) : ApplicationContextTestC
                 CategoryId = category.Id,
                 StoreId = tenant.Id,
                 CreatedAt = DateTime.UtcNow,
-                UpdatedAt = DateTime.UtcNow
+                UpdatedAt = DateTime.UtcNow,
+                Variants = new List<ProductVariant>
+                {
+                    new()
+                    {
+                        Sku = "featured-2",
+                        Price = 100,
+                        StockQuantity = 10,
+                        Enabled = true,
+                        Featured = true
+                    }
+                }
             }
         };
 
@@ -578,15 +693,40 @@ public class ProductsSpec(ApplicationTestCase factory) : ApplicationContextTestC
             Name = "Category Test By Category",
             CreatedAt = DateTime.UtcNow
         };
+        
+        var tenant = Services.GetRequiredService<ITenantContext>();
+        
+        var newProduct = new Product
+        {
+            Id = Guid.NewGuid(),
+            Name = "Featured Product 1",
+            Description = "Description 1",
+            Price = 100,
+            Stock = 10,
+            Enabled = true,
+            CategoryId = category.Id,
+            StoreId = tenant.Id,
+            CreatedAt = DateTime.UtcNow,
+            UpdatedAt = DateTime.UtcNow,
+            Variants = new List<ProductVariant>
+            {
+                new()
+                {
+                    Sku = "featured-1",
+                    Price = 100,
+                    StockQuantity = 10,
+                    Enabled = true,
+                    Featured = true
+                }
+            }
+        };
 
         var db = Services.GetRequiredService<IApplicationDbContext>();
+        
         await db.Categories.AddAsync(category);
+        await db.Products.AddAsync(newProduct);
+        
         await db.SaveChangesAsync();
-
-        var newProduct = _productCommandFaker.WithCategoryId(category.Id).Generate();
-        var createResponse = await Client.PostAsJsonAsync("api/products", newProduct);
-
-        createResponse.EnsureSuccessStatusCode();
 
         // Act
         var response = await Client.GetAsync($"api/products/category/{category.Id}");
