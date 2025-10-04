@@ -11,11 +11,14 @@ internal sealed class GetTopSellingProductsQueryHandler(IApplicationDbContext co
     public async Task<Result<IEnumerable<TopSellingProductResponse>>> Handle(GetTopSellingProductsQuery request,
         CancellationToken cancellationToken)
     {
-        var products = await context.Products
+        var products = await context.ProductVariants
             .AsNoTracking()
-            .Include(x => x.Category)
-            .Where(p => p.DeletedAt == null && p.Enabled && p.SalesCount > 0 && p.StoreId == tenant.Id)
-            .OrderByDescending(p => p.SalesCount)
+            .Where(p => p.DeletedAt == null
+                        && p.Product!.DeletedAt == null
+                        && p.SalesCount > 0
+                        && p.Product!.StoreId == tenant.Id
+            )
+            .OrderByDescending(v => v.SalesCount)
             .Take(5)
             .Select(TopSellingProductResponse.Map)
             .ToListAsync(cancellationToken);
