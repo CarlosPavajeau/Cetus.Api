@@ -18,16 +18,20 @@ public sealed record ProductVariantResponse(
             variant.Sku,
             variant.Price,
             variant.StockQuantity,
-            variant.Images.Select(image =>
-                new ProductImageResponse(image.Id, image.ImageUrl, image.AltText, image.SortOrder)
-            ).ToList(),
-            variant.OptionValues.Select(option =>
-                new VariantOptionValueResponse(
-                    option.OptionValueId,
-                    option.ProductOptionValue!.Value,
-                    option.ProductOptionValue!.OptionTypeId,
-                    option.ProductOptionValue!.ProductOptionType.Name
-                )
-            ).ToList()
+            variant.Images
+                .OrderBy(v => v.SortOrder)
+                .Select(image =>
+                    new ProductImageResponse(image.Id, image.ImageUrl, image.AltText, image.SortOrder)
+                ).ToList(),
+            variant.OptionValues
+                .Where(op => op.ProductOptionValue!.DeletedAt == null)
+                .Select(option =>
+                    new VariantOptionValueResponse(
+                        option.OptionValueId,
+                        option.ProductOptionValue!.Value,
+                        option.ProductOptionValue!.OptionTypeId,
+                        option.ProductOptionValue!.ProductOptionType.Name
+                    )
+                ).ToList()
         );
 }

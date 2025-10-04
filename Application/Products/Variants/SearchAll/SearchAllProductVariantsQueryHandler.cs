@@ -26,6 +26,7 @@ internal sealed class SearchAllProductVariantsQueryHandler(IApplicationDbContext
         var variants = await db.ProductVariants
             .AsNoTracking()
             .Where(v => v.DeletedAt == null && v.ProductId == query.ProductId)
+            .OrderBy(v => v.Price)
             .Select(ProductVariantResponse.Map)
             .ToListAsync(cancellationToken);
 
