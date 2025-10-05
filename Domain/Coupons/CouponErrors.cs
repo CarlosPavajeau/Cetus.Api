@@ -13,9 +13,9 @@ public static class CouponErrors
         );
     }
 
-    public static Error NotFound => new(
+    public static Error NotFound(string code) => new(
         "Coupon.NotFound",
-        "Coupon not found.",
+        $"Coupon with code '{code}' was not found.",
         ErrorType.NotFound
     );
 
