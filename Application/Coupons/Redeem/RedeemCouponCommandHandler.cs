@@ -10,6 +10,7 @@ namespace Application.Coupons.Redeem;
 
 internal sealed class RedeemCouponCommandHandler(
     IApplicationDbContext context,
+    ITenantContext tenant,
     IDateTimeProvider dateTimeProvider,
     ILogger<RedeemCouponCommandHandler> logger)
     : ICommandHandler<RedeemCouponCommand>
@@ -20,12 +21,12 @@ internal sealed class RedeemCouponCommandHandler(
 
         var coupon = await context.Coupons
             .Include(c => c.Rules)
-            .FirstOrDefaultAsync(c => c.Code == command.CouponCode, cancellationToken);
+            .FirstOrDefaultAsync(c => c.Code == command.CouponCode && c.StoreId == tenant.Id, cancellationToken);
 
         if (coupon == null)
         {
             logger.LogWarning("Coupon not found. CouponCode: {CouponCode}", command.CouponCode);
-            return Result.Failure(CouponErrors.NotFound);
+            return Result.Failure(CouponErrors.NotFound(command.CouponCode));
         }
 
         var currentDate = dateTimeProvider.UtcNow;
