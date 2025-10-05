@@ -20,7 +20,7 @@ public sealed record PendingApprovalProductReviewResponse(
             productReview.Rating,
             productReview.Customer!.Name,
             new PendingApprovalProductReviewProduct(
-                productReview.Product!.Name,
-                string.Empty),
+                productReview.ReviewRequest!.OrderItem!.ProductName,
+                productReview.ReviewRequest!.OrderItem!.ImageUrl),
             productReview.CreatedAt);
 }
