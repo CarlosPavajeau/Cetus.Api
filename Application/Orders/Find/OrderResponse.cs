@@ -19,6 +19,7 @@ public sealed record OrderResponse(
     IEnumerable<OrderItem> Items,
     OrderCustomer Customer,
     string? TransactionId,
+    Guid StoreId,
     DateTime CreatedAt)
 
 {
@@ -49,6 +50,7 @@ public sealed record OrderResponse(
                 orderItems,
                 orderCustomer,
                 order.TransactionId,
+                order.StoreId,
                 order.CreatedAt);
         }
 
@@ -69,6 +71,7 @@ public sealed record OrderResponse(
             orderItems,
             orderCustomer,
             order.TransactionId,
+            order.StoreId,
             order.CreatedAt);
     }
 }
