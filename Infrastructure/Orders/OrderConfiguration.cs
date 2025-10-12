@@ -25,5 +25,9 @@ internal sealed class OrderConfiguration : IEntityTypeConfiguration<Order>
 
         builder.Property(o => o.TransactionId)
             .HasMaxLength(256);
+
+        builder.HasMany(o => o.Items)
+            .WithOne(i => i.Order)
+            .HasForeignKey(i => i.OrderId);
     }
 }

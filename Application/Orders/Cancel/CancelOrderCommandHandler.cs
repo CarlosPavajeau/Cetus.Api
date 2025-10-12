@@ -70,6 +70,8 @@ internal sealed class CancelOrderCommandHandler(
         order.Status = OrderStatus.Canceled;
         order.CancellationReason = command.Reason;
         order.CancelledAt = dateTimeProvider.UtcNow;
+        
+        order.Raise(new CanceledOrderDomainEvent(order.Id));
 
         await db.SaveChangesAsync(cancellationToken);
 
