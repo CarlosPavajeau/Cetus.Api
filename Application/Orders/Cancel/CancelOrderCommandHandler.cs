@@ -37,23 +37,23 @@ internal sealed class CancelOrderCommandHandler(
             return Result.Failure<OrderResponse>(OrderErrors.AlreadyCanceled(command.Id));
         }
 
-        var store = await db.Stores
-            .AsNoTracking()
-            .Where(s => s.Id == order.StoreId)
-            .FirstOrDefaultAsync(cancellationToken);
-
-        if (store is null)
-        {
-            return Result.Failure<OrderResponse>(StoreErrors.NotFoundById(order.StoreId.ToString()));
-        }
-
-        if (!store.IsConnectedToMercadoPago)
-        {
-            return Result.Failure<OrderResponse>(StoreErrors.NotConnectedToMercadoPago(store.Slug));
-        }
-
         if (!string.IsNullOrEmpty(order.TransactionId))
         {
+            var store = await db.Stores
+                .AsNoTracking()
+                .Where(s => s.Id == order.StoreId)
+                .FirstOrDefaultAsync(cancellationToken);
+
+            if (store is null)
+            {
+                return Result.Failure<OrderResponse>(StoreErrors.NotFoundById(order.StoreId.ToString()));
+            }
+
+            if (!store.IsConnectedToMercadoPago)
+            {
+                return Result.Failure<OrderResponse>(StoreErrors.NotConnectedToMercadoPago(store.Slug));
+            }
+            
             var paymentResult = await CancelPayment(order, store.MercadoPagoAccessToken!, cancellationToken);
 
             if (paymentResult.IsFailure)
