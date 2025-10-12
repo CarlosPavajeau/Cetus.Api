@@ -3,6 +3,7 @@ using Application.Abstractions.MercadoPago;
 using Application.Abstractions.Messaging;
 using Application.Orders.SearchAll;
 using Domain.Orders;
+using Domain.Stores;
 using Microsoft.EntityFrameworkCore;
 using SharedKernel;
 
@@ -33,9 +34,24 @@ internal sealed class CancelOrderCommandHandler(IApplicationDbContext db, IMerca
             return Result.Failure<OrderResponse>(OrderErrors.AlreadyCanceled(command.Id));
         }
 
+        var store = await db.Stores
+            .AsNoTracking()
+            .Where(s => s.Id == order.StoreId)
+            .FirstOrDefaultAsync(cancellationToken);
+
+        if (store is null)
+        {
+            return Result.Failure<OrderResponse>(StoreErrors.NotFoundById(order.StoreId.ToString()));
+        }
+
+        if (!store.IsConnectedToMercadoPago)
+        {
+            return Result.Failure<OrderResponse>(StoreErrors.NotConnectedToMercadoPago(store.Slug));
+        }
+
         if (!string.IsNullOrEmpty(order.TransactionId))
         {
-            var paymentResult = await CancelPayment(order, cancellationToken);
+            var paymentResult = await CancelPayment(order, store.MercadoPagoAccessToken!, cancellationToken);
 
             if (paymentResult.IsFailure)
             {
@@ -55,7 +71,7 @@ internal sealed class CancelOrderCommandHandler(IApplicationDbContext db, IMerca
         return OrderResponse.FromOrder(order);
     }
 
-    private async Task<Result<long>> CancelPayment(Order order, CancellationToken cancellationToken)
+    private async Task<Result<long>> CancelPayment(Order order, string accessToken, CancellationToken cancellationToken)
     {
         if (!long.TryParse(order.TransactionId!, out var paymentId))
         {
@@ -72,27 +88,29 @@ internal sealed class CancelOrderCommandHandler(IApplicationDbContext db, IMerca
         return payment.Status switch
         {
             PaymentStatusInProcess or PaymentStatusPending or PaymentStatusAuthorized
-                => await HandleCancelablePayment(paymentId, cancellationToken),
+                => await HandleCancelablePayment(paymentId, accessToken, cancellationToken),
             PaymentStatusApproved
-                => await HandleApprovedPayment(paymentId, cancellationToken),
+                => await HandleApprovedPayment(paymentId, accessToken, cancellationToken),
             PaymentStatusCanceled or PaymentStatusRefunded
                 => Result.Success(0L),
             _ => Result.Failure<long>(OrderErrors.PaymentCancellationFailed(paymentId))
         };
     }
 
-    private async Task<Result<long>> HandleCancelablePayment(long paymentId, CancellationToken cancellationToken)
+    private async Task<Result<long>> HandleCancelablePayment(long paymentId, string accessToken,
+        CancellationToken cancellationToken)
     {
-        var result = await mercadoPagoClient.CancelPayment(paymentId, string.Empty, cancellationToken);
+        var result = await mercadoPagoClient.CancelPayment(paymentId, accessToken, cancellationToken);
 
         return result is null
             ? Result.Failure<long>(OrderErrors.PaymentNotFound(paymentId))
             : Result.Success(0L);
     }
 
-    private async Task<Result<long>> HandleApprovedPayment(long paymentId, CancellationToken cancellationToken)
+    private async Task<Result<long>> HandleApprovedPayment(long paymentId, string accessToken,
+        CancellationToken cancellationToken)
     {
-        var result = await mercadoPagoClient.RefundPayment(paymentId, string.Empty, cancellationToken);
+        var result = await mercadoPagoClient.RefundPayment(paymentId, accessToken, cancellationToken);
 
         return result is null
             ? Result.Failure<long>(OrderErrors.PaymentCancellationFailed(paymentId))
