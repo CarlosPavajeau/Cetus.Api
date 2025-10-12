@@ -37,7 +37,7 @@ jobs:
         run: dotnet build "Cetus.Api/Cetus.Api.csproj" --configuration Release
 
       - name: Test
-        run: dotnet test "Cetus.Api.Test/Cetus.Api.Test.csproj" --configuration Release --no-build --verbosity normal
+        run: dotnet test --configuration Release --no-build --verbosity normal
 
       - name: Publish
         run: dotnet publish "Cetus.Api/Cetus.Api.csproj" -c Release -o ${{env.DOTNET_ROOT}}/cetus
