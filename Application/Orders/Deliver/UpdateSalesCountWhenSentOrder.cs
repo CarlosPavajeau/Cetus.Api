@@ -4,18 +4,17 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using SharedKernel;
 
-namespace Application.Orders.Update;
+namespace Application.Orders.Deliver;
 
-internal sealed class UpdateProductSalesCountDomainEventHandler(
-    IApplicationDbContext context,
-    ILogger<UpdateProductSalesCountDomainEventHandler> logger)
-    : IDomainEventHandler<SentOrderDomainEvent>
+internal sealed class UpdateSalesCountWhenSentOrder(
+    IApplicationDbContext db,
+    ILogger<UpdateSalesCountWhenSentOrder> logger) : IDomainEventHandler<SentOrderDomainEvent>
 {
     public async Task Handle(SentOrderDomainEvent domainEvent, CancellationToken cancellationToken)
     {
         logger.LogInformation("Updating sales count for products in order {OrderId}", domainEvent.Order.Id);
 
-        var order = await context.Orders
+        var order = await db.Orders
             .Include(o => o.Items)
             .FirstOrDefaultAsync(o => o.Id == domainEvent.Order.Id, cancellationToken);
 
@@ -26,7 +25,7 @@ internal sealed class UpdateProductSalesCountDomainEventHandler(
         }
 
         var variantIds = order.Items.Select(i => i.VariantId).ToList();
-        var variants = await context.ProductVariants
+        var variants = await db.ProductVariants
             .Where(p => variantIds.Contains(p.Id))
             .ToListAsync(cancellationToken);
 
@@ -44,7 +43,7 @@ internal sealed class UpdateProductSalesCountDomainEventHandler(
             variant.SalesCount += orderItem.Quantity;
         }
 
-        await context.SaveChangesAsync(cancellationToken);
+        await db.SaveChangesAsync(cancellationToken);
 
         logger.LogInformation("Successfully updated sales count for products in order {OrderId}", domainEvent.Order.Id);
     }

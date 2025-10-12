@@ -4,12 +4,12 @@ using Microsoft.Extensions.Logging;
 using Resend;
 using SharedKernel;
 
-namespace Application.Orders.Update;
+namespace Application.Orders.Deliver;
 
-internal sealed class SentOrderDomainEventHandler(
+internal sealed class SendNotificationEmailWhenSentOrder(
     IResend resend,
     IConfiguration configuration,
-    ILogger<SentOrderDomainEventHandler> logger
+    ILogger<SendNotificationEmailWhenSentOrder> logger
 ) : IDomainEventHandler<SentOrderDomainEvent>
 {
     private const string EmailSubject = "Tu pedido ha sido enviado!";

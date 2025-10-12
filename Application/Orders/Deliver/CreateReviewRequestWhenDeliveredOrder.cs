@@ -4,12 +4,11 @@ using Domain.Reviews;
 using Microsoft.Extensions.Logging;
 using SharedKernel;
 
-namespace Application.Orders.Update;
+namespace Application.Orders.Deliver;
 
-internal sealed class CreateReviewRequestDomainEventHandler(
-    IApplicationDbContext context,
-    ILogger<CreateReviewRequestDomainEventHandler> logger)
-    : IDomainEventHandler<DeliveredOrderDomainEvent>
+internal sealed class CreateReviewRequestWhenDeliveredOrder(
+    IApplicationDbContext db,
+    ILogger<CreateReviewRequestWhenDeliveredOrder> logger) : IDomainEventHandler<DeliveredOrderDomainEvent>
 {
     public async Task Handle(DeliveredOrderDomainEvent domainEvent, CancellationToken cancellationToken)
     {
@@ -29,10 +28,10 @@ internal sealed class CreateReviewRequestDomainEventHandler(
                 UpdatedAt = DateTime.UtcNow
             };
 
-            await context.ReviewRequests.AddAsync(reviewRequest, cancellationToken);
+            await db.ReviewRequests.AddAsync(reviewRequest, cancellationToken);
         }
 
-        await context.SaveChangesAsync(cancellationToken);
+        await db.SaveChangesAsync(cancellationToken);
 
         logger.LogInformation("Review requests created for order {OrderNumber}", domainEvent.Order.OrderNumber);
     }
