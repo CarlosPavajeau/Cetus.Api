@@ -26,6 +26,9 @@ public sealed class Order : Entity
     public string? TransactionId { get; set; }
     public string? RefundId { get; set; }
 
+    public string? CancellationReason { get; set; }
+    public DateTime? CancelledAt { get; set; }
+
     public Guid StoreId { get; set; }
 
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
