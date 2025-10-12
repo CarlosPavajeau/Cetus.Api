@@ -37,9 +37,9 @@ internal sealed class RestoreVariantStockOnCanceledOrder(
         {
             if (quantityByVariantId.TryGetValue(variant.Id, out var quantity))
             {
-                variant.StockQuantity += quantity;
+                variant.Stock += quantity;
                 logger.LogInformation("Restored {Quantity} units to variant {VariantId}. New stock: {NewStock}",
-                    quantity, variant.Id, variant.StockQuantity);
+                    quantity, variant.Id, variant.Stock);
             }
         }
 

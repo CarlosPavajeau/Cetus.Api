@@ -20,7 +20,7 @@ public sealed record ProductVariantResponse(
             variant.Id,
             variant.Sku,
             variant.Price,
-            variant.StockQuantity,
+            variant.Stock,
             variant.Enabled,
             variant.Featured,
             variant.SalesCount,

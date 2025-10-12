@@ -7,7 +7,7 @@ public sealed record CreateProductVariantCommand(
     Guid ProductId,
     string Sku,
     decimal Price,
-    int StockQuantity,
+    int Stock,
     IReadOnlyList<long> OptionValueIds,
     IReadOnlyList<CreateProductImage> Images
 ) : ICommand<SimpleProductVariantResponse>;

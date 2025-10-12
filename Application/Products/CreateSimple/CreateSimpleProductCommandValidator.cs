@@ -26,7 +26,7 @@ public sealed class CreateSimpleProductCommandValidator : AbstractValidator<Crea
             .GreaterThan(0)
             .WithMessage("El precio debe ser mayor que 0");
 
-        RuleFor(p => p.StockQuantity)
+        RuleFor(p => p.Stock)
             .GreaterThanOrEqualTo(0)
             .WithMessage("La cantidad de stock debe ser mayor o igual a 0");
 

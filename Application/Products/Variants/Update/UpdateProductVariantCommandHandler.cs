@@ -22,7 +22,7 @@ internal sealed class UpdateProductVariantCommandHandler(IApplicationDbContext d
         }
 
         productVariant.Price = command.Price;
-        productVariant.StockQuantity = command.Stock;
+        productVariant.Stock = command.Stock;
 
         await db.SaveChangesAsync(cancellationToken);
 

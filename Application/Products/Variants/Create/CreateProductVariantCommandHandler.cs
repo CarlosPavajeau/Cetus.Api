@@ -116,7 +116,7 @@ internal sealed class CreateProductVariantCommandHandler(
             {
                 Sku = normalizedSku,
                 Price = command.Price,
-                StockQuantity = command.StockQuantity,
+                Stock = command.Stock,
                 ProductId = command.ProductId,
                 Enabled = true,
                 CreatedAt = utcNow,
@@ -153,7 +153,7 @@ internal sealed class CreateProductVariantCommandHandler(
             var response = new SimpleProductVariantResponse(
                 variant.Id,
                 variant.Sku,
-                variant.StockQuantity,
+                variant.Stock,
                 variant.Price,
                 variant.ProductId
             );

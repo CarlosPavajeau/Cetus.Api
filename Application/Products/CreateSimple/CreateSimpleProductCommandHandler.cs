@@ -45,7 +45,7 @@ internal sealed class CreateSimpleProductCommandHandler(IApplicationDbContext db
         {
             Sku = normalizedSku,
             Price = command.Price,
-            StockQuantity = command.StockQuantity,
+            Stock = command.Stock,
             ProductId = productId,
             Enabled = true
         };

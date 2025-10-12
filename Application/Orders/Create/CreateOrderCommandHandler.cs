@@ -120,8 +120,8 @@ internal sealed class CreateOrderCommandHandler(
         }
 
         var outOfStockProducts = products
-            .Where(p => p.StockQuantity < quantitiesByVariant[p.Id])
-            .Select(p => new {p.Id, p.StockQuantity, Requested = quantitiesByVariant[p.Id]})
+            .Where(p => p.Stock < quantitiesByVariant[p.Id])
+            .Select(p => new {p.Id, p.Stock, Requested = quantitiesByVariant[p.Id]})
             .ToList();
 
         if (outOfStockProducts.Count == 0)
@@ -130,7 +130,7 @@ internal sealed class CreateOrderCommandHandler(
         }
 
         var outOfStockProductsDetails = outOfStockProducts
-            .Select(p => $"{p.Id} (stock: {p.StockQuantity})")
+            .Select(p => $"{p.Id} (stock: {p.Stock})")
             .ToList();
 
         var requestedProducts = outOfStockProducts
@@ -202,7 +202,7 @@ internal sealed class CreateOrderCommandHandler(
         {
             if (quantitiesByVariant.TryGetValue(product.Id, out var qty))
             {
-                product.StockQuantity -= qty;
+                product.Stock -= qty;
             }
         }
     }

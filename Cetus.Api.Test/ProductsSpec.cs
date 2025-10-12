@@ -99,7 +99,7 @@ public class ProductsSpec(ApplicationTestCase factory) : ApplicationContextTestC
                     {
                         Sku = "featured-1",
                         Price = 100,
-                        StockQuantity = 10,
+                        Stock = 10,
                         Enabled = true,
                         Featured = true
                     }
@@ -121,7 +121,7 @@ public class ProductsSpec(ApplicationTestCase factory) : ApplicationContextTestC
                     {
                         Sku = "featured-2",
                         Price = 100,
-                        StockQuantity = 10,
+                        Stock = 10,
                         Enabled = true,
                         Featured = true
                     }
@@ -227,7 +227,7 @@ public class ProductsSpec(ApplicationTestCase factory) : ApplicationContextTestC
                     {
                         Sku = "featured-1",
                         Price = 100,
-                        StockQuantity = 10,
+                        Stock = 10,
                         Enabled = true,
                         Featured = true
                     }
@@ -249,7 +249,7 @@ public class ProductsSpec(ApplicationTestCase factory) : ApplicationContextTestC
                     {
                         Sku = "featured-2",
                         Price = 100,
-                        StockQuantity = 10,
+                        Stock = 10,
                         Enabled = true,
                         Featured = true
                     }
@@ -427,7 +427,7 @@ public class ProductsSpec(ApplicationTestCase factory) : ApplicationContextTestC
                     {
                         Sku = "featured-1",
                         Price = 100,
-                        StockQuantity = 10,
+                        Stock = 10,
                         Enabled = true,
                         Featured = true,
                         SalesCount = 10
@@ -450,7 +450,7 @@ public class ProductsSpec(ApplicationTestCase factory) : ApplicationContextTestC
                     {
                         Sku = "featured-2",
                         Price = 100,
-                        StockQuantity = 10,
+                        Stock = 10,
                         Enabled = true,
                         Featured = true,
                         SalesCount = 50
@@ -562,7 +562,7 @@ public class ProductsSpec(ApplicationTestCase factory) : ApplicationContextTestC
                     {
                         Sku = "featured-1",
                         Price = 100,
-                        StockQuantity = 10,
+                        Stock = 10,
                         Enabled = true,
                         Featured = true
                     }
@@ -584,7 +584,7 @@ public class ProductsSpec(ApplicationTestCase factory) : ApplicationContextTestC
                     {
                         Sku = "featured-2",
                         Price = 100,
-                        StockQuantity = 10,
+                        Stock = 10,
                         Enabled = true,
                         Featured = true
                     }
@@ -700,7 +700,7 @@ public class ProductsSpec(ApplicationTestCase factory) : ApplicationContextTestC
                 {
                     Sku = "featured-1",
                     Price = 100,
-                    StockQuantity = 10,
+                    Stock = 10,
                     Enabled = true,
                     Featured = true
                 }
