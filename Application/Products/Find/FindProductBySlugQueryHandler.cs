@@ -111,7 +111,7 @@ internal sealed class FindProductBySlugQueryHandler(IApplicationDbContext contex
             ))
             .ToListAsync(cancellationToken);
 
-        var finalVariants = variants.Select(v => new ProductVariantResponse(
+        var finalVariants = variants.Select(v => new ForSaleProductVariantResponse(
             v.Id,
             v.Sku,
             v.Price,

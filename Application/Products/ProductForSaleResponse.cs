@@ -17,7 +17,7 @@ public sealed record ProductForSaleResponse(
     string CategorySlug,
     bool Enabled,
     Guid StoreId,
-    IEnumerable<ProductVariantResponse> Variants,
+    IEnumerable<ForSaleProductVariantResponse> Variants,
     IEnumerable<ProductOptionTypeResponse> AvailableOptions)
 {
     public static Expression<Func<Product, ProductForSaleResponse>> Map => product =>
@@ -34,7 +34,7 @@ public sealed record ProductForSaleResponse(
             product.Enabled,
             product.StoreId,
             // Variants - will be populated by the updated handler query
-            Enumerable.Empty<ProductVariantResponse>(),
+            Enumerable.Empty<ForSaleProductVariantResponse>(),
             // Available options - will be populated by the updated handler query  
             Enumerable.Empty<ProductOptionTypeResponse>()
         );
