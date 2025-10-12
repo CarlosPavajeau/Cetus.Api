@@ -42,7 +42,7 @@ internal sealed class CancelOrderCommandHandler(IApplicationDbContext db, IMerca
 
             if (paymentResult.Value > 0)
             {
-                order.RefundId = paymentResult.Value.ToString("D");
+                order.RefundId = paymentResult.Value.ToString();
             }
         }
 
