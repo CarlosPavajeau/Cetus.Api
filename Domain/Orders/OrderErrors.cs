@@ -51,4 +51,25 @@ public static class OrderErrors
 
     public static Error InvalidItemQuantities() =>
         Error.Problem("Orders.InvalidItemQuantities", "All item quantities must be positive.");
+
+    public static Error AlreadyCanceled(Guid id) =>
+        Error.Conflict("Orders.AlreadyCanceled", $"Order with ID {id} is already canceled.");
+
+    public static Error InvalidTransactionId(Guid orderId) =>
+        Error.Problem(
+            "Orders.InvalidTransactionId",
+            $"The transaction ID for order {orderId} is invalid."
+        );
+
+    public static Error PaymentNotFound(long paymentId) =>
+        Error.NotFound(
+            "Orders.PaymentNotFound",
+            $"Payment with ID {paymentId} was not found."
+        );
+
+    public static Error PaymentCancellationFailed(long paymentId) =>
+        Error.Problem(
+            "Orders.PaymentCancellationFailed",
+            $"Failed to cancel payment with ID {paymentId}."
+        );
 }

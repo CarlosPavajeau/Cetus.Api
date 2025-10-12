@@ -24,6 +24,10 @@ public sealed class Order : Entity
     public Customer? Customer { get; set; }
 
     public string? TransactionId { get; set; }
+    public string? RefundId { get; set; }
+
+    public string? CancellationReason { get; set; }
+    public DateTime? CancelledAt { get; set; }
 
     public Guid StoreId { get; set; }
 

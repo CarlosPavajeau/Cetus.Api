@@ -1,9 +1,9 @@
 using Application.Abstractions.Messaging;
+using Application.Orders.Cancel;
 using Application.Orders.SearchAll;
-using Application.Orders.Update;
 using Cetus.Api.Extensions;
 using Cetus.Api.Infrastructure;
-using Domain.Orders;
+using Microsoft.AspNetCore.Mvc;
 
 namespace Cetus.Api.Endpoints.Orders;
 
@@ -13,10 +13,15 @@ internal sealed class Cancel : IEndpoint
     {
         app.MapPost("orders/{id:guid}/cancel", async (
             Guid id,
-            ICommandHandler<UpdateOrderCommand, OrderResponse> handler,
+            [FromBody] CancelOrderCommand command,
+            ICommandHandler<CancelOrderCommand, OrderResponse> handler,
             CancellationToken cancellationToken) =>
         {
-            var command = new UpdateOrderCommand(id, OrderStatus.Canceled);
+            if (id != command.Id)
+            {
+                return Results.BadRequest("Mismatched order ID in URL and body.");
+            }
+            
             var result = await handler.Handle(command, cancellationToken);
 
             return result.Match(Results.Ok, CustomResults.Problem);

@@ -3,6 +3,7 @@ using System.Net;
 using System.Net.Http.Json;
 using Application.Abstractions.Data;
 using Application.Orders.CalculateInsights;
+using Application.Orders.Cancel;
 using Application.Orders.Create;
 using Application.Orders.DeliveryFees.Create;
 using Application.Orders.DeliveryFees.Find;
@@ -204,7 +205,8 @@ public class OrdersSpec(ApplicationTestCase factory) : ApplicationContextTestCas
         orderId.ShouldNotBeNull();
 
         // Act
-        var cancelOrderResponse = await Client.PostAsync($"api/orders/{orderId.Id}/cancel", null);
+        var cancelOrderCommand = new CancelOrderCommand(orderId.Id, "Customer requested cancellation");
+        var cancelOrderResponse = await Client.PostAsJsonAsync($"api/orders/{orderId.Id}/cancel", cancelOrderCommand);
 
         // Assert
         cancelOrderResponse.EnsureSuccessStatusCode();
@@ -218,6 +220,41 @@ public class OrdersSpec(ApplicationTestCase factory) : ApplicationContextTestCas
         orderResponse.ShouldNotBeNull();
         orderResponse.Id.ShouldBe(orderId.Id);
         orderResponse.Status.ShouldBe(OrderStatus.Canceled);
+    }
+
+    [Fact(DisplayName = "Should not cancel an already canceled order")]
+    public async Task ShouldNotCancelAnAlreadyCanceledOrder()
+    {
+        // Arrange
+        var product = await ProductHelper.CreateProductWithVariant(Client);
+
+        var newCustomer = _orderCustomerFaker.Generate();
+        var newOrderItems = new List<CreateOrderItem>
+        {
+            new(product.Name, product.ImageUrl, 1, product.Price, product.VariantId)
+        };
+
+        var newOrder =
+            new CreateOrderCommand(_faker.Address.FullAddress(), cityId, product.Price, newOrderItems, newCustomer);
+
+        var response = await Client.PostAsJsonAsync("api/orders", newOrder);
+
+        response.EnsureSuccessStatusCode();
+
+        var orderId = await response.DeserializeAsync<OrderResponse>();
+        orderId.ShouldNotBeNull();
+
+        var cancelOrderCommand = new CancelOrderCommand(orderId.Id, "Customer requested cancellation");
+        var cancelOrderResponse = await Client.PostAsJsonAsync($"api/orders/{orderId.Id}/cancel", cancelOrderCommand);
+
+        cancelOrderResponse.EnsureSuccessStatusCode();
+
+        // Act
+        var secondCancelOrderCommand = new CancelOrderCommand(orderId.Id, "Customer requested cancellation again");
+        var secondCancelOrderResponse = await Client.PostAsJsonAsync($"api/orders/{orderId.Id}/cancel", secondCancelOrderCommand);
+
+        // Assert
+        secondCancelOrderResponse.StatusCode.ShouldBe(HttpStatusCode.Conflict);
     }
 
     [Fact(DisplayName = "Should get orders insights")]
