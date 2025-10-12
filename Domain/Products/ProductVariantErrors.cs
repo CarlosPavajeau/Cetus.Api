@@ -38,4 +38,9 @@ public static class ProductVariantErrors
         "Product.Variant.MultipleValuesPerOptionType",
         "Only one option value per option type is allowed."
     );
+
+    public static Error NotFound(long id) => Error.NotFound(
+        "Product.Variant.NotFound",
+        $"No product variant found with ID '{id}'."
+    );
 }

@@ -10,6 +10,7 @@ using Application.Products.TopSelling;
 using Application.Products.Update;
 using Application.Products.Variants;
 using Application.Products.Variants.Create;
+using Application.Products.Variants.Update;
 using Bogus;
 using Cetus.Api.Test.Shared;
 using Cetus.Api.Test.Shared.Fakers;
@@ -911,5 +912,38 @@ public class ProductsSpec(ApplicationTestCase factory) : ApplicationContextTestC
         var variants = await response.DeserializeAsync<List<ProductVariantResponse>>();
         
         variants.ShouldNotBeEmpty();
+    }
+
+    [Fact(DisplayName = "Should update a product variant")]
+    public async Task ShouldUpdateAProductVariant()
+    {
+        // Arrange
+        var product = await ProductHelper.CreateProductWithVariant(Client);
+        
+        var getVariantsResponse = await Client.GetAsync($"api/products/{product.Id}/variants");
+        getVariantsResponse.EnsureSuccessStatusCode();
+        
+        var variants = await getVariantsResponse.DeserializeAsync<List<ProductVariantResponse>>();
+        variants.ShouldNotBeEmpty();
+        
+        var variant = variants[0];
+        
+        var command = new UpdateProductVariantCommand(
+            variant.Id,
+            variant.Stock + 5,
+            variant.Price + 10.00m
+        );
+        
+        // Act
+        var response = await Client.PutAsJsonAsync($"api/products/variants/{variant.Id}", command);
+        
+        // Assert
+        response.EnsureSuccessStatusCode();
+        
+        var updatedVariant = await response.DeserializeAsync<SimpleProductVariantResponse>();
+        
+        updatedVariant.ShouldNotBeNull();
+        updatedVariant.Stock.ShouldBe(command.Stock);
+        updatedVariant.Price.ShouldBe(command.Price);
     }
 }
