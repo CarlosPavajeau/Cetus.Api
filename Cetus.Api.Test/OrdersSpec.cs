@@ -3,6 +3,7 @@ using System.Net;
 using System.Net.Http.Json;
 using Application.Abstractions.Data;
 using Application.Orders.CalculateInsights;
+using Application.Orders.Cancel;
 using Application.Orders.Create;
 using Application.Orders.DeliveryFees.Create;
 using Application.Orders.DeliveryFees.Find;
@@ -204,7 +205,8 @@ public class OrdersSpec(ApplicationTestCase factory) : ApplicationContextTestCas
         orderId.ShouldNotBeNull();
 
         // Act
-        var cancelOrderResponse = await Client.PostAsync($"api/orders/{orderId.Id}/cancel", null);
+        var cancelOrderCommand = new CancelOrderCommand(orderId.Id, "Customer requested cancellation");
+        var cancelOrderResponse = await Client.PostAsJsonAsync($"api/orders/{orderId.Id}/cancel", cancelOrderCommand);
 
         // Assert
         cancelOrderResponse.EnsureSuccessStatusCode();
@@ -242,12 +244,13 @@ public class OrdersSpec(ApplicationTestCase factory) : ApplicationContextTestCas
         var orderId = await response.DeserializeAsync<OrderResponse>();
         orderId.ShouldNotBeNull();
 
-        var cancelOrderResponse = await Client.PostAsync($"api/orders/{orderId.Id}/cancel", null);
+        var cancelOrderCommand = new CancelOrderCommand(orderId.Id, "Customer requested cancellation");
+        var cancelOrderResponse = await Client.PostAsJsonAsync($"api/orders/{orderId.Id}/cancel", cancelOrderCommand);
 
         cancelOrderResponse.EnsureSuccessStatusCode();
 
         // Act
-        var secondCancelOrderResponse = await Client.PostAsync($"api/orders/{orderId.Id}/cancel", null);
+        var secondCancelOrderResponse = await Client.PostAsJsonAsync($"api/orders/{orderId.Id}/cancel", cancelOrderResponse);
 
         // Assert
         secondCancelOrderResponse.StatusCode.ShouldBe(HttpStatusCode.Conflict);

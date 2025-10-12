@@ -9,7 +9,10 @@ using SharedKernel;
 
 namespace Application.Orders.Cancel;
 
-internal sealed class CancelOrderCommandHandler(IApplicationDbContext db, IMercadoPagoClient mercadoPagoClient)
+internal sealed class CancelOrderCommandHandler(
+    IApplicationDbContext db,
+    IMercadoPagoClient mercadoPagoClient,
+    IDateTimeProvider dateTimeProvider)
     : ICommandHandler<CancelOrderCommand, OrderResponse>
 {
     private const string PaymentStatusInProcess = "in_process";
@@ -65,6 +68,8 @@ internal sealed class CancelOrderCommandHandler(IApplicationDbContext db, IMerca
         }
 
         order.Status = OrderStatus.Canceled;
+        order.CancellationReason = command.Reason;
+        order.CancelledAt = dateTimeProvider.UtcNow;
 
         await db.SaveChangesAsync(cancellationToken);
 

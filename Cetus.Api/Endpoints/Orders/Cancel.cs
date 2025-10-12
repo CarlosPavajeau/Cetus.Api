@@ -3,6 +3,7 @@ using Application.Orders.Cancel;
 using Application.Orders.SearchAll;
 using Cetus.Api.Extensions;
 using Cetus.Api.Infrastructure;
+using Microsoft.AspNetCore.Mvc;
 
 namespace Cetus.Api.Endpoints.Orders;
 
@@ -12,10 +13,15 @@ internal sealed class Cancel : IEndpoint
     {
         app.MapPost("orders/{id:guid}/cancel", async (
             Guid id,
+            [FromBody] CancelOrderCommand command,
             ICommandHandler<CancelOrderCommand, OrderResponse> handler,
             CancellationToken cancellationToken) =>
         {
-            var command = new CancelOrderCommand(id);
+            if (id != command.Id)
+            {
+                return Results.BadRequest("Mismatched order ID in URL and body.");
+            }
+            
             var result = await handler.Handle(command, cancellationToken);
 
             return result.Match(Results.Ok, CustomResults.Problem);
