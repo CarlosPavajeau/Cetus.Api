@@ -42,13 +42,14 @@ public class MercadoPagoClient(IConfiguration configuration, ILogger<MercadoPago
     public async Task<Payment?> FindPaymentById(long paymentId, CancellationToken cancellationToken = default)
     {
         var paymentClient = new PaymentClient();
-        
+
         var payment = await paymentClient.GetAsync(paymentId, cancellationToken: cancellationToken);
 
         return payment;
     }
 
-    public async Task<Preference?> CreatePreference(PreferenceRequest request, string accessToken, CancellationToken cancellationToken = default)
+    public async Task<Preference?> CreatePreference(PreferenceRequest request, string accessToken,
+        CancellationToken cancellationToken = default)
     {
         try
         {
@@ -65,6 +66,50 @@ public class MercadoPagoClient(IConfiguration configuration, ILogger<MercadoPago
         catch (Exception e)
         {
             logger.LogError(e, "Error creating MercadoPago preference");
+            return null;
+        }
+    }
+
+    public async Task<Payment?> CancelPayment(long paymentId, string accessToken,
+        CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            var paymentClient = new PaymentClient();
+            var options = new RequestOptions
+            {
+                AccessToken = accessToken
+            };
+
+            var result = await paymentClient.CancelAsync(paymentId, options, cancellationToken);
+
+            return result;
+        }
+        catch (Exception e)
+        {
+            logger.LogError(e, "Error cancelling MercadoPago payment for paymentId {PaymentId}", paymentId);
+            return null;
+        }
+    }
+
+    public async Task<PaymentRefund?> RefundPayment(long paymentId, string accessToken,
+        CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            var paymentClient = new PaymentClient();
+            var options = new RequestOptions
+            {
+                AccessToken = accessToken
+            };
+
+            var result = await paymentClient.RefundAsync(paymentId, options, cancellationToken);
+
+            return result;
+        }
+        catch (Exception e)
+        {
+            logger.LogError(e, "Error refunding MercadoPago payment for paymentId {PaymentId}", paymentId);
             return null;
         }
     }
