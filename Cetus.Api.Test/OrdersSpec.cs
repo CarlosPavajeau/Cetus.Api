@@ -220,6 +220,39 @@ public class OrdersSpec(ApplicationTestCase factory) : ApplicationContextTestCas
         orderResponse.Status.ShouldBe(OrderStatus.Canceled);
     }
 
+    [Fact(DisplayName = "Should not cancel an already canceled order")]
+    public async Task ShouldNotCancelAnAlreadyCanceledOrder()
+    {
+        // Arrange
+        var product = await ProductHelper.CreateProductWithVariant(Client);
+
+        var newCustomer = _orderCustomerFaker.Generate();
+        var newOrderItems = new List<CreateOrderItem>
+        {
+            new(product.Name, product.ImageUrl, 1, product.Price, product.VariantId)
+        };
+
+        var newOrder =
+            new CreateOrderCommand(_faker.Address.FullAddress(), cityId, product.Price, newOrderItems, newCustomer);
+
+        var response = await Client.PostAsJsonAsync("api/orders", newOrder);
+
+        response.EnsureSuccessStatusCode();
+
+        var orderId = await response.DeserializeAsync<OrderResponse>();
+        orderId.ShouldNotBeNull();
+
+        var cancelOrderResponse = await Client.PostAsync($"api/orders/{orderId.Id}/cancel", null);
+
+        cancelOrderResponse.EnsureSuccessStatusCode();
+
+        // Act
+        var secondCancelOrderResponse = await Client.PostAsync($"api/orders/{orderId.Id}/cancel", null);
+
+        // Assert
+        secondCancelOrderResponse.StatusCode.ShouldBe(HttpStatusCode.Conflict);
+    }
+
     [Fact(DisplayName = "Should get orders insights")]
     public async Task ShouldGetOrdersInsights()
     {

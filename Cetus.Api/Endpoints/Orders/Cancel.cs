@@ -1,9 +1,8 @@
 using Application.Abstractions.Messaging;
+using Application.Orders.Cancel;
 using Application.Orders.SearchAll;
-using Application.Orders.Update;
 using Cetus.Api.Extensions;
 using Cetus.Api.Infrastructure;
-using Domain.Orders;
 
 namespace Cetus.Api.Endpoints.Orders;
 
@@ -13,10 +12,10 @@ internal sealed class Cancel : IEndpoint
     {
         app.MapPost("orders/{id:guid}/cancel", async (
             Guid id,
-            ICommandHandler<UpdateOrderCommand, OrderResponse> handler,
+            ICommandHandler<CancelOrderCommand, OrderResponse> handler,
             CancellationToken cancellationToken) =>
         {
-            var command = new UpdateOrderCommand(id, OrderStatus.Canceled);
+            var command = new CancelOrderCommand(id);
             var result = await handler.Handle(command, cancellationToken);
 
             return result.Match(Results.Ok, CustomResults.Problem);
