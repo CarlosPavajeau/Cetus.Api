@@ -68,13 +68,7 @@ internal sealed class UpdateOrderCommandHandler(IApplicationDbContext context)
                     customer.Email
                 )));
 
-                order.Raise(new DeliveredOrderDomainEvent(new DeliveredOrder(
-                    order.Id,
-                    order.OrderNumber,
-                    customer.Id,
-                    customer.Email,
-                    order.Items
-                )));
+                order.Raise(new DeliveredOrderDomainEvent(order.Id));
                 break;
             case OrderStatus.Pending:
             case OrderStatus.Canceled:

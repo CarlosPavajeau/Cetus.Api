@@ -38,13 +38,7 @@ internal sealed class DeliverOrderCommandHandler(IApplicationDbContext db) : ICo
             customer.Email
         )));
 
-        order.Raise(new DeliveredOrderDomainEvent(new DeliveredOrder(
-            order.Id,
-            order.OrderNumber,
-            customer.Id,
-            customer.Email,
-            order.Items
-        )));
+        order.Raise(new DeliveredOrderDomainEvent(order.Id));
 
         await db.SaveChangesAsync(cancellationToken);
 

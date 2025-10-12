@@ -1,6 +1,7 @@
 using Application.Abstractions.Data;
 using Domain.Orders;
 using Domain.Reviews;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using SharedKernel;
 
@@ -12,28 +13,35 @@ internal sealed class CreateReviewRequestWhenDeliveredOrder(
 {
     public async Task Handle(DeliveredOrderDomainEvent domainEvent, CancellationToken cancellationToken)
     {
-        logger.LogInformation("Creating review requests for order {OrderNumber}", domainEvent.Order.OrderNumber);
+        logger.LogInformation("Creating review requests for order {OrderId}", domainEvent.Id);
+        
+        var items = await db.OrderItems
+            .AsNoTracking()
+            .Where(o => o.OrderId == domainEvent.Id)
+            .ToListAsync(cancellationToken);
+        
+        var customerId = await db.Orders
+            .AsNoTracking()
+            .Where(o => o.Id == domainEvent.Id)
+            .Select(o => o.CustomerId)
+            .FirstOrDefaultAsync(cancellationToken);
 
-        foreach (var item in domainEvent.Order.Items)
+        var reviews = items.Select(item => new ReviewRequest
         {
-            var reviewRequest = new ReviewRequest
-            {
-                Id = Guid.NewGuid(),
-                Status = ReviewRequestStatus.Pending,
-                Token = GenerateToken(),
-                OrderItemId = item.Id,
-                CustomerId = domainEvent.Order.CustomerId,
-                SendAt = DateTime.UtcNow.AddDays(7), // Send review request after 7 days
-                CreatedAt = DateTime.UtcNow,
-                UpdatedAt = DateTime.UtcNow
-            };
-
-            await db.ReviewRequests.AddAsync(reviewRequest, cancellationToken);
-        }
-
+            Id = Guid.NewGuid(),
+            Status = ReviewRequestStatus.Pending,
+            Token = GenerateToken(),
+            OrderItemId = item.Id,
+            CustomerId = customerId!,
+            SendAt = DateTime.UtcNow.AddDays(7), // Send review request after 7 days
+            CreatedAt = DateTime.UtcNow,
+            UpdatedAt = DateTime.UtcNow
+        }).ToList();
+        
+        await db.ReviewRequests.AddRangeAsync(reviews, cancellationToken);
         await db.SaveChangesAsync(cancellationToken);
 
-        logger.LogInformation("Review requests created for order {OrderNumber}", domainEvent.Order.OrderNumber);
+        logger.LogInformation("Review requests created for order {OrderId}", domainEvent.Id);
     }
 
     private static string GenerateToken()
