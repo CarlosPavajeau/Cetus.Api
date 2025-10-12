@@ -1,7 +1,6 @@
 using Application.Abstractions.Data;
 using Application.Abstractions.Messaging;
 using Application.Orders.DeliveryFees.Find;
-using Application.Orders.SearchAll;
 using Domain.Orders;
 using Domain.Products;
 using Microsoft.EntityFrameworkCore;
@@ -14,9 +13,9 @@ internal sealed class CreateOrderCommandHandler(
     IApplicationDbContext context,
     ITenantContext tenant,
     ILogger<CreateOrderCommandHandler> logger)
-    : ICommandHandler<CreateOrderCommand, OrderResponse>
+    : ICommandHandler<CreateOrderCommand, SimpleOrderResponse>
 {
-    public async Task<Result<OrderResponse>> Handle(CreateOrderCommand request, CancellationToken cancellationToken)
+    public async Task<Result<SimpleOrderResponse>> Handle(CreateOrderCommand request, CancellationToken cancellationToken)
     {
         await using var transaction = await context.BeginTransactionAsync(cancellationToken);
 
@@ -29,7 +28,7 @@ internal sealed class CreateOrderCommandHandler(
 
             if (productsResult.IsFailure)
             {
-                return Result.Failure<OrderResponse>(productsResult.Error);
+                return Result.Failure<SimpleOrderResponse>(productsResult.Error);
             }
 
             var order = await CreateOrderEntity(request, customer.Id, productsResult.Value, cancellationToken);
@@ -46,14 +45,14 @@ internal sealed class CreateOrderCommandHandler(
             logger.LogInformation("Order {OrderId} created successfully for customer {CustomerId}",
                 order.Id, customer.Id);
 
-            return OrderResponse.FromOrder(order);
+            return SimpleOrderResponse.From(order);
         }
         catch (Exception ex)
         {
             logger.LogError(ex, "Error creating order for customer {CustomerId}", request.Customer.Id);
             await transaction.RollbackAsync(cancellationToken);
 
-            return Result.Failure<OrderResponse>(OrderErrors.CreationFailed(request.Customer.Id,
+            return Result.Failure<SimpleOrderResponse>(OrderErrors.CreationFailed(request.Customer.Id,
                 "Unexpected error while creating order."));
         }
     }

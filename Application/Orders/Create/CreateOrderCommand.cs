@@ -1,5 +1,4 @@
 using Application.Abstractions.Messaging;
-using Application.Orders.SearchAll;
 
 namespace Application.Orders.Create;
 
@@ -13,4 +12,4 @@ public sealed record CreateOrderCommand(
     decimal Total,
     IReadOnlyList<CreateOrderItem> Items,
     CreateOrderCustomer Customer)
-    : ICommand<OrderResponse>;
+    : ICommand<SimpleOrderResponse>;

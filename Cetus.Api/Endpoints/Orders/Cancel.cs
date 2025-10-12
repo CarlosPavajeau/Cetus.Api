@@ -1,6 +1,6 @@
 using Application.Abstractions.Messaging;
+using Application.Orders;
 using Application.Orders.Cancel;
-using Application.Orders.SearchAll;
 using Cetus.Api.Extensions;
 using Cetus.Api.Infrastructure;
 using Microsoft.AspNetCore.Mvc;
@@ -14,7 +14,7 @@ internal sealed class Cancel : IEndpoint
         app.MapPost("orders/{id:guid}/cancel", async (
             Guid id,
             [FromBody] CancelOrderCommand command,
-            ICommandHandler<CancelOrderCommand, OrderResponse> handler,
+            ICommandHandler<CancelOrderCommand, SimpleOrderResponse> handler,
             CancellationToken cancellationToken) =>
         {
             if (id != command.Id)

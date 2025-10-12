@@ -1,4 +1,4 @@
-using System.Text;
+using System.Linq.Expressions;
 using Domain.Orders;
 
 namespace Application.Orders.SearchAll;
@@ -8,42 +8,24 @@ public sealed record OrderResponse(
     long OrderNumber,
     OrderStatus Status,
     string Address,
+    string City,
+    string State,
     decimal Subtotal,
     decimal Discount,
     decimal Total,
     DateTime CreatedAt)
 {
-    public static OrderResponse FromOrder(Order order)
-    {
-        var address = new StringBuilder();
-        address.Append(order.Address);
-
-        if (order.City is null)
-        {
-            return new OrderResponse(
-                order.Id,
-                order.OrderNumber,
-                order.Status,
-                address.ToString(),
-                order.Subtotal,
-                order.Discount,
-                order.Total,
-                order.CreatedAt);
-        }
-
-        address.Append(", ");
-        address.Append(order.City.Name);
-        address.Append(" - ");
-        address.Append(order.City.State!.Name);
-
-        return new OrderResponse(
+    public static Expression<Func<Order, OrderResponse>> Map => order =>
+        new OrderResponse(
             order.Id,
             order.OrderNumber,
             order.Status,
-            address.ToString(),
+            order.Address,
+            order.City!.Name,
+            order.City.State!.Name,
             order.Subtotal,
             order.Discount,
             order.Total,
-            order.CreatedAt);
-    }
+            order.CreatedAt
+        );
 }

@@ -1,7 +1,7 @@
 using Application.Abstractions.Data;
 using Application.Abstractions.Messaging;
+using Application.Orders;
 using Application.Orders.Create;
-using Application.Orders.SearchAll;
 using Cetus.Api.Extensions;
 using Cetus.Api.Infrastructure;
 using Cetus.Api.Realtime;
@@ -16,7 +16,7 @@ internal sealed class Create : IEndpoint
     {
         app.MapPost("orders", async (
             [FromBody] CreateOrderCommand command,
-            ICommandHandler<CreateOrderCommand, OrderResponse> handler,
+            ICommandHandler<CreateOrderCommand, SimpleOrderResponse> handler,
             IHubContext<OrdersHub, IOrdersClient> hub,
             ITenantContext tenant,
             CancellationToken cancellationToken) =>

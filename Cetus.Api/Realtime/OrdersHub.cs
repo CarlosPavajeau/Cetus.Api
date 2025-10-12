@@ -1,11 +1,11 @@
-using Application.Orders.SearchAll;
+using Application.Orders;
 using Microsoft.AspNetCore.SignalR;
 
 namespace Cetus.Api.Realtime;
 
 public interface IOrdersClient
 {
-    Task ReceiveCreatedOrder(OrderResponse order);
+    Task ReceiveCreatedOrder(SimpleOrderResponse order);
     Task ReceiveUpdatedOrder();
 }
 
