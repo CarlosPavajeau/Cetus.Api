@@ -8,6 +8,9 @@ public sealed record ProductVariantResponse(
     string Sku,
     decimal Price,
     int Stock,
+    bool Enabled,
+    bool Featured,
+    int SalesCount,
     IReadOnlyList<ProductImageResponse> Images,
     IReadOnlyList<VariantOptionValueResponse> OptionValues
 )
@@ -18,6 +21,9 @@ public sealed record ProductVariantResponse(
             variant.Sku,
             variant.Price,
             variant.StockQuantity,
+            variant.Enabled,
+            variant.Featured,
+            variant.SalesCount,
             variant.Images
                 .OrderBy(v => v.SortOrder)
                 .Select(image =>
