@@ -250,7 +250,8 @@ public class OrdersSpec(ApplicationTestCase factory) : ApplicationContextTestCas
         cancelOrderResponse.EnsureSuccessStatusCode();
 
         // Act
-        var secondCancelOrderResponse = await Client.PostAsJsonAsync($"api/orders/{orderId.Id}/cancel", cancelOrderResponse);
+        var secondCancelOrderCommand = new CancelOrderCommand(orderId.Id, "Customer requested cancellation again");
+        var secondCancelOrderResponse = await Client.PostAsJsonAsync($"api/orders/{orderId.Id}/cancel", secondCancelOrderCommand);
 
         // Assert
         secondCancelOrderResponse.StatusCode.ShouldBe(HttpStatusCode.Conflict);
