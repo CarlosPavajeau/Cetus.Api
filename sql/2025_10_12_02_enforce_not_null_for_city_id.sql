@@ -1,0 +1,2 @@
+ALTER TABLE orders
+    ALTER COLUMN city_id SET NOT NULL;

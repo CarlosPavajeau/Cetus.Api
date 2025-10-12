@@ -10,7 +10,7 @@ public sealed class Order : Entity
     public OrderStatus Status { get; set; } = OrderStatus.Pending;
 
     public string Address { get; set; } = string.Empty;
-    public Guid? CityId { get; set; }
+    public Guid CityId { get; set; }
     public City? City { get; set; }
 
     public decimal Subtotal { get; set; }
