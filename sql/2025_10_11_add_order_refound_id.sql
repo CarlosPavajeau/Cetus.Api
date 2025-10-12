@@ -1,0 +1,2 @@
+ALTER TABLE orders
+    ADD COLUMN refound_id VARCHAR(128) NULL;
