@@ -34,7 +34,7 @@ jobs:
             ${{ runner.os }}-nuget-
 
       - name: Build
-        run: dotnet build "Cetus.Api/Cetus.Api.csproj" --configuration Release
+        run: dotnet build --configuration Release
 
       - name: Test
         run: dotnet test --configuration Release --no-build --verbosity normal
