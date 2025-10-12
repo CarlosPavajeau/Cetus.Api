@@ -15,6 +15,8 @@ internal sealed class CancelOrderCommandHandler(IApplicationDbContext db, IMerca
     private const string PaymentStatusPending = "pending";
     private const string PaymentStatusAuthorized = "authorized";
     private const string PaymentStatusApproved = "approved";
+    private const string PaymentStatusCanceled = "canceled";
+    private const string PaymentStatusRefunded = "refunded";
 
     public async Task<Result<OrderResponse>> Handle(CancelOrderCommand command, CancellationToken cancellationToken)
     {
@@ -73,6 +75,8 @@ internal sealed class CancelOrderCommandHandler(IApplicationDbContext db, IMerca
                 => await HandleCancelablePayment(paymentId, cancellationToken),
             PaymentStatusApproved
                 => await HandleApprovedPayment(paymentId, cancellationToken),
+            PaymentStatusCanceled or PaymentStatusRefunded
+                => Result.Success(0L),
             _ => Result.Failure<long>(OrderErrors.PaymentCancellationFailed(paymentId))
         };
     }
