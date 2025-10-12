@@ -18,7 +18,7 @@ public sealed class Order : Entity
     public decimal DeliveryFee { get; set; }
     public decimal Total { get; set; }
 
-    public IEnumerable<OrderItem> Items { get; set; } = new List<OrderItem>();
+    public ICollection<OrderItem> Items { get; set; } = new HashSet<OrderItem>();
 
     public string CustomerId { get; set; } = string.Empty;
     public Customer? Customer { get; set; }

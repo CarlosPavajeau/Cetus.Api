@@ -6,31 +6,22 @@ using SharedKernel;
 
 namespace Application.Orders.Find;
 
-internal sealed class FindOrderQueryHandler : IQueryHandler<FindOrderQuery, OrderResponse>
+internal sealed class FindOrderQueryHandler(IApplicationDbContext db)
+    : IQueryHandler<FindOrderQuery, OrderResponse>
 {
-    private readonly IApplicationDbContext _context;
-
-    public FindOrderQueryHandler(IApplicationDbContext context)
+    public async Task<Result<OrderResponse>> Handle(FindOrderQuery query, CancellationToken cancellationToken)
     {
-        _context = context;
-    }
-
-    public async Task<Result<OrderResponse>> Handle(FindOrderQuery request, CancellationToken cancellationToken)
-    {
-        var order = await _context
-            .Orders
+        var order = await db.Orders
             .AsNoTracking()
-            .Include(o => o.Items)
-            .Include(o => o.Customer)
-            .Include(o => o.City)
-            .ThenInclude(c => c!.State)
-            .FirstOrDefaultAsync(x => x.Id == request.Id, cancellationToken);
+            .Where(o => o.Id == query.Id)
+            .Select(OrderResponse.Map)
+            .FirstOrDefaultAsync(cancellationToken);
 
         if (order is null)
         {
-            return Result.Failure<OrderResponse>(OrderErrors.NotFound(request.Id));
+            return Result.Failure<OrderResponse>(OrderErrors.NotFound(query.Id));
         }
 
-        return OrderResponse.FromOrder(order);
+        return order;
     }
 }

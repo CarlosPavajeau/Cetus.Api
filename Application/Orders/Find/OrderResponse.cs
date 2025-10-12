@@ -1,4 +1,4 @@
-using System.Text;
+using System.Linq.Expressions;
 using Domain.Orders;
 
 namespace Application.Orders.Find;
@@ -12,6 +12,8 @@ public sealed record OrderResponse(
     long OrderNumber,
     OrderStatus Status,
     string Address,
+    string City,
+    string State,
     decimal Subtotal,
     decimal Discount,
     decimal DeliveryFee,
@@ -23,55 +25,23 @@ public sealed record OrderResponse(
     DateTime CreatedAt)
 
 {
-    public static OrderResponse FromOrder(Order order)
-    {
-        var orderCustomer = order.Customer is null
-            ? new OrderCustomer(string.Empty, string.Empty, string.Empty)
-            : new OrderCustomer(order.Customer.Name, order.Customer.Email, order.Customer.Phone);
-
-        var orderItems =
-            order.Items.Select(item =>
-                new OrderItem(item.Id, item.ProductName, item.ImageUrl, item.Quantity, item.Price));
-
-        var address = new StringBuilder();
-        address.Append(order.Address);
-
-        if (order.City is null)
-        {
-            return new OrderResponse(
-                order.Id,
-                order.OrderNumber,
-                order.Status,
-                address.ToString(),
-                order.Subtotal,
-                order.Discount,
-                order.DeliveryFee,
-                order.Total,
-                orderItems,
-                orderCustomer,
-                order.TransactionId,
-                order.StoreId,
-                order.CreatedAt);
-        }
-
-        address.Append(", ");
-        address.Append(order.City.Name);
-        address.Append(" - ");
-        address.Append(order.City.State!.Name);
-
-        return new OrderResponse(
+    public static Expression<Func<Order, OrderResponse>> Map => order =>
+        new OrderResponse(
             order.Id,
             order.OrderNumber,
             order.Status,
-            address.ToString(),
+            order.Address,
+            order.City!.Name,
+            order.City.State!.Name,
             order.Subtotal,
             order.Discount,
             order.DeliveryFee,
             order.Total,
-            orderItems,
-            orderCustomer,
+            order.Items.Select(item =>
+                    new OrderItem(item.Id, item.ProductName, item.ImageUrl, item.Quantity, item.Price))
+                .ToList(),
+            new OrderCustomer(order.Customer!.Name, order.Customer.Email, order.Customer.Phone),
             order.TransactionId,
             order.StoreId,
             order.CreatedAt);
-    }
 }

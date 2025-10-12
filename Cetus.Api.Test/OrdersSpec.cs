@@ -14,7 +14,6 @@ using Cetus.Api.Test.Shared;
 using Cetus.Api.Test.Shared.Fakers;
 using Cetus.Api.Test.Shared.Helpers;
 using Domain.Orders;
-using Domain.States;
 using Microsoft.Extensions.DependencyInjection;
 using Shouldly;
 
@@ -80,6 +79,9 @@ public class OrdersSpec(ApplicationTestCase factory) : ApplicationContextTestCas
     public async Task ShouldGetAnOrder()
     {
         // Arrange
+        var db = Services.GetRequiredService<IApplicationDbContext>();
+        await CityHelper.CreateIfNotExists(cityId, db);
+
         var product = await ProductHelper.CreateProductWithVariant(Client);
 
         var newCustomer = _orderCustomerFaker.Generate();
@@ -115,6 +117,9 @@ public class OrdersSpec(ApplicationTestCase factory) : ApplicationContextTestCas
     public async Task ShouldGetAllOrders()
     {
         // Arrange
+        var db = Services.GetRequiredService<IApplicationDbContext>();
+        await CityHelper.CreateIfNotExists(cityId, db);
+
         var product = await ProductHelper.CreateProductWithVariant(Client);
 
         var newCustomer = _orderCustomerFaker.Generate();
@@ -147,6 +152,9 @@ public class OrdersSpec(ApplicationTestCase factory) : ApplicationContextTestCas
     public async Task ShouldDeliverAnOrder()
     {
         // Arrange
+        var db = Services.GetRequiredService<IApplicationDbContext>();
+        await CityHelper.CreateIfNotExists(cityId, db);
+
         var product = await ProductHelper.CreateProductWithVariant(Client);
 
         var newCustomer = _orderCustomerFaker.Generate();
@@ -186,6 +194,9 @@ public class OrdersSpec(ApplicationTestCase factory) : ApplicationContextTestCas
     public async Task ShouldCancelAnOrder()
     {
         // Arrange
+        var db = Services.GetRequiredService<IApplicationDbContext>();
+        await CityHelper.CreateIfNotExists(cityId, db);
+
         var product = await ProductHelper.CreateProductWithVariant(Client);
 
         var newCustomer = _orderCustomerFaker.Generate();
@@ -251,7 +262,8 @@ public class OrdersSpec(ApplicationTestCase factory) : ApplicationContextTestCas
 
         // Act
         var secondCancelOrderCommand = new CancelOrderCommand(orderId.Id, "Customer requested cancellation again");
-        var secondCancelOrderResponse = await Client.PostAsJsonAsync($"api/orders/{orderId.Id}/cancel", secondCancelOrderCommand);
+        var secondCancelOrderResponse =
+            await Client.PostAsJsonAsync($"api/orders/{orderId.Id}/cancel", secondCancelOrderCommand);
 
         // Assert
         secondCancelOrderResponse.StatusCode.ShouldBe(HttpStatusCode.Conflict);
@@ -358,28 +370,18 @@ public class OrdersSpec(ApplicationTestCase factory) : ApplicationContextTestCas
     public async Task ShouldGetAllDeliveryFees()
     {
         // Arrange
-        var city = new City
-        {
-            Id = cityId,
-            Name = "Test City",
-            State = new State
-            {
-                Id = Guid.NewGuid(),
-                Name = "Test State"
-            }
-        };
+        var db = Services.GetRequiredService<IApplicationDbContext>();
+        await CityHelper.CreateIfNotExists(cityId, db);
 
         var deliveryFee = new DeliveryFee
         {
             Id = Guid.NewGuid(),
             CityId = cityId,
-            City = city,
             Fee = DeliveryFee,
             CreatedAt = DateTime.UtcNow,
             UpdatedAt = DateTime.UtcNow
         };
 
-        var db = Services.GetRequiredService<IApplicationDbContext>();
         await db.DeliveryFees.AddAsync(deliveryFee);
         await db.SaveChangesAsync();
 
