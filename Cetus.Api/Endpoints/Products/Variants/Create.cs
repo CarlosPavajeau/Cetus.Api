@@ -15,7 +15,7 @@ internal sealed class Create : IEndpoint
         app.MapPost("products/{productId:guid}/variants", async (
             Guid productId,
             CreateProductVariantCommand command,
-            ICommandHandler<CreateProductVariantCommand, ProductVariantResponse> handler,
+            ICommandHandler<CreateProductVariantCommand, SimpleProductVariantResponse> handler,
             HybridCache cache,
             ITenantContext tenant,
             CancellationToken cancellationToken) =>

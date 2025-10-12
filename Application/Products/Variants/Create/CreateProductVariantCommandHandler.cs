@@ -12,9 +12,9 @@ internal sealed class CreateProductVariantCommandHandler(
     ITenantContext tenant,
     IDateTimeProvider dateTimeProvider,
     ILogger<CreateProductVariantCommandHandler> logger
-) : ICommandHandler<CreateProductVariantCommand, ProductVariantResponse>
+) : ICommandHandler<CreateProductVariantCommand, SimpleProductVariantResponse>
 {
-    public async Task<Result<ProductVariantResponse>> Handle(CreateProductVariantCommand command,
+    public async Task<Result<SimpleProductVariantResponse>> Handle(CreateProductVariantCommand command,
         CancellationToken cancellationToken)
     {
         var productExists = await db.Products
@@ -22,7 +22,7 @@ internal sealed class CreateProductVariantCommandHandler(
 
         if (!productExists)
         {
-            return Result.Failure<ProductVariantResponse>(ProductErrors.NotFound(command.ProductId.ToString()));
+            return Result.Failure<SimpleProductVariantResponse>(ProductErrors.NotFound(command.ProductId.ToString()));
         }
 
         var normalizedSku = command.Sku.Trim().ToLowerInvariant();
@@ -35,7 +35,7 @@ internal sealed class CreateProductVariantCommandHandler(
 
         if (skuExists)
         {
-            return Result.Failure<ProductVariantResponse>(ProductVariantErrors.DuplicateSku(normalizedSku));
+            return Result.Failure<SimpleProductVariantResponse>(ProductVariantErrors.DuplicateSku(normalizedSku));
         }
 
         // De-duplicate to avoid false negatives and duplicate join rows
@@ -51,13 +51,13 @@ internal sealed class CreateProductVariantCommandHandler(
         // All must exist
         if (optionValueInfos.Count != distinctOptionValueIds.Length)
         {
-            return Result.Failure<ProductVariantResponse>(ProductVariantErrors.MissingOptionValues());
+            return Result.Failure<SimpleProductVariantResponse>(ProductVariantErrors.MissingOptionValues());
         }
 
         // All must belong to current tenant/store
         if (optionValueInfos.Any(v => v.StoreId != tenant.Id))
         {
-            return Result.Failure<ProductVariantResponse>(ProductVariantErrors.OptionValuesCrossStore());
+            return Result.Failure<SimpleProductVariantResponse>(ProductVariantErrors.OptionValuesCrossStore());
         }
 
         // All option types must be attached to the product
@@ -69,7 +69,7 @@ internal sealed class CreateProductVariantCommandHandler(
 
         if (optionValueInfos.Any(v => !attachedOptionTypeIds.Contains(v.OptionTypeId)))
         {
-            return Result.Failure<ProductVariantResponse>(ProductVariantErrors.OptionTypesNotAttached());
+            return Result.Failure<SimpleProductVariantResponse>(ProductVariantErrors.OptionTypesNotAttached());
         }
 
         // Each option type must have at most one selected value
@@ -81,7 +81,7 @@ internal sealed class CreateProductVariantCommandHandler(
 
         if (duplicateTypeIds.Length > 0)
         {
-            return Result.Failure<ProductVariantResponse>(ProductVariantErrors.MultipleValuesPerOptionType());
+            return Result.Failure<SimpleProductVariantResponse>(ProductVariantErrors.MultipleValuesPerOptionType());
         }
 
         if (distinctOptionValueIds.Length > 0)
@@ -102,7 +102,7 @@ internal sealed class CreateProductVariantCommandHandler(
             if (candidates.Any(c =>
                     c.Total == distinctOptionValueIds.Length && c.Matched == distinctOptionValueIds.Length))
             {
-                return Result.Failure<ProductVariantResponse>(ProductVariantErrors.DuplicateCombination());
+                return Result.Failure<SimpleProductVariantResponse>(ProductVariantErrors.DuplicateCombination());
             }
         }
 
@@ -150,13 +150,12 @@ internal sealed class CreateProductVariantCommandHandler(
 
             await transaction.CommitAsync(cancellationToken);
 
-            var response = new ProductVariantResponse(
+            var response = new SimpleProductVariantResponse(
                 variant.Id,
                 variant.Sku,
-                variant.Price,
                 variant.StockQuantity,
-                [],
-                []
+                variant.Price,
+                variant.ProductId
             );
 
             return response;
@@ -168,7 +167,7 @@ internal sealed class CreateProductVariantCommandHandler(
                 command.ProductId, command.Sku);
             await transaction.RollbackAsync(cancellationToken);
 
-            return Result.Failure<ProductVariantResponse>(
+            return Result.Failure<SimpleProductVariantResponse>(
                 ProductVariantErrors.UnexpectedError("Please try again later."));
         }
     }

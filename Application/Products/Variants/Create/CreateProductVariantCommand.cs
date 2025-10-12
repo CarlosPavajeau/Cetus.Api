@@ -10,4 +10,4 @@ public sealed record CreateProductVariantCommand(
     int StockQuantity,
     IReadOnlyList<long> OptionValueIds,
     IReadOnlyList<CreateProductImage> Images
-) : ICommand<ProductVariantResponse>;
+) : ICommand<SimpleProductVariantResponse>;
