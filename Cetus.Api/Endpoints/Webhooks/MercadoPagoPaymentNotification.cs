@@ -1,11 +1,10 @@
 using Application.Abstractions.MercadoPago;
 using Application.Abstractions.Messaging;
-using Application.Orders.SearchAll;
-using Application.Orders.Update;
+using Application.Orders;
+using Application.Orders.Pay;
 using Cetus.Api.Extensions;
 using Cetus.Api.Infrastructure;
 using Cetus.Api.Realtime;
-using Domain.Orders;
 using Microsoft.AspNetCore.SignalR;
 
 namespace Cetus.Api.Endpoints.Webhooks;
@@ -23,7 +22,7 @@ internal sealed class MercadoPagoPaymentNotification : IEndpoint
             IMercadoPagoClient mercadoPagoClient,
             IHubContext<OrdersHub, IOrdersClient> ordersHub,
             ILogger<MercadoPagoPaymentNotification> logger,
-            ICommandHandler<UpdateOrderCommand, OrderResponse> handler,
+            ICommandHandler<PayOrderCommand, SimpleOrderResponse> handler,
             CancellationToken cancellationToken
         ) =>
         {
@@ -53,8 +52,18 @@ internal sealed class MercadoPagoPaymentNotification : IEndpoint
                 });
             }
 
-            var updateOrderCommand = new UpdateOrderCommand(orderId, OrderStatus.Paid, payment.Id.ToString());
-            var updateResult = await handler.Handle(updateOrderCommand, cancellationToken);
+            if (!payment.Id.HasValue)
+            {
+                return Results.NotFound(new
+                {
+                    Message = $"Payment with id {request.Data.Id} not found"
+                });
+            }
+
+            var paymentId = payment.Id.Value;
+            var payOrderCommand = new PayOrderCommand(orderId, paymentId.ToString());
+            
+            var updateResult = await handler.Handle(payOrderCommand, cancellationToken);
 
             if (updateResult.IsSuccess)
             {

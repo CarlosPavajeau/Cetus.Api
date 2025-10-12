@@ -5,12 +5,12 @@ using Microsoft.Extensions.Logging;
 using Resend;
 using SharedKernel;
 
-namespace Application.Orders.Update;
+namespace Application.Orders.Pay;
 
-internal sealed class PaidOrderDomainEventHandler(
+internal sealed class SendNotificationEmailWhenPaidOrder(
     IResend resend,
     IConfiguration configuration,
-    ILogger<PaidOrderDomainEventHandler> logger
+    ILogger<SendNotificationEmailWhenPaidOrder> logger
 ) : IDomainEventHandler<PaidOrderDomainEvent>
 {
     private static readonly CultureInfo ColombianCulture = new("es-CO");
