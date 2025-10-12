@@ -53,7 +53,7 @@ internal sealed class CancelOrderCommandHandler(
             {
                 return Result.Failure<OrderResponse>(StoreErrors.NotConnectedToMercadoPago(store.Slug));
             }
-            
+
             var paymentResult = await CancelPayment(order, store.MercadoPagoAccessToken!, cancellationToken);
 
             if (paymentResult.IsFailure)
@@ -70,7 +70,7 @@ internal sealed class CancelOrderCommandHandler(
         order.Status = OrderStatus.Canceled;
         order.CancellationReason = command.Reason;
         order.CancelledAt = dateTimeProvider.UtcNow;
-        
+
         order.Raise(new CanceledOrderDomainEvent(order.Id));
 
         await db.SaveChangesAsync(cancellationToken);

@@ -45,11 +45,11 @@ internal sealed class OrderCreatedDomainEventHandler(
 
         var storeMembers = await db.Users
             .FromSql($"""
-                        SELECT u.id, u.name, u.email
-                        FROM users u
-                        INNER JOIN members m ON u.id = m.user_id
-                        WHERE m.organization_id = {store.ExternalId} AND u.banned = FALSE;
-                        """)
+                      SELECT u.id, u.name, u.email
+                      FROM users u
+                      INNER JOIN members m ON u.id = m.user_id
+                      WHERE m.organization_id = {store.ExternalId} AND u.banned = FALSE;
+                      """)
             .ToListAsync(cancellationToken);
 
 

@@ -66,8 +66,8 @@ internal sealed class UpdateOrderCommandHandler(IApplicationDbContext context)
                     customer.Name,
                     customer.Address,
                     customer.Email
-                    )));
-                
+                )));
+
                 order.Raise(new DeliveredOrderDomainEvent(new DeliveredOrder(
                     order.Id,
                     order.OrderNumber,

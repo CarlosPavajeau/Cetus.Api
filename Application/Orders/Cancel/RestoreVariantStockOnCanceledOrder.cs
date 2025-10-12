@@ -23,12 +23,12 @@ internal sealed class RestoreVariantStockOnCanceledOrder(
         {
             return;
         }
-        
+
         var variantIds = items.Select(i => i.VariantId).Distinct().ToList();
         var variants = await db.ProductVariants
             .Where(v => variantIds.Contains(v.Id))
             .ToListAsync(cancellationToken);
-        
+
         var quantityByVariantId = items
             .GroupBy(i => i.VariantId)
             .ToDictionary(g => g.Key, g => g.Sum(i => i.Quantity));
@@ -42,7 +42,7 @@ internal sealed class RestoreVariantStockOnCanceledOrder(
                     quantity, variant.Id, variant.StockQuantity);
             }
         }
-        
+
         await db.SaveChangesAsync(cancellationToken);
     }
 }
