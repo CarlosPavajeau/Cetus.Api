@@ -1,12 +1,14 @@
 ﻿using System.Reflection;
 using System.Threading.RateLimiting;
 using Application.Abstractions.Data;
+using Application.Abstractions.Email;
 using Application.Abstractions.MercadoPago;
 using Domain.Coupons;
 using Domain.Orders;
 using Domain.Reviews;
 using Infrastructure.Database;
 using Infrastructure.DomainEvents;
+using Infrastructure.Email;
 using Infrastructure.MercadoPago;
 using Infrastructure.Reviews.Jobs;
 using Infrastructure.Stores;
@@ -218,6 +220,7 @@ public static class DependencyInjection
         services.Configure<ResendClientOptions>(options => { options.ApiToken = configuration["Resend:ApiToken"]!; });
 
         services.AddTransient<IResend, ResendClient>();
+        services.AddTransient<IEmailSender, ResendEmailSender>();
 
         return services;
     }
