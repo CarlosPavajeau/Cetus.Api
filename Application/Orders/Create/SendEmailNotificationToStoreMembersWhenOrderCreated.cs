@@ -8,11 +8,11 @@ using SharedKernel;
 
 namespace Application.Orders.Create;
 
-internal sealed class OrderCreatedDomainEventHandler(
+internal sealed class SendEmailNotificationToStoreMembersWhenOrderCreated(
     IApplicationDbContext db,
     IResend resend,
     IConfiguration configuration,
-    ILogger<OrderCreatedDomainEventHandler> logger
+    ILogger<SendEmailNotificationToStoreMembersWhenOrderCreated> logger
 ) : IDomainEventHandler<OrderCreatedDomainEvent>
 {
     private const string EmailSubject = "Nuevo pedido creado!";
