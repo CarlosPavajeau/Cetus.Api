@@ -2,11 +2,11 @@ namespace Application.Orders.CalculateInsights;
 
 public sealed record OrdersInsightsResponse(
     decimal CurrentMonthTotal,
-    decimal CurrentMonthCost,
+    decimal RevenuePercentageChange,
+    decimal OrdersCountPercentageChange,
     long AllOrdersCount,
     long CompletedOrdersCount,
-    decimal RevenuePercentageChange,
-    decimal OrdersCountPercentageChange)
+    long CustomersCount)
 {
     public static OrdersInsightsResponse Empty => new(0, 0, 0, 0, 0, 0);
 }

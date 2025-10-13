@@ -7,11 +7,9 @@ using SharedKernel;
 
 namespace Application.Orders.CalculateInsights;
 
-internal sealed class CalculateOrdersInsightsQueryHandler(IApplicationDbContext context, ITenantContext tenant)
+internal sealed class CalculateOrdersInsightsQueryHandler(IApplicationDbContext db, ITenantContext tenant)
     : IQueryHandler<CalculateOrdersInsightsQuery, OrdersInsightsResponse>
 {
-    private const decimal CostPerItem = 2000m;
-
     public async Task<Result<OrdersInsightsResponse>> Handle(CalculateOrdersInsightsQuery request,
         CancellationToken cancellationToken)
     {
@@ -25,7 +23,7 @@ internal sealed class CalculateOrdersInsightsQueryHandler(IApplicationDbContext 
         var previousMonth = currentMonth == 1 ? 12 : currentMonth - 1;
 
         // Current month data
-        var currentMonthOrdersQuery = context.Orders
+        var currentMonthOrdersQuery = db.Orders
             .AsNoTracking()
             .Where(order => order.CreatedAt.Month == currentMonth && order.StoreId == tenant.Id);
 
@@ -37,14 +35,13 @@ internal sealed class CalculateOrdersInsightsQueryHandler(IApplicationDbContext 
         var currentMonthTotalRevenue = await currentMonthCompletedOrdersQuery
             .SumAsync(order => order.Total, cancellationToken);
 
-        var currentMonthItemsInCompletedOrders = await currentMonthCompletedOrdersQuery
-            .SelectMany(order => order.Items)
+        var customersCount = await currentMonthOrdersQuery
+            .Select(order => order.CustomerId)
+            .Distinct()
             .CountAsync(cancellationToken);
 
-        var currentMonthTotalCost = currentMonthItemsInCompletedOrders * CostPerItem;
-
         // Previous month data
-        var previousMonthOrdersQuery = context.Orders
+        var previousMonthOrdersQuery = db.Orders
             .AsNoTracking()
             .Where(order => order.CreatedAt.Month == previousMonth && order.StoreId == tenant.Id);
 
@@ -62,11 +59,12 @@ internal sealed class CalculateOrdersInsightsQueryHandler(IApplicationDbContext 
 
         return new OrdersInsightsResponse(
             currentMonthTotalRevenue,
-            currentMonthTotalCost,
+            revenuePercentageChange,
+            ordersCountPercentageChange,
             currentMonthAllOrdersCount,
             currentMonthCompletedOrdersCount,
-            revenuePercentageChange,
-            ordersCountPercentageChange);
+            customersCount
+        );
     }
 
     private static decimal CalculatePercentageChange(decimal previousValue, decimal currentValue)
