@@ -1,15 +1,13 @@
 using System.Globalization;
+using Application.Abstractions.Email;
 using Domain.Orders;
-using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
-using Resend;
 using SharedKernel;
 
 namespace Application.Orders.Pay;
 
 internal sealed class SendNotificationEmailWhenPaidOrder(
-    IResend resend,
-    IConfiguration configuration,
+    IEmailSender emailSender,
     ILogger<SendNotificationEmailWhenPaidOrder> logger
 ) : IDomainEventHandler<PaidOrderDomainEvent>
 {
@@ -23,48 +21,7 @@ internal sealed class SendNotificationEmailWhenPaidOrder(
 
         var messageBody = BuildEmailBody(domainEvent.Order);
 
-        await SendNotificationEmail(
-            email: domainEvent.Order.CustomerEmail,
-            subject: EmailSubject,
-            body: messageBody,
-            cancellationToken: cancellationToken);
-
-        logger.LogInformation("Email sent to {Customer} for order {OrderNumber} with total {Total}",
-            domainEvent.Order.Customer, domainEvent.Order.OrderNumber, domainEvent.Order.Total);
-    }
-
-    private async Task SendNotificationEmail(string email, string subject, string body,
-        CancellationToken cancellationToken = default)
-    {
-        if (string.IsNullOrEmpty(email))
-        {
-            logger.LogWarning("Cannot send email: recipient email address is null or empty");
-            return;
-        }
-
-        try
-        {
-            var senderEmail = configuration["Resend:From"]
-                              ?? throw new InvalidOperationException(
-                                  "Sender email configuration 'Resend:From' is missing");
-
-            var message = new EmailMessage
-            {
-                From = senderEmail
-            };
-
-            message.To.Add(email);
-            message.Subject = subject;
-            message.HtmlBody = body;
-
-            await resend.EmailSendAsync(message, cancellationToken);
-        }
-        catch (Exception ex)
-        {
-            logger.LogError(ex, "Error sending email to {Email}: {Error}", email, ex.Message);
-            // We're deliberately not rethrowing to prevent the exception from bubbling up
-            // A more sophisticated implementation might use a retry mechanism or queue
-        }
+        await emailSender.SendEmail(EmailSubject, messageBody, domainEvent.Order.CustomerEmail, cancellationToken);
     }
 
     private static string BuildEmailBody(PaidOrder order)
