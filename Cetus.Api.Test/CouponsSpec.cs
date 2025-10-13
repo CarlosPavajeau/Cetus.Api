@@ -1,5 +1,6 @@
 using System.Net;
 using System.Net.Http.Json;
+using Application.Abstractions.Data;
 using Application.Coupons;
 using Application.Coupons.Create;
 using Application.Coupons.Redeem;
@@ -9,6 +10,7 @@ using Cetus.Api.Test.Shared;
 using Cetus.Api.Test.Shared.Fakers;
 using Cetus.Api.Test.Shared.Helpers;
 using Domain.Coupons;
+using Microsoft.Extensions.DependencyInjection;
 using Shouldly;
 
 namespace Cetus.Api.Test;
@@ -504,6 +506,9 @@ public class CouponsSpec(ApplicationTestCase factory) : ApplicationContextTestCa
     private async Task<OrderResponse> CreateTestOrder()
     {
         // Create a test product first
+        var db = Services.GetRequiredService<IApplicationDbContext>();
+        await CityHelper.CreateIfNotExists(_cityId, db);
+        
         var product = await ProductHelper.CreateProductWithVariant(Client);
 
         var newCustomer = _orderCustomerFaker.Generate();
