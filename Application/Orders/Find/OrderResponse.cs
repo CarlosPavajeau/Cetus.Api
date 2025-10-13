@@ -1,11 +1,19 @@
 using System.Linq.Expressions;
+using Application.Products.Variants;
 using Domain.Orders;
 
 namespace Application.Orders.Find;
 
-public sealed record OrderCustomer(string Name, string Email, string Phone);
+public sealed record CustomerResponse(string Name, string Email, string Phone);
 
-public sealed record OrderItem(Guid Id, string ProductName, string? ImageUrl, int Quantity, decimal Price);
+public sealed record OrderItemResponse(
+    Guid Id,
+    string ProductName,
+    string? ImageUrl,
+    int Quantity,
+    decimal Price,
+    long VariantId,
+    IReadOnlyList<VariantOptionValueResponse> OptionValues);
 
 public sealed record OrderResponse(
     Guid Id,
@@ -18,8 +26,8 @@ public sealed record OrderResponse(
     decimal Discount,
     decimal DeliveryFee,
     decimal Total,
-    IEnumerable<OrderItem> Items,
-    OrderCustomer Customer,
+    IReadOnlyList<OrderItemResponse> Items,
+    CustomerResponse Customer,
     string? TransactionId,
     Guid StoreId,
     DateTime CreatedAt)
@@ -38,9 +46,30 @@ public sealed record OrderResponse(
             order.DeliveryFee,
             order.Total,
             order.Items.Select(item =>
-                    new OrderItem(item.Id, item.ProductName, item.ImageUrl, item.Quantity, item.Price))
+                    new OrderItemResponse(
+                        item.Id,
+                        item.ProductName,
+                        item.ImageUrl,
+                        item.Quantity,
+                        item.Price,
+                        item.VariantId,
+                        item.ProductVariant!.OptionValues
+                            .Where(op => op.ProductOptionValue!.DeletedAt == null)
+                            .Select(option =>
+                                new VariantOptionValueResponse(
+                                    option.OptionValueId,
+                                    option.ProductOptionValue!.Value,
+                                    option.ProductOptionValue!.OptionTypeId,
+                                    option.ProductOptionValue!.ProductOptionType!.Name
+                                )
+                            ).ToList()
+                    ))
                 .ToList(),
-            new OrderCustomer(order.Customer!.Name, order.Customer.Email, order.Customer.Phone),
+            new CustomerResponse(
+                order.Customer!.Name,
+                order.Customer.Email,
+                order.Customer.Phone
+            ),
             order.TransactionId,
             order.StoreId,
             order.CreatedAt);
