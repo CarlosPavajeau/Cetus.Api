@@ -35,7 +35,7 @@ internal sealed class CalculateOrdersInsightsQueryHandler(IApplicationDbContext 
         var currentMonthTotalRevenue = await currentMonthCompletedOrdersQuery
             .SumAsync(order => order.Total, cancellationToken);
 
-        var customersCount = await currentMonthOrdersQuery
+        var currentMonthCustomersCount = await currentMonthOrdersQuery
             .Select(order => order.CustomerId)
             .Distinct()
             .CountAsync(cancellationToken);
@@ -51,11 +51,17 @@ internal sealed class CalculateOrdersInsightsQueryHandler(IApplicationDbContext 
         var previousMonthAllOrdersCount = await previousMonthOrdersQuery.CountAsync(cancellationToken);
         var previousMonthTotalRevenue = await previousMonthCompletedOrdersQuery
             .SumAsync(order => order.Total, cancellationToken);
+        
+        var previousMonthCustomersCount = await previousMonthOrdersQuery
+            .Select(order => order.CustomerId)
+            .Distinct()
+            .CountAsync(cancellationToken);
 
         // Calculate percentage changes
         var revenuePercentageChange = CalculatePercentageChange(previousMonthTotalRevenue, currentMonthTotalRevenue);
         var ordersCountPercentageChange =
             CalculatePercentageChange(previousMonthAllOrdersCount, currentMonthAllOrdersCount);
+        var customerPercentageChange = CalculatePercentageChange(previousMonthCustomersCount, currentMonthCustomersCount);
 
         return new OrdersInsightsResponse(
             currentMonthTotalRevenue,
@@ -63,7 +69,8 @@ internal sealed class CalculateOrdersInsightsQueryHandler(IApplicationDbContext 
             ordersCountPercentageChange,
             currentMonthAllOrdersCount,
             currentMonthCompletedOrdersCount,
-            customersCount
+            currentMonthCustomersCount,
+            customerPercentageChange
         );
     }
 
@@ -71,7 +78,7 @@ internal sealed class CalculateOrdersInsightsQueryHandler(IApplicationDbContext 
     {
         if (previousValue == 0)
         {
-            return currentValue > 0 ? 100 : 0;
+            return currentValue > 0 ? 1 : 0;
         }
 
         return Math.Round(((currentValue - previousValue) / previousValue), 2);
@@ -81,7 +88,7 @@ internal sealed class CalculateOrdersInsightsQueryHandler(IApplicationDbContext 
     {
         if (previousValue == 0)
         {
-            return currentValue > 0 ? 100 : 0;
+            return currentValue > 0 ? 1 : 0;
         }
 
         return Math.Round(((decimal) (currentValue - previousValue) / previousValue), 2);
