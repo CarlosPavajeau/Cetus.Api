@@ -1,14 +1,12 @@
+using Application.Abstractions.Email;
 using Domain.Orders;
-using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
-using Resend;
 using SharedKernel;
 
 namespace Application.Orders.Deliver;
 
 internal sealed class SendNotificationEmailWhenSentOrder(
-    IResend resend,
-    IConfiguration configuration,
+    IEmailSender emailSender,
     ILogger<SendNotificationEmailWhenSentOrder> logger
 ) : IDomainEventHandler<SentOrderDomainEvent>
 {
@@ -21,38 +19,10 @@ internal sealed class SendNotificationEmailWhenSentOrder(
 
         var messageBody = BuildMessageBody(domainEvent.Order);
 
-        await SendNotificationEmail(domainEvent.Order.CustomerEmail, EmailSubject, messageBody, cancellationToken);
+        await emailSender.SendEmail(EmailSubject, messageBody, domainEvent.Order.CustomerEmail, cancellationToken);
 
         logger.LogInformation("Email sent to {Customer} for order {OrderNumber}", domainEvent.Order.Customer,
             domainEvent.Order.OrderNumber);
-    }
-
-    private async Task SendNotificationEmail(string email, string subject, string body,
-        CancellationToken cancellationToken = default)
-    {
-        try
-        {
-            var senderEmail = configuration["Resend:From"]
-                              ?? throw new InvalidOperationException(
-                                  "Sender email configuration 'Resend:From' is missing");
-
-            var message = new EmailMessage
-            {
-                From = senderEmail
-            };
-
-            message.To.Add(email);
-            message.Subject = subject;
-            message.HtmlBody = body;
-
-            await resend.EmailSendAsync(message, cancellationToken);
-        }
-        catch (Exception e)
-        {
-            logger.LogError(e, "Error sending email to {Email}: {Error}", email, e.Message);
-            // We're deliberately not rethrowing to prevent the exception from bubbling up
-            // A more sophisticated implementation might use a retry mechanism or queue
-        }
     }
 
     private static string BuildMessageBody(SentOrder order)
