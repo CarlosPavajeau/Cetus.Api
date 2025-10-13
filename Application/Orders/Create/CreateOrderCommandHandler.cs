@@ -33,7 +33,7 @@ internal sealed class CreateOrderCommandHandler(
 
             var order = await CreateOrderEntity(request, customer.Id, productsResult.Value, cancellationToken);
 
-            order.Raise(new OrderCreatedDomainEvent(order.Id, order.OrderNumber));
+            order.Raise(new OrderCreatedDomainEvent(order.Id, order.OrderNumber, order.StoreId));
 
             await context.Orders.AddAsync(order, cancellationToken);
 
