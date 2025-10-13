@@ -1,17 +1,16 @@
+using System.Collections.Immutable;
 using Application.Abstractions.Data;
+using Application.Abstractions.Email;
 using Domain.Orders;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
-using Resend;
 using SharedKernel;
 
 namespace Application.Orders.Create;
 
 internal sealed class SendEmailNotificationToStoreMembersWhenOrderCreated(
     IApplicationDbContext db,
-    IResend resend,
-    IConfiguration configuration,
+    IEmailSender emailSender,
     ILogger<SendEmailNotificationToStoreMembersWhenOrderCreated> logger
 ) : IDomainEventHandler<OrderCreatedDomainEvent>
 {
@@ -60,43 +59,11 @@ internal sealed class SendEmailNotificationToStoreMembersWhenOrderCreated(
         }
 
         var messageBody = BuildMessageBody(domainEvent);
-        var notificationEmails = storeMembers.Select(s => s.Email);
+        var notificationEmails = storeMembers.Select(s => s.Email).ToImmutableList();
 
-        await SendNotificationEmail(notificationEmails, EmailSubject, messageBody, cancellationToken);
+        await emailSender.SendEmail(EmailSubject, messageBody, notificationEmails, cancellationToken);
 
         logger.LogInformation("Notification email sent to admin for order {OrderId}", domainEvent.Id);
-    }
-
-    private async Task SendNotificationEmail(IEnumerable<string> emails, string subject, string body,
-        CancellationToken cancellationToken = default)
-    {
-        try
-        {
-            var senderEmail = configuration["Resend:From"]
-                              ?? throw new InvalidOperationException(
-                                  "Sender email configuration 'Resend:From' is missing");
-
-            var message = new EmailMessage
-            {
-                From = senderEmail
-            };
-
-            var emailAddress = emails.Select(e => new EmailAddress
-            {
-                Email = e
-            });
-
-            message.To.AddRange(emailAddress);
-
-            message.Subject = subject;
-            message.HtmlBody = body;
-
-            await resend.EmailSendAsync(message, cancellationToken);
-        }
-        catch (Exception e)
-        {
-            logger.LogError(e, "Error sending notification email");
-        }
     }
 
     private static string BuildMessageBody(OrderCreatedDomainEvent notification)
