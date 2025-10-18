@@ -13,7 +13,8 @@ public static class MiddlewareExtensions
 
     public static IApplicationBuilder UseTenantResolver(this IApplicationBuilder app)
     {
-        app.UseMiddleware<TenantResolverMiddleware>();
+        app.UseWhen(context => context.Request.Path.StartsWithSegments("/api"),
+            branch => { branch.UseMiddleware<TenantResolverMiddleware>(); });
 
         return app;
     }
