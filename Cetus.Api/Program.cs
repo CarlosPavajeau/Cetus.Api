@@ -89,7 +89,7 @@ app.UseTenantResolver();
 
 app.MapControllers();
 
-app.MapHub<OrdersHub>("/api/realtime/orders").RequireCors(DependencyInjection.AllowAllCorsPolicy);
+app.MapHub<OrdersHub>("/api/realtime/orders").RequireCors(DependencyInjection.AllowSpecificOriginsCorsPolicy);
 
 await app.RunAsync();
 

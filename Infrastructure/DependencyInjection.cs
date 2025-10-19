@@ -37,6 +37,7 @@ namespace Infrastructure;
 public static class DependencyInjection
 {
     public const string AllowAllCorsPolicy = "AllowAll";
+    public const string AllowSpecificOriginsCorsPolicy = "AllowSpecificOrigins";
 
     public static IServiceCollection AddInfrastructure(
         this IServiceCollection services,
@@ -199,6 +200,14 @@ public static class DependencyInjection
         services.AddCors(options =>
         {
             options.AddPolicy(AllowAllCorsPolicy, policy =>
+            {
+                policy
+                    .AllowAnyOrigin()
+                    .AllowAnyHeader()
+                    .AllowAnyMethod();
+            });
+            
+            options.AddPolicy(AllowSpecificOriginsCorsPolicy, policy =>
             {
                 var allowedOrigin = configuration["AllowedOrigin"]!;
 
