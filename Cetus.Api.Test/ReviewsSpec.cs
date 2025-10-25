@@ -48,6 +48,8 @@ public class ReviewsSpec(ApplicationTestCase factory) : ApplicationContextTestCa
         // Arrange - Deliver the order to generate review request
         var deliverOrderResponse = await Client.PostAsync($"api/orders/{order.Id}/deliver", null);
         deliverOrderResponse.EnsureSuccessStatusCode();
+        
+        await Task.Delay(500); // Wait 0.5s to domain event process
 
         // Get the review request token from the database
         var db = Services.GetRequiredService<IApplicationDbContext>();
@@ -108,6 +110,8 @@ public class ReviewsSpec(ApplicationTestCase factory) : ApplicationContextTestCa
         // Arrange - Deliver the order to generate review request
         var deliverOrderResponse = await Client.PostAsync($"api/orders/{order.Id}/deliver", null);
         deliverOrderResponse.EnsureSuccessStatusCode();
+        
+        await Task.Delay(500); // Wait 0.5s to domain event process
 
         // Get the review request token from the database
         var db = Services.GetRequiredService<IApplicationDbContext>();
@@ -168,6 +172,8 @@ public class ReviewsSpec(ApplicationTestCase factory) : ApplicationContextTestCa
             // Deliver order
             var deliverOrderResponse = await Client.PostAsync($"api/orders/{order.Id}/deliver", null);
             deliverOrderResponse.EnsureSuccessStatusCode();
+            
+            await Task.Delay(500); // Wait 0.5s to domain event process
 
             // Get review request
             var reviewRequest = await db.ReviewRequests
@@ -266,6 +272,8 @@ public class ReviewsSpec(ApplicationTestCase factory) : ApplicationContextTestCa
             // Deliver order
             var deliverOrderResponse = await Client.PostAsync($"api/orders/{order.Id}/deliver", null);
             deliverOrderResponse.EnsureSuccessStatusCode();
+            
+            await Task.Delay(500); // Wait 0.5s to domain event process
 
             // Get review request
             var reviewRequest = await db.ReviewRequests
@@ -321,6 +329,8 @@ public class ReviewsSpec(ApplicationTestCase factory) : ApplicationContextTestCa
         // Deliver order
         var deliverOrderResponse = await Client.PostAsync($"api/orders/{order.Id}/deliver", null);
         deliverOrderResponse.EnsureSuccessStatusCode();
+
+        await Task.Delay(500); // Wait 0.5s to domain event process
 
         // Get review request
         var db = Services.GetRequiredService<IApplicationDbContext>();
@@ -378,6 +388,8 @@ public class ReviewsSpec(ApplicationTestCase factory) : ApplicationContextTestCa
         // Deliver order
         var deliverOrderResponse = await Client.PostAsync($"api/orders/{order.Id}/deliver", null);
         deliverOrderResponse.EnsureSuccessStatusCode();
+        
+        await Task.Delay(500); // Wait 0.5s to domain event process
 
         // Get review request
         var db = Services.GetRequiredService<IApplicationDbContext>();
