@@ -43,7 +43,7 @@ internal sealed class CreateOrderPaymentCommandHandler(
 
         if (store is null)
         {
-            return Result.Failure<string>(StoreErrors.NotFoundById(order.StoreId.ToString()));
+            return Result.Failure<string>(StoreErrors.NotFoundById(order.StoreId));
         }
 
         if (!store.IsConnectedToMercadoPago)

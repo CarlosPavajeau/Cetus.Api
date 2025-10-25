@@ -45,7 +45,7 @@ internal sealed class CancelOrderCommandHandler(
 
             if (store is null)
             {
-                return Result.Failure<SimpleOrderResponse>(StoreErrors.NotFoundById(order.StoreId.ToString()));
+                return Result.Failure<SimpleOrderResponse>(StoreErrors.NotFoundById(order.StoreId));
             }
 
             if (!store.IsConnectedToMercadoPago)

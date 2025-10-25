@@ -17,7 +17,7 @@ internal sealed class UpdateStoreCommandHandler(IApplicationDbContext db)
 
         if (store is null)
         {
-            return Result.Failure<StoreResponse>(StoreErrors.NotFoundById(command.Id.ToString()));
+            return Result.Failure<StoreResponse>(StoreErrors.NotFoundById(command.Id));
         }
 
         store.Name = command.Name;

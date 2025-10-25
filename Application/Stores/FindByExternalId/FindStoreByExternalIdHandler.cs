@@ -19,7 +19,7 @@ internal sealed class FindStoreByExternalIdHandler(IApplicationDbContext db)
 
         if (store is null)
         {
-            return Result.Failure<StoreResponse>(StoreErrors.NotFoundById(query.ExternalId));
+            return Result.Failure<StoreResponse>(StoreErrors.NotFoundByExternalId(query.ExternalId));
         }
 
         return store;

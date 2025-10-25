@@ -6,7 +6,8 @@ using SharedKernel;
 
 namespace Application.Stores.FindById;
 
-internal sealed class FindStoreByIdQueryHandler(IApplicationDbContext context) : IQueryHandler<FindStoreByIdQuery, StoreResponse>
+internal sealed class FindStoreByIdQueryHandler(IApplicationDbContext context)
+    : IQueryHandler<FindStoreByIdQuery, StoreResponse>
 {
     public async Task<Result<StoreResponse>> Handle(FindStoreByIdQuery query, CancellationToken cancellationToken)
     {
@@ -18,7 +19,7 @@ internal sealed class FindStoreByIdQueryHandler(IApplicationDbContext context) :
 
         if (store is null)
         {
-            return Result.Failure<StoreResponse>(StoreErrors.NotFoundById(query.Id.ToString()));
+            return Result.Failure<StoreResponse>(StoreErrors.NotFoundById(query.Id));
         }
 
         return store;
