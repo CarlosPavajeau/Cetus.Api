@@ -34,6 +34,6 @@ internal sealed class Summary : IEndpoint
             );
 
             return result.Match(Results.Ok, CustomResults.Problem);
-        }).WithTags(Tags.Orders).HasPermission(ClerkPermissions.AppAccess);
+        }).WithTags(Tags.Orders);
     }
 }

@@ -22,7 +22,7 @@ internal sealed class DeliveryFees : IEndpoint
             var result = await handler.Handle(command, cancellationToken);
 
             return result.Match(Results.Ok, CustomResults.Problem);
-        }).WithTags(Tags.Orders).HasPermission(ClerkPermissions.AppAccess);
+        }).WithTags(Tags.Orders);
 
         app.MapGet("orders/delivery-fees", async (
             IQueryHandler<SearchAllDeliveryFeesQuery,
@@ -40,7 +40,7 @@ internal sealed class DeliveryFees : IEndpoint
             );
 
             return result.Match(Results.Ok, CustomResults.Problem);
-        }).WithTags(Tags.Orders).HasPermission(ClerkPermissions.AppAccess);
+        }).WithTags(Tags.Orders);
 
         app.MapGet("orders/delivery-fees/{cityId:guid}", async (
             Guid cityId,

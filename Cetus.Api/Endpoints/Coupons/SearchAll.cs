@@ -27,6 +27,6 @@ internal sealed class SearchAll : IEndpoint
             );
 
             return result.Match(Results.Ok, CustomResults.Problem);
-        }).WithTags(Tags.Coupons).HasPermission(ClerkPermissions.AppAccess);
+        }).WithTags(Tags.Coupons);
     }
 }

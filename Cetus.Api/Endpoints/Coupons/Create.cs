@@ -18,6 +18,6 @@ internal sealed class Create : IEndpoint
         {
             var result = await handler.Handle(command, cancellationToken);
             return result.Match(Results.Ok, CustomResults.Problem);
-        }).WithTags(Tags.Coupons).HasPermission(ClerkPermissions.AppAccess);
+        }).WithTags(Tags.Coupons);
     }
 }

@@ -29,6 +29,6 @@ internal sealed class Update : IEndpoint
             }
 
             return result.Match(Results.NoContent, CustomResults.Problem);
-        }).WithTags(Tags.Categories).HasPermission(ClerkPermissions.AppAccess);
+        }).WithTags(Tags.Categories);
     }
 }

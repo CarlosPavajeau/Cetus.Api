@@ -24,7 +24,7 @@ internal sealed class Update : IEndpoint
             }
 
             var result = await handler.Handle(command, cancellationToken);
-            
+
             if (result.IsSuccess)
             {
                 var cacheKey = $"product-{id}";
@@ -32,6 +32,6 @@ internal sealed class Update : IEndpoint
             }
 
             return result.Match(Results.Ok, CustomResults.Problem);
-        }).WithTags(Tags.Products).HasPermission(ClerkPermissions.AppAccess);
+        }).WithTags(Tags.Products);
     }
 }

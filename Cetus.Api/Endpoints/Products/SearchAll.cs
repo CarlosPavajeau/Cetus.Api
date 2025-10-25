@@ -19,6 +19,6 @@ internal sealed class SearchAll : IEndpoint
             var result = await handler.Handle(query, cancellationToken);
 
             return result.Match(Results.Ok, CustomResults.Problem);
-        }).WithTags(Tags.Products).HasPermission(ClerkPermissions.AppAccess);
+        }).WithTags(Tags.Products);
     }
 }

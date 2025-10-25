@@ -19,6 +19,6 @@ internal sealed class Deliver : IEndpoint
             var result = await handler.Handle(command, cancellationToken);
 
             return result.Match(Results.Ok, CustomResults.Problem);
-        }).WithTags(Tags.Orders).HasPermission(ClerkPermissions.AppAccess);
+        }).WithTags(Tags.Orders);
     }
 }
