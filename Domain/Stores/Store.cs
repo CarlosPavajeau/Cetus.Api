@@ -22,6 +22,11 @@ public class Store
     public string? MercadoPagoRefreshToken { get; set; }
     public DateTime? MercadoPagoExpiresAt { get; set; }
 
+    public string? WompiPublicKey { get; set; }
+    public string? WompiPrivateKey { get; set; }
+    public string? WompiEventsKey { get; set; }
+    public string? WompiIntegrityKey { get; set; }
+
     public DateTime CreatedAt { get; set; }
     public DateTime UpdatedAt { get; set; }
     public DateTime? DeletedAt { get; set; }
