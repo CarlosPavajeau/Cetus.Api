@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using Application.Abstractions.Messaging;
 using Microsoft.Extensions.Logging;
 using SharedKernel;
@@ -13,13 +14,18 @@ internal static class LoggingDecorator
     {
         public async Task<Result> Handle(TCommand command, CancellationToken cancellationToken)
         {
+            var stopwatch = Stopwatch.StartNew();
+
             logger.LogInformation("Processing command {CommandName}", typeof(TCommand).Name);
 
-            Result result = await inner.Handle(command, cancellationToken);
+            var result = await inner.Handle(command, cancellationToken);
+
+            stopwatch.Stop();
 
             if (result.IsSuccess)
             {
-                logger.LogInformation("Completed command {CommandName}", typeof(TCommand).Name);
+                logger.LogInformation("Completed command {CommandName} in {Elapsed}ms", typeof(TCommand).Name,
+                    stopwatch.ElapsedMilliseconds);
             }
             else
             {
@@ -37,13 +43,18 @@ internal static class LoggingDecorator
     {
         public async Task<Result<TResponse>> Handle(TCommand command, CancellationToken cancellationToken)
         {
+            var stopwatch = Stopwatch.StartNew();
+
             logger.LogInformation("Processing command {CommandName}", typeof(TCommand).Name);
 
-            Result<TResponse> result = await inner.Handle(command, cancellationToken);
+            var result = await inner.Handle(command, cancellationToken);
+
+            stopwatch.Stop();
 
             if (result.IsSuccess)
             {
-                logger.LogInformation("Completed command {CommandName}", typeof(TCommand).Name);
+                logger.LogInformation("Completed command {CommandName} in {Elapsed}ms", typeof(TCommand).Name,
+                    stopwatch.ElapsedMilliseconds);
             }
             else
             {
@@ -61,13 +72,18 @@ internal static class LoggingDecorator
     {
         public async Task<Result<TResponse>> Handle(TQuery query, CancellationToken cancellationToken)
         {
+            var stopwatch = Stopwatch.StartNew();
+
             logger.LogInformation("Processing query {QueryName}", typeof(TQuery).Name);
 
-            Result<TResponse> result = await inner.Handle(query, cancellationToken);
+            var result = await inner.Handle(query, cancellationToken);
+
+            stopwatch.Stop();
 
             if (result.IsSuccess)
             {
-                logger.LogInformation("Completed query {QueryName}", typeof(TQuery).Name);
+                logger.LogInformation("Completed query {QueryName} in {Elapsed}ms", typeof(TQuery).Name,
+                    stopwatch.ElapsedMilliseconds);
             }
             else
             {
