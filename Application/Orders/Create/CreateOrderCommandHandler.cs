@@ -15,16 +15,21 @@ internal sealed class CreateOrderCommandHandler(
     ILogger<CreateOrderCommandHandler> logger)
     : ICommandHandler<CreateOrderCommand, SimpleOrderResponse>
 {
-    public async Task<Result<SimpleOrderResponse>> Handle(CreateOrderCommand request, CancellationToken cancellationToken)
+    public async Task<Result<SimpleOrderResponse>> Handle(CreateOrderCommand request,
+        CancellationToken cancellationToken)
     {
         await using var transaction = await context.BeginTransactionAsync(cancellationToken);
 
         try
         {
-            var customer = await GetOrCreateCustomer(request.Customer, cancellationToken);
+            var customer = await UpsertCustomer(request.Customer, cancellationToken);
 
             var items = request.Items;
-            var productsResult = await ValidateAndGetProducts(items, cancellationToken);
+            var quantitiesByVariant = items
+                .GroupBy(i => i.VariantId)
+                .ToDictionary(g => g.Key, g => g.Sum(x => x.Quantity));
+
+            var productsResult = await ValidateAndGetProducts(items, quantitiesByVariant, cancellationToken);
 
             if (productsResult.IsFailure)
             {
@@ -37,7 +42,7 @@ internal sealed class CreateOrderCommandHandler(
 
             await context.Orders.AddAsync(order, cancellationToken);
 
-            UpdateProductStocks(productsResult.Value, items);
+            UpdateProductStocks(productsResult.Value, quantitiesByVariant);
 
             await context.SaveChangesAsync(cancellationToken);
             await transaction.CommitAsync(cancellationToken);
@@ -57,7 +62,7 @@ internal sealed class CreateOrderCommandHandler(
         }
     }
 
-    private async Task<Customer> GetOrCreateCustomer(CreateOrderCustomer orderCustomer,
+    private async Task<Customer> UpsertCustomer(CreateOrderCustomer orderCustomer,
         CancellationToken cancellationToken)
     {
         var customer = await context.Customers
@@ -78,12 +83,16 @@ internal sealed class CreateOrderCommandHandler(
         };
 
         await context.Customers.AddAsync(customer, cancellationToken);
+        await context.SaveChangesAsync(cancellationToken);
+
         logger.LogInformation("New customer {CustomerId} created", customer.Id);
 
         return customer;
     }
 
-    private async Task<Result<List<ProductVariant>>> ValidateAndGetProducts(IReadOnlyList<CreateOrderItem> items,
+    private async Task<Result<List<ProductVariant>>> ValidateAndGetProducts(
+        IReadOnlyList<CreateOrderItem> items,
+        Dictionary<long, int> quantitiesByVariant,
         CancellationToken cancellationToken)
     {
         if (items.Count == 0)
@@ -96,22 +105,21 @@ internal sealed class CreateOrderCommandHandler(
             return Result.Failure<List<ProductVariant>>(OrderErrors.InvalidItemQuantities());
         }
 
-        var quantitiesByVariant = items
-            .GroupBy(i => i.VariantId)
-            .ToDictionary(g => g.Key, g => g.Sum(x => x.Quantity));
-
         var variantIds = quantitiesByVariant.Keys.ToList();
+        
         var products = await context.ProductVariants
-            .Include(v => v.Product)
             .Where(v =>
                 variantIds.Contains(v.Id) &&
                 v.DeletedAt == null &&
                 v.Product != null &&
                 v.Product.DeletedAt == null &&
                 v.Product.StoreId == tenant.Id)
+            .Select(v => new {v, v.Product!.Name, v.Product.StoreId})
             .ToListAsync(cancellationToken);
 
-        var missingProducts = variantIds.Except(products.Select(p => p.Id)).ToList();
+        var foundVariantIds = products.Select(p => p.v.Id).ToHashSet();
+        var missingProducts = variantIds.Except(foundVariantIds).ToList();
+
         if (missingProducts.Count != 0)
         {
             var productCodes = missingProducts.Select(p => p.ToString()).ToList();
@@ -119,25 +127,24 @@ internal sealed class CreateOrderCommandHandler(
         }
 
         var outOfStockProducts = products
-            .Where(p => p.Stock < quantitiesByVariant[p.Id])
-            .Select(p => new {p.Id, p.Stock, Requested = quantitiesByVariant[p.Id]})
+            .Where(p => p.v.Stock < quantitiesByVariant[p.v.Id])
             .ToList();
 
-        if (outOfStockProducts.Count == 0)
+        if (outOfStockProducts.Count != 0)
         {
-            return products;
+            var outOfStockProductsDetails = outOfStockProducts
+                .Select(p => $"{p.v.Id} (stock: {p.v.Stock})")
+                .ToList();
+
+            var requestedProducts = outOfStockProducts
+                .Select(p => $"{p.v.Id} (requested: {quantitiesByVariant[p.v.Id]})")
+                .ToList();
+
+            return Result.Failure<List<ProductVariant>>(
+                OrderErrors.InsufficientStock(outOfStockProductsDetails, requestedProducts));
         }
 
-        var outOfStockProductsDetails = outOfStockProducts
-            .Select(p => $"{p.Id} (stock: {p.Stock})")
-            .ToList();
-
-        var requestedProducts = outOfStockProducts
-            .Select(p => $"{p.Id} (requested: {p.Requested})")
-            .ToList();
-
-        return Result.Failure<List<ProductVariant>>(
-            OrderErrors.InsufficientStock(outOfStockProductsDetails, requestedProducts));
+        return products.Select(p => p.v).ToList();
     }
 
     private async Task<Order> CreateOrderEntity(CreateOrderCommand request, string customerId,
@@ -155,14 +162,14 @@ internal sealed class CreateOrderCommandHandler(
                     ProductName = variant.Product?.Name ?? i.ProductName,
                     ImageUrl = i.ImageUrl,
                     Quantity = i.Quantity,
-                    Price = variant.Price, // authoritative price
+                    Price = variant.Price,
                     VariantId = i.VariantId
                 };
             })
             .ToList();
 
         var subtotal = items.Sum(x => x.Price * x.Quantity);
-        const decimal discount = 0m; // placeholder for future promotions
+        const decimal discount = 0m;
 
         return new Order
         {
@@ -183,20 +190,15 @@ internal sealed class CreateOrderCommandHandler(
     {
         var deliveryFee = await context.DeliveryFees
             .AsNoTracking()
-            .FirstOrDefaultAsync(
-                x => x.CityId == cityId && x.StoreId == tenantId && x.DeletedAt == null,
-                cancellationToken
-            );
+            .Where(x => x.CityId == cityId && x.StoreId == tenantId && x.DeletedAt == null)
+            .Select(x => new {x.Fee})
+            .FirstOrDefaultAsync(cancellationToken);
 
         return deliveryFee?.Fee ?? DeliveryFeeResponse.Empty.Fee;
     }
 
-    private static void UpdateProductStocks(List<ProductVariant> products, IReadOnlyList<CreateOrderItem> items)
+    private static void UpdateProductStocks(List<ProductVariant> products, Dictionary<long, int> quantitiesByVariant)
     {
-        var quantitiesByVariant = items
-            .GroupBy(i => i.VariantId)
-            .ToDictionary(g => g.Key, g => g.Sum(x => x.Quantity));
-
         foreach (var product in products)
         {
             if (quantitiesByVariant.TryGetValue(product.Id, out var qty))
