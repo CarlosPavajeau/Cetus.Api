@@ -60,10 +60,13 @@ public static class DependencyInjection
     {
         services.AddSingleton<IDateTimeProvider, DateTimeProvider>();
 
+        services.AddSingleton<DomainEventsChannel>();
         services.AddTransient<IDomainEventsDispatcher, DomainEventsDispatcher>();
 
         services.AddScoped<TenantContext>();
         services.AddScoped<ITenantContext>(sp => sp.GetRequiredService<TenantContext>());
+
+        services.AddHostedService<DomainEventsPooler>();
 
         return services;
     }
