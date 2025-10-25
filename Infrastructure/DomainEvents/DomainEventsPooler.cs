@@ -25,6 +25,10 @@ internal sealed class DomainEventsPooler(
             {
                 @event = await channel.Receive(stoppingToken);
             }
+            catch (OperationCanceledException) when (stoppingToken.IsCancellationRequested)
+            {
+                break;
+            }
             catch (Exception e)
             {
                 logger.LogError(e, "Failed to read domain event from channel.");
