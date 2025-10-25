@@ -1,11 +1,15 @@
 using System.Collections.Concurrent;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Logging;
 using SharedKernel;
 
 namespace Infrastructure.DomainEvents;
 
-internal sealed class DomainEventsPooler(DomainEventsChannel channel, IServiceProvider serviceProvider)
+internal sealed class DomainEventsPooler(
+    DomainEventsChannel channel,
+    IServiceProvider serviceProvider,
+    ILogger<DomainEventsPooler> logger)
     : BackgroundService
 {
     private static readonly ConcurrentDictionary<Type, Type> HandlerTypeDictionary = new();
@@ -15,8 +19,18 @@ internal sealed class DomainEventsPooler(DomainEventsChannel channel, IServicePr
     {
         while (await channel.WaitToRead(stoppingToken))
         {
-            var @event = await channel.Receive(stoppingToken);
-            
+            IDomainEvent @event;
+
+            try
+            {
+                @event = await channel.Receive(stoppingToken);
+            }
+            catch (Exception e)
+            {
+                logger.LogError(e, "Failed to read domain event from channel.");
+                continue;
+            }
+
             using var scope = serviceProvider.CreateScope();
 
             var domainEventType = @event.GetType();
@@ -35,7 +49,19 @@ internal sealed class DomainEventsPooler(DomainEventsChannel channel, IServicePr
 
                 var handlerWrapper = HandlerWrapper.Create(handler, domainEventType);
 
-                await handlerWrapper.Handle(@event, stoppingToken);
+                try
+                {
+                    await handlerWrapper.Handle(@event, stoppingToken);
+                }
+                catch (OperationCanceledException) when (stoppingToken.IsCancellationRequested)
+                {
+                    throw;
+                }
+                catch (Exception e)
+                {
+                    logger.LogError(e, "Domain event handler {Handler} failed for {EventType}.",
+                        handler.GetType().FullName, domainEventType.FullName);
+                }
             }
         }
     }
@@ -50,17 +76,25 @@ internal sealed class DomainEventsPooler(DomainEventsChannel channel, IServicePr
                 domainEventType,
                 et => typeof(HandlerWrapper<>).MakeGenericType(et));
 
-            return (HandlerWrapper)Activator.CreateInstance(wrapperType, handler);
+            var instance = Activator.CreateInstance(wrapperType, handler);
+
+            if (instance is null)
+            {
+                throw new InvalidOperationException(
+                    $"Failed to create an instance of {wrapperType} for handler {handler.GetType().FullName}.");
+            }
+
+            return (HandlerWrapper) instance;
         }
     }
 
     private sealed class HandlerWrapper<T>(object handler) : HandlerWrapper where T : IDomainEvent
     {
-        private readonly IDomainEventHandler<T> _handler = (IDomainEventHandler<T>)handler;
+        private readonly IDomainEventHandler<T> _handler = (IDomainEventHandler<T>) handler;
 
         public override async Task Handle(IDomainEvent domainEvent, CancellationToken cancellationToken)
         {
-            await _handler.Handle((T)domainEvent, cancellationToken);
+            await _handler.Handle((T) domainEvent, cancellationToken);
         }
     }
 }
