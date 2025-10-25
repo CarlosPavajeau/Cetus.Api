@@ -18,5 +18,9 @@ public class DeliveryFeeConfiguration : IEntityTypeConfiguration<DeliveryFee>
 
         builder.Property(df => df.CityId)
             .IsRequired();
+
+        builder
+            .HasIndex(d => new {d.CityId, d.StoreId, d.DeletedAt})
+            .IsUnique(false);
     }
 }

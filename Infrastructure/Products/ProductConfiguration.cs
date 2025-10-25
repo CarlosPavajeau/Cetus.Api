@@ -25,5 +25,7 @@ internal sealed class ProductConfiguration : IEntityTypeConfiguration<Product>
             .WithOne(v => v.Product)
             .HasForeignKey(p => p.ProductId)
             .OnDelete(DeleteBehavior.Cascade);
+
+        builder.HasIndex(p => new {p.StoreId, p.DeletedAt});
     }
 }

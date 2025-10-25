@@ -13,8 +13,8 @@ public class ProductVariantConfiguration : IEntityTypeConfiguration<ProductVaria
         builder.Property(p => p.Sku)
             .HasMaxLength(100)
             .IsRequired();
-        
-        
+
+
         builder.HasIndex(p => new {p.ProductId, p.Sku})
             .IsUnique();
 
@@ -22,10 +22,14 @@ public class ProductVariantConfiguration : IEntityTypeConfiguration<ProductVaria
             .WithMany(p => p.Variants)
             .HasForeignKey(p => p.ProductId)
             .OnDelete(DeleteBehavior.Cascade);
-        
+
         builder.HasMany(p => p.Images)
             .WithOne(i => i.ProductVariant)
             .HasForeignKey(i => i.VariantId)
             .OnDelete(DeleteBehavior.Cascade);
+
+        builder
+            .HasIndex(p => new {p.Id, p.DeletedAt, p.Stock})
+            .IsUnique(false);
     }
 }
