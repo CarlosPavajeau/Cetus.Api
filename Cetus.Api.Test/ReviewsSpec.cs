@@ -26,6 +26,16 @@ public class ReviewsSpec(ApplicationTestCase factory) : ApplicationContextTestCa
     private readonly CreateProductCommandFaker _productCommandFaker = new();
     private readonly Guid cityId = Guid.Parse("f97957e9-d820-4858-ac26-b5d03d658370");
 
+    private async Task WaitForCustomerRequests(string customerId)
+    {
+        var db = Services.GetRequiredService<IApplicationDbContext>();
+        
+        await WaitUntilHelper.WaitUntilAsync(
+            async () => (await db.ReviewRequests.AsNoTracking().AnyAsync(r => r.CustomerId == customerId)),
+            timeout: TimeSpan.FromSeconds(10),
+            pollInterval: TimeSpan.FromMilliseconds(100));
+    }
+
     [Fact(DisplayName = "Should find a review request by token")]
     public async Task ShouldFindReviewRequestByToken()
     {
@@ -48,8 +58,8 @@ public class ReviewsSpec(ApplicationTestCase factory) : ApplicationContextTestCa
         // Arrange - Deliver the order to generate review request
         var deliverOrderResponse = await Client.PostAsync($"api/orders/{order.Id}/deliver", null);
         deliverOrderResponse.EnsureSuccessStatusCode();
-        
-        await Task.Delay(500); // Wait 0.5s to domain event process
+
+        await WaitForCustomerRequests(newCustomer.Id);
 
         // Get the review request token from the database
         var db = Services.GetRequiredService<IApplicationDbContext>();
@@ -111,7 +121,7 @@ public class ReviewsSpec(ApplicationTestCase factory) : ApplicationContextTestCa
         var deliverOrderResponse = await Client.PostAsync($"api/orders/{order.Id}/deliver", null);
         deliverOrderResponse.EnsureSuccessStatusCode();
         
-        await Task.Delay(500); // Wait 0.5s to domain event process
+        await WaitForCustomerRequests(newCustomer.Id);
 
         // Get the review request token from the database
         var db = Services.GetRequiredService<IApplicationDbContext>();
@@ -173,7 +183,7 @@ public class ReviewsSpec(ApplicationTestCase factory) : ApplicationContextTestCa
             var deliverOrderResponse = await Client.PostAsync($"api/orders/{order.Id}/deliver", null);
             deliverOrderResponse.EnsureSuccessStatusCode();
             
-            await Task.Delay(500); // Wait 0.5s to domain event process
+            await WaitForCustomerRequests(newCustomer.Id);
 
             // Get review request
             var reviewRequest = await db.ReviewRequests
@@ -273,7 +283,7 @@ public class ReviewsSpec(ApplicationTestCase factory) : ApplicationContextTestCa
             var deliverOrderResponse = await Client.PostAsync($"api/orders/{order.Id}/deliver", null);
             deliverOrderResponse.EnsureSuccessStatusCode();
             
-            await Task.Delay(500); // Wait 0.5s to domain event process
+            await WaitForCustomerRequests(newCustomer.Id);
 
             // Get review request
             var reviewRequest = await db.ReviewRequests
@@ -330,7 +340,7 @@ public class ReviewsSpec(ApplicationTestCase factory) : ApplicationContextTestCa
         var deliverOrderResponse = await Client.PostAsync($"api/orders/{order.Id}/deliver", null);
         deliverOrderResponse.EnsureSuccessStatusCode();
 
-        await Task.Delay(500); // Wait 0.5s to domain event process
+        await WaitForCustomerRequests(newCustomer.Id);
 
         // Get review request
         var db = Services.GetRequiredService<IApplicationDbContext>();
@@ -389,7 +399,7 @@ public class ReviewsSpec(ApplicationTestCase factory) : ApplicationContextTestCa
         var deliverOrderResponse = await Client.PostAsync($"api/orders/{order.Id}/deliver", null);
         deliverOrderResponse.EnsureSuccessStatusCode();
         
-        await Task.Delay(500); // Wait 0.5s to domain event process
+        await WaitForCustomerRequests(newCustomer.Id);
 
         // Get review request
         var db = Services.GetRequiredService<IApplicationDbContext>();
