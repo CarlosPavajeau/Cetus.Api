@@ -12,6 +12,10 @@ public sealed record StoreResponse(
     string? Address,
     string? Phone,
     string? Email,
+    string? WompiPublicKey,
+    string? WompiPrivateKey,
+    string? WompiEventsKey,
+    string? WompiIntegrityKey,
     bool IsConnectedToMercadoPago)
 {
     public static Expression<Func<Store, StoreResponse>> Map => store =>
@@ -24,6 +28,10 @@ public sealed record StoreResponse(
             store.Address,
             store.Phone,
             store.Email,
+            store.WompiPublicKey,
+            store.WompiPrivateKey,
+            store.WompiEventsKey,
+            store.WompiIntegrityKey,
             store.IsConnectedToMercadoPago
         );
 }
