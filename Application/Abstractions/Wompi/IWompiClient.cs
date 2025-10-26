@@ -4,5 +4,5 @@ namespace Application.Abstractions.Wompi;
 
 public interface IWompiClient
 {
-    Task<OrderPaymentResponse?> FindPaymentById(string paymentId, string publicKey, CancellationToken cancellationToken = default);
+    Task<OrderPaymentResponse?> FindPaymentById(string paymentId, CancellationToken cancellationToken = default);
 }

@@ -8,7 +8,7 @@ namespace Infrastructure.Wompi;
 
 internal sealed class WompiClient(IHttpClientFactory clientFactory, ILogger<WompiClient> logger) : IWompiClient
 {
-    public async Task<OrderPaymentResponse?> FindPaymentById(string paymentId, string publicKey,
+    public async Task<OrderPaymentResponse?> FindPaymentById(string paymentId,
         CancellationToken cancellationToken = default)
     {
         var client = clientFactory.CreateClient(nameof(WompiClient));

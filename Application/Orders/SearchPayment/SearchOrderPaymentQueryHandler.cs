@@ -95,7 +95,7 @@ internal sealed class SearchOrderPaymentQueryHandler(
             return Result.Failure<OrderPaymentResponse>(StoreErrors.WompiPublicKeyNotFound(storeId));
         }
 
-        var payment = await wompiClient.FindPaymentById(transactionId, publicKey, cancellationToken);
+        var payment = await wompiClient.FindPaymentById(transactionId, cancellationToken);
 
         if (payment is null)
         {
