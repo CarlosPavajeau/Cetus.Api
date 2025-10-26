@@ -13,7 +13,7 @@ internal sealed class FindById : IEndpoint
     {
         app.MapGet("stores/{id:guid}", async (
             Guid id,
-            IQueryHandler<FindStoreByIdQuery, StoreResponse> handler,
+            IQueryHandler<FindStoreByIdQuery, SimpleStoreResponse> handler,
             HybridCache cache,
             CancellationToken cancellationToken) =>
         {

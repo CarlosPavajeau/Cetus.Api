@@ -7,22 +7,22 @@ using SharedKernel;
 namespace Application.Stores.Find;
 
 internal sealed class FindStoreQueryHandler(IApplicationDbContext context)
-    : IQueryHandler<FindStoreQuery, StoreResponse>
+    : IQueryHandler<FindStoreQuery, SimpleStoreResponse>
 {
-    public async Task<Result<StoreResponse>> Handle(FindStoreQuery query, CancellationToken cancellationToken)
+    public async Task<Result<SimpleStoreResponse>> Handle(FindStoreQuery query, CancellationToken cancellationToken)
     {
         if (string.IsNullOrEmpty(query.CustomDomain) && string.IsNullOrEmpty(query.Slug))
         {
-            return Result.Failure<StoreResponse>(StoreErrors.InvalidQuery());
+            return Result.Failure<SimpleStoreResponse>(StoreErrors.InvalidQuery());
         }
 
         var queryable = context.Stores.AsNoTracking();
-        StoreResponse? store = null;
+        SimpleStoreResponse? store = null;
 
         if (!string.IsNullOrEmpty(query.CustomDomain))
         {
             store = await queryable.Where(s => s.CustomDomain == query.CustomDomain)
-                .Select(StoreResponse.Map)
+                .Select(SimpleStoreResponse.Map)
                 .FirstOrDefaultAsync(cancellationToken);
         }
 
@@ -34,13 +34,13 @@ internal sealed class FindStoreQueryHandler(IApplicationDbContext context)
         if (!string.IsNullOrEmpty(query.Slug))
         {
             store = await queryable.Where(s => s.Slug == query.Slug)
-                .Select(StoreResponse.Map)
+                .Select(SimpleStoreResponse.Map)
                 .FirstOrDefaultAsync(cancellationToken);
         }
 
         if (store is null)
         {
-            return Result.Failure<StoreResponse>(StoreErrors.NotFound(query.CustomDomain, query.Slug));
+            return Result.Failure<SimpleStoreResponse>(StoreErrors.NotFound(query.CustomDomain, query.Slug));
         }
 
         return store;

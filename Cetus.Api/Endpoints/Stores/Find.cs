@@ -13,7 +13,7 @@ internal sealed class Find : IEndpoint
     {
         app.MapGet("stores/by-domain/{domain}", async (
             string domain,
-            IQueryHandler<FindStoreQuery, StoreResponse> handler,
+            IQueryHandler<FindStoreQuery, SimpleStoreResponse> handler,
             HybridCache cache,
             CancellationToken cancellationToken) =>
         {
@@ -31,7 +31,7 @@ internal sealed class Find : IEndpoint
 
         app.MapGet("stores/by-slug/{slug}", async (
             string slug,
-            IQueryHandler<FindStoreQuery, StoreResponse> handler,
+            IQueryHandler<FindStoreQuery, SimpleStoreResponse> handler,
             HybridCache cache,
             CancellationToken cancellationToken) =>
         {

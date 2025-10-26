@@ -10,7 +10,7 @@ public class TenantResolverMiddleware(RequestDelegate next)
 {
     public async Task InvokeAsync(
         HttpContext context,
-        IQueryHandler<FindStoreQuery, StoreResponse> handler,
+        IQueryHandler<FindStoreQuery, SimpleStoreResponse> handler,
         TenantContext tenantContext,
         ILogger<TenantResolverMiddleware> logger,
         HybridCache cache)
