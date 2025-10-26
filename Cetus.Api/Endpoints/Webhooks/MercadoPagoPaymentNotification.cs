@@ -5,6 +5,7 @@ using Application.Orders.Pay;
 using Cetus.Api.Extensions;
 using Cetus.Api.Infrastructure;
 using Cetus.Api.Realtime;
+using Domain.Orders;
 using Microsoft.AspNetCore.SignalR;
 
 namespace Cetus.Api.Endpoints.Webhooks;
@@ -61,8 +62,8 @@ internal sealed class MercadoPagoPaymentNotification : IEndpoint
             }
 
             var paymentId = payment.Id.Value;
-            var payOrderCommand = new PayOrderCommand(orderId, paymentId.ToString());
-            
+            var payOrderCommand = new PayOrderCommand(orderId, paymentId.ToString(), PaymentProvider.MercadoPago);
+
             var updateResult = await handler.Handle(payOrderCommand, cancellationToken);
 
             if (updateResult.IsSuccess)
