@@ -23,6 +23,7 @@ public sealed class Order : Entity
     public string CustomerId { get; set; } = string.Empty;
     public Customer? Customer { get; set; }
 
+    public PaymentProvider? PaymentProvider { get; set; }
     public string? TransactionId { get; set; }
     public string? RefundId { get; set; }
 

@@ -85,6 +85,7 @@ public static class DependencyInjection
                         dbContextOptionsBuilder.MapEnum<ProductReviewStatus>("product_review_status");
                         dbContextOptionsBuilder.MapEnum<CouponDiscountType>("coupon_discount_type");
                         dbContextOptionsBuilder.MapEnum<CouponRuleType>("coupon_rule_type");
+                        dbContextOptionsBuilder.MapEnum<PaymentProvider>("order_payment_provider");
                     })
                 .UseSnakeCaseNamingConvention();
         });
