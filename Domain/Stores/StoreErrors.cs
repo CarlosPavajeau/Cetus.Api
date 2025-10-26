@@ -39,4 +39,10 @@ public static class StoreErrors
             "Stores.NotConnectedToMercadoPago",
             $"Store with Slug '{Slug}' is not connected to Mercado Pago"
         );
+
+    public static Error WompiPublicKeyNotFound(Guid storeId) =>
+        Error.Problem(
+            "Stores.WompiPublicKeyNotFound",
+            $"Wompi public key not found for store with Id '{storeId}'"
+        );
 }

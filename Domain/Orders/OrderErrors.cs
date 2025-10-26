@@ -72,4 +72,16 @@ public static class OrderErrors
             "Orders.PaymentCancellationFailed",
             $"Failed to cancel payment with ID {paymentId}."
         );
+
+    public static Error NotPaid(Guid orderId) =>
+        Error.Problem(
+            "Orders.NotPaid",
+            $"Order with ID {orderId} has not been paid."
+        );
+
+    public static Error PaymentSearchFailed(Guid orderId) =>
+        Error.Problem(
+            "Orders.PaymentSearchFailed",
+            $"Failed to search payment for order with ID {orderId}."
+        );
 }
