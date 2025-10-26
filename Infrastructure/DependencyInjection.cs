@@ -3,6 +3,7 @@ using System.Threading.RateLimiting;
 using Application.Abstractions.Data;
 using Application.Abstractions.Email;
 using Application.Abstractions.MercadoPago;
+using Application.Abstractions.Wompi;
 using Domain.Coupons;
 using Domain.Orders;
 using Domain.Reviews;
@@ -13,6 +14,7 @@ using Infrastructure.MercadoPago;
 using Infrastructure.Reviews.Jobs;
 using Infrastructure.Stores;
 using Infrastructure.Time;
+using Infrastructure.Wompi;
 using MercadoPago.Config;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Builder;
@@ -54,7 +56,7 @@ public static class DependencyInjection
             .AddRateLimit()
             .AddCache()
             .AddQuartz()
-            .AddMercadoPago(configuration);
+            .AddPayment(configuration);
 
     private static IServiceCollection AddServices(this IServiceCollection services)
     {
@@ -210,7 +212,7 @@ public static class DependencyInjection
                     .AllowAnyHeader()
                     .AllowAnyMethod();
             });
-            
+
             options.AddPolicy(AllowSpecificOriginsCorsPolicy, policy =>
             {
                 var allowedOrigin = configuration["AllowedOrigin"]!;
@@ -286,11 +288,15 @@ public static class DependencyInjection
         return services;
     }
 
-    private static IServiceCollection AddMercadoPago(this IServiceCollection services, IConfiguration configuration)
+    private static IServiceCollection AddPayment(this IServiceCollection services, IConfiguration configuration)
     {
         MercadoPagoConfig.AccessToken = configuration["MercadoPago:AccessToken"]!;
-
         services.AddTransient<IMercadoPagoClient, MercadoPagoClient>();
+
+        services.AddHttpClient("WompiClient",
+            client => { client.BaseAddress = new Uri(configuration["Wompi:BaseUrl"]!); });
+
+        services.AddTransient<IWompiClient, WompiClient>();
 
         return services;
     }
