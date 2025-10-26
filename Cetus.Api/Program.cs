@@ -1,4 +1,6 @@
 using System.Reflection;
+using System.Text.Json;
+using System.Text.Json.Serialization;
 using Application;
 using Cetus.Api;
 using Cetus.Api.Extensions;
@@ -33,6 +35,11 @@ builder.Host.UseSerilog((context, loggerConfig) =>
 });
 
 builder.Services.AddSwaggerGenWithAuth();
+
+builder.Services.ConfigureHttpJsonOptions(options =>
+{
+    options.SerializerOptions.Converters.Add(new JsonStringEnumConverter(JsonNamingPolicy.SnakeCaseLower));
+});
 
 builder.Services
     .AddApplication()
