@@ -1,4 +1,5 @@
 using System.Text.Json;
+using System.Text.Json.Serialization;
 
 namespace Cetus.Api.Test.Shared;
 
@@ -7,7 +8,8 @@ public static class HttpResponseDeserializer
     private static readonly JsonSerializerOptions JsonSerializerOptions =
         new()
         {
-            PropertyNameCaseInsensitive = true
+            PropertyNameCaseInsensitive = true,
+            Converters = {new JsonStringEnumConverter(JsonNamingPolicy.SnakeCaseLower)}
         };
 
     public static async Task<T?> DeserializeAsync<T>(
