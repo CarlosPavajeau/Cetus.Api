@@ -29,6 +29,7 @@ internal sealed class PayOrderCommandHandler(IApplicationDbContext db)
 
         order.Status = OrderStatus.Paid;
         order.TransactionId = command.TransactionId;
+        order.PaymentProvider = command.PaymentProvider;
 
         order.Raise(new PaidOrderDomainEvent(new PaidOrder(
             order.Id,
