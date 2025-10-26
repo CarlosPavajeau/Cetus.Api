@@ -20,7 +20,7 @@ public sealed record SimpleStoreResponse(
             store.Id,
             store.Name,
             store.Slug,
-            $"https://{store.CustomDomain}",
+            store.CustomDomain,
             store.LogoUrl,
             store.Address,
             store.Phone,
