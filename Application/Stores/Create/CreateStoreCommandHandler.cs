@@ -6,7 +6,7 @@ using SharedKernel;
 
 namespace Application.Stores.Create;
 
-internal sealed class CreateStoreCommandHandler(IApplicationDbContext db) : ICommandHandler<CreateStoreCommand>
+internal sealed class CreateStoreCommandHandler(IApplicationDbContext db, IDateTimeProvider timeProvider) : ICommandHandler<CreateStoreCommand>
 {
     public async Task<Result> Handle(CreateStoreCommand command, CancellationToken cancellationToken)
     {
@@ -16,12 +16,15 @@ internal sealed class CreateStoreCommandHandler(IApplicationDbContext db) : ICom
             return Result.Failure(StoreErrors.AlreadyExists(command.Slug));
         }
 
+        var now = timeProvider.UtcNow;
         var store = new Store
         {
             Id = Guid.NewGuid(),
             Name = command.Name,
             Slug = command.Slug,
-            ExternalId = command.ExternalId
+            ExternalId = command.ExternalId,
+            CreatedAt = now,
+            UpdatedAt = now
         };
 
         await db.Stores.AddAsync(store, cancellationToken);
