@@ -18,6 +18,6 @@ internal sealed class ConfigureWompi : IEndpoint
             var result = await handler.Handle(command, cancellationToken);
             
             return result.Match(Results.NoContent, CustomResults.Problem);
-        });
+        }).WithTags(Tags.Stores, Tags.Wompi);
     }
 }

@@ -11,4 +11,6 @@ public static class Tags
     public const string Coupons = "Coupons";
     public const string Stores = "Stores";
     public const string MercadoPago = "MercadoPago";
+    public const string Wompi = "Wompi";
+    public const string Webhooks = "Webhooks";
 }

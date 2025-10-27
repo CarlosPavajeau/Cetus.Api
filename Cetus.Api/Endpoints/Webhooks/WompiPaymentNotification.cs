@@ -82,6 +82,6 @@ internal sealed class WompiPaymentNotification : IEndpoint
             }
 
             return updateResult.Match(Results.Ok, CustomResults.Problem);
-        });
+        }).AllowAnonymous().WithTags(Tags.Webhooks, Tags.Wompi);
     }
 }

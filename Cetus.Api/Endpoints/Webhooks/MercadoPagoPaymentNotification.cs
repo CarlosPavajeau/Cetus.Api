@@ -72,6 +72,6 @@ internal sealed class MercadoPagoPaymentNotification : IEndpoint
             }
 
             return updateResult.Match(Results.Ok, CustomResults.Problem);
-        }).AllowAnonymous();
+        }).AllowAnonymous().WithTags(Tags.Webhooks, Tags.MercadoPago);
     }
 }
