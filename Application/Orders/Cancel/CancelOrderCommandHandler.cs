@@ -38,31 +38,34 @@ internal sealed class CancelOrderCommandHandler(
 
         if (!string.IsNullOrEmpty(order.TransactionId))
         {
-            var store = await db.Stores
-                .AsNoTracking()
-                .Where(s => s.Id == order.StoreId)
-                .FirstOrDefaultAsync(cancellationToken);
-
-            if (store is null)
+            if (order.PaymentProvider == PaymentProvider.MercadoPago)
             {
-                return Result.Failure<SimpleOrderResponse>(StoreErrors.NotFoundById(order.StoreId));
-            }
+                var store = await db.Stores
+                    .AsNoTracking()
+                    .Where(s => s.Id == order.StoreId)
+                    .FirstOrDefaultAsync(cancellationToken);
 
-            if (!store.IsConnectedToMercadoPago)
-            {
-                return Result.Failure<SimpleOrderResponse>(StoreErrors.NotConnectedToMercadoPago(store.Slug));
-            }
+                if (store is null)
+                {
+                    return Result.Failure<SimpleOrderResponse>(StoreErrors.NotFoundById(order.StoreId));
+                }
+                
+                if (!store.IsConnectedToMercadoPago)
+                {
+                    return Result.Failure<SimpleOrderResponse>(StoreErrors.NotConnectedToMercadoPago(store.Slug));
+                }
+                
+                var paymentResult = await CancelMercadoPagoPayment(order, store.MercadoPagoAccessToken!, cancellationToken);
 
-            var paymentResult = await CancelPayment(order, store.MercadoPagoAccessToken!, cancellationToken);
+                if (paymentResult.IsFailure)
+                {
+                    return Result.Failure<SimpleOrderResponse>(paymentResult.Error);
+                }
 
-            if (paymentResult.IsFailure)
-            {
-                return Result.Failure<SimpleOrderResponse>(paymentResult.Error);
-            }
-
-            if (paymentResult.Value > 0)
-            {
-                order.RefundId = paymentResult.Value.ToString();
+                if (paymentResult.Value > 0)
+                {
+                    order.RefundId = paymentResult.Value.ToString();
+                }
             }
         }
 
@@ -77,7 +80,7 @@ internal sealed class CancelOrderCommandHandler(
         return SimpleOrderResponse.From(order);
     }
 
-    private async Task<Result<long>> CancelPayment(Order order, string accessToken, CancellationToken cancellationToken)
+    private async Task<Result<long>> CancelMercadoPagoPayment(Order order, string accessToken, CancellationToken cancellationToken)
     {
         if (!long.TryParse(order.TransactionId!, out var paymentId))
         {
