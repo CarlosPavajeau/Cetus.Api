@@ -23,6 +23,8 @@ internal sealed class UpdateProductVariantCommandHandler(IApplicationDbContext d
 
         productVariant.Price = command.Price;
         productVariant.Stock = command.Stock;
+        productVariant.Enabled = command.Enabled;
+        productVariant.Featured = command.Featured;
 
         await db.SaveChangesAsync(cancellationToken);
 

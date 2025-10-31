@@ -155,6 +155,8 @@ internal sealed class CreateProductVariantCommandHandler(
                 variant.Sku,
                 variant.Stock,
                 variant.Price,
+                variant.Enabled,
+                variant.Featured,
                 variant.ProductId
             );
 
