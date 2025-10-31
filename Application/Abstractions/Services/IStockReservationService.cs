@@ -12,5 +12,3 @@ public sealed record StockReservationResult(
     bool Success,
     IReadOnlyList<long> ReservedVariantIds,
     IReadOnlyList<long> FailedVariantIds);
-
-
