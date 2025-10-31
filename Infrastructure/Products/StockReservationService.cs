@@ -39,7 +39,9 @@ public sealed class StockReservationService(ApplicationDbContext context) : ISto
         var qtysParam = new NpgsqlParameter<int[]>("@qtys", qtys);
         var storeParam = new NpgsqlParameter<Guid>("@store_id", storeId);
 
-        var affected = await context.Database.ExecuteSqlRawAsync(sql, idsParam, qtysParam, storeParam);
+        IEnumerable<object> parameters = [idsParam, qtysParam, storeParam];
+
+        var affected = await context.Database.ExecuteSqlRawAsync(sql, parameters, cancellationToken);
 
         if (affected == quantitiesByVariant.Count)
         {
