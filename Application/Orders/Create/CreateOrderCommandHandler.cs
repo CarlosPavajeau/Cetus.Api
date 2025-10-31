@@ -51,10 +51,25 @@ internal sealed class CreateOrderCommandHandler(
             if (!reserveResult.Success)
             {
                 await transaction.RollbackAsync(cancellationToken);
-                return Result.Failure<SimpleOrderResponse>(OrderErrors.InsufficientStock(
-                    reserveResult.FailedVariantIds.Select(id => id.ToString()).ToList(),
-                    reserveResult.FailedVariantIds.Select(id => $"{id} (requested: {quantitiesByVariant[id]})")
-                        .ToList()));
+
+                var variantsById = productsResult.Value.ToDictionary(v => v.Id);
+                var outOfStockProducts = reserveResult.FailedVariantIds
+                    .Select(id => variantsById.TryGetValue(id, out var variant) ? variant.ProductName : id.ToString())
+                    .ToList();
+
+                var requestedProducts = reserveResult.FailedVariantIds
+                    .Select(id =>
+                    {
+                        var label = variantsById.TryGetValue(id, out var variant) ? variant.ProductName : id.ToString();
+                        var quantity = quantitiesByVariant.TryGetValue(id, out var qty) ? $"{qty}" : "unknown";
+
+                        return $"{label} (requested: {quantity})";
+                    })
+                    .ToList();
+
+
+                return Result.Failure<SimpleOrderResponse>(
+                    OrderErrors.InsufficientStock(outOfStockProducts, requestedProducts));
             }
 
             await context.SaveChangesAsync(cancellationToken);
