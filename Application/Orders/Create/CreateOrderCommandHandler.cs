@@ -1,9 +1,10 @@
 using Application.Abstractions.Data;
 using Application.Abstractions.Messaging;
+using Application.Abstractions.Services;
 using Application.Orders.DeliveryFees.Find;
 using Domain.Orders;
-using Domain.Products;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Caching.Hybrid;
 using Microsoft.Extensions.Logging;
 using SharedKernel;
 
@@ -12,8 +13,10 @@ namespace Application.Orders.Create;
 internal sealed class CreateOrderCommandHandler(
     IApplicationDbContext context,
     ITenantContext tenant,
-    ILogger<CreateOrderCommandHandler> logger)
-    : ICommandHandler<CreateOrderCommand, SimpleOrderResponse>
+    ILogger<CreateOrderCommandHandler> logger,
+    IStockReservationService stockReservationService,
+    HybridCache cache
+) : ICommandHandler<CreateOrderCommand, SimpleOrderResponse>
 {
     public async Task<Result<SimpleOrderResponse>> Handle(CreateOrderCommand request,
         CancellationToken cancellationToken)
@@ -42,7 +45,32 @@ internal sealed class CreateOrderCommandHandler(
 
             await context.Orders.AddAsync(order, cancellationToken);
 
-            UpdateProductStocks(productsResult.Value, quantitiesByVariant);
+            var reserveResult =
+                await stockReservationService.TryReserveAsync(quantitiesByVariant, tenant.Id, cancellationToken);
+
+            if (!reserveResult.Success)
+            {
+                await transaction.RollbackAsync(cancellationToken);
+
+                var variantsById = productsResult.Value.ToDictionary(v => v.Id);
+                var outOfStockProducts = reserveResult.FailedVariantIds
+                    .Select(id => variantsById.TryGetValue(id, out var variant) ? variant.ProductName : id.ToString())
+                    .ToList();
+
+                var requestedProducts = reserveResult.FailedVariantIds
+                    .Select(id =>
+                    {
+                        var label = variantsById.TryGetValue(id, out var variant) ? variant.ProductName : id.ToString();
+                        var quantity = quantitiesByVariant.TryGetValue(id, out var qty) ? $"{qty}" : "unknown";
+
+                        return $"{label} (requested: {quantity})";
+                    })
+                    .ToList();
+
+
+                return Result.Failure<SimpleOrderResponse>(
+                    OrderErrors.InsufficientStock(outOfStockProducts, requestedProducts));
+            }
 
             await context.SaveChangesAsync(cancellationToken);
             await transaction.CommitAsync(cancellationToken);
@@ -83,72 +111,56 @@ internal sealed class CreateOrderCommandHandler(
         };
 
         await context.Customers.AddAsync(customer, cancellationToken);
-        await context.SaveChangesAsync(cancellationToken);
 
         logger.LogInformation("New customer {CustomerId} created", customer.Id);
 
         return customer;
     }
 
-    private async Task<Result<List<ProductVariant>>> ValidateAndGetProducts(
+    private sealed record VariantInfo(long Id, decimal Price, string ProductName);
+
+    private async Task<Result<List<VariantInfo>>> ValidateAndGetProducts(
         IReadOnlyList<CreateOrderItem> items,
         Dictionary<long, int> quantitiesByVariant,
         CancellationToken cancellationToken)
     {
         if (items.Count == 0)
         {
-            return Result.Failure<List<ProductVariant>>(OrderErrors.EmptyOrder());
+            return Result.Failure<List<VariantInfo>>(OrderErrors.EmptyOrder());
         }
 
         if (items.Any(i => i.Quantity <= 0))
         {
-            return Result.Failure<List<ProductVariant>>(OrderErrors.InvalidItemQuantities());
+            return Result.Failure<List<VariantInfo>>(OrderErrors.InvalidItemQuantities());
         }
 
         var variantIds = quantitiesByVariant.Keys.ToList();
-        
-        var products = await context.ProductVariants
+
+        var variants = await context.ProductVariants
+            .AsNoTracking()
             .Where(v =>
                 variantIds.Contains(v.Id) &&
                 v.DeletedAt == null &&
                 v.Product != null &&
                 v.Product.DeletedAt == null &&
                 v.Product.StoreId == tenant.Id)
-            .Select(v => new {v, v.Product!.Name, v.Product.StoreId})
+            .Select(v => new VariantInfo(v.Id, v.Price, v.Product!.Name))
             .ToListAsync(cancellationToken);
 
-        var foundVariantIds = products.Select(p => p.v.Id).ToHashSet();
+        var foundVariantIds = variants.Select(p => p.Id).ToHashSet();
         var missingProducts = variantIds.Except(foundVariantIds).ToList();
 
         if (missingProducts.Count != 0)
         {
             var productCodes = missingProducts.Select(p => p.ToString()).ToList();
-            return Result.Failure<List<ProductVariant>>(OrderErrors.ProductsNotFound(productCodes));
+            return Result.Failure<List<VariantInfo>>(OrderErrors.ProductsNotFound(productCodes));
         }
 
-        var outOfStockProducts = products
-            .Where(p => p.v.Stock < quantitiesByVariant[p.v.Id])
-            .ToList();
-
-        if (outOfStockProducts.Count != 0)
-        {
-            var outOfStockProductsDetails = outOfStockProducts
-                .Select(p => $"{p.v.Id} (stock: {p.v.Stock})")
-                .ToList();
-
-            var requestedProducts = outOfStockProducts
-                .Select(p => $"{p.v.Id} (requested: {quantitiesByVariant[p.v.Id]})")
-                .ToList();
-
-            return Result.Failure<List<ProductVariant>>(
-                OrderErrors.InsufficientStock(outOfStockProductsDetails, requestedProducts));
-        }
-
-        return products.Select(p => p.v).ToList();
+        return variants;
     }
 
     private async Task<Order> CreateOrderEntity(CreateOrderCommand request, string customerId,
-        IReadOnlyList<ProductVariant> variants, CancellationToken cancellationToken)
+        IReadOnlyList<VariantInfo> variants, CancellationToken cancellationToken)
     {
         var deliveryFee = await CalculateDeliveryFee(request.CityId, tenant.Id, cancellationToken);
 
@@ -159,7 +171,7 @@ internal sealed class CreateOrderCommandHandler(
                 var variant = variantById[i.VariantId];
                 return new OrderItem
                 {
-                    ProductName = variant.Product?.Name ?? i.ProductName,
+                    ProductName = variant.ProductName,
                     ImageUrl = i.ImageUrl,
                     Quantity = i.Quantity,
                     Price = variant.Price,
@@ -188,23 +200,23 @@ internal sealed class CreateOrderCommandHandler(
 
     private async Task<decimal> CalculateDeliveryFee(Guid cityId, Guid tenantId, CancellationToken cancellationToken)
     {
-        var deliveryFee = await context.DeliveryFees
-            .AsNoTracking()
-            .Where(x => x.CityId == cityId && x.StoreId == tenantId && x.DeletedAt == null)
-            .Select(x => new {x.Fee})
-            .FirstOrDefaultAsync(cancellationToken);
+        var cacheKey = $"{cityId}-{tenantId}";
+
+        var deliveryFee = await cache.GetOrCreateAsync(
+            cacheKey,
+            async token => await context.DeliveryFees
+                .AsNoTracking()
+                .Where(x => x.CityId == cityId && x.StoreId == tenantId && x.DeletedAt == null)
+                .Select(x => new {x.Fee})
+                .FirstOrDefaultAsync(token),
+            new HybridCacheEntryOptions
+            {
+                Expiration = TimeSpan.FromHours(1),
+                LocalCacheExpiration = TimeSpan.FromHours(1)
+            },
+            cancellationToken: cancellationToken
+        );
 
         return deliveryFee?.Fee ?? DeliveryFeeResponse.Empty.Fee;
-    }
-
-    private static void UpdateProductStocks(List<ProductVariant> products, Dictionary<long, int> quantitiesByVariant)
-    {
-        foreach (var product in products)
-        {
-            if (quantitiesByVariant.TryGetValue(product.Id, out var qty))
-            {
-                product.Stock -= qty;
-            }
-        }
     }
 }

@@ -931,7 +931,9 @@ public class ProductsSpec(ApplicationTestCase factory) : ApplicationContextTestC
         var command = new UpdateProductVariantCommand(
             variant.Id,
             variant.Stock + 5,
-            variant.Price + 10.00m
+            variant.Price + 10.00m,
+            true,
+            true
         );
         
         // Act

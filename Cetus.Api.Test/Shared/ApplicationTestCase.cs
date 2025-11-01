@@ -1,6 +1,7 @@
 using Application.Abstractions.Data;
 using Infrastructure.Database;
 using Infrastructure.Stores;
+using Application.Abstractions.Services;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;
@@ -57,6 +58,10 @@ public class ApplicationTestCase : WebApplicationFactory<Program>
             var tenantId = Guid.NewGuid();
             services.RemoveAll<ITenantContext>();
             services.AddSingleton<ITenantContext>(new TenantContext {Id = tenantId});
+
+            // Replace stock reservation with in-memory implementation for tests
+            services.RemoveAll<IStockReservationService>();
+            services.AddScoped<IStockReservationService, InMemoryStockReservationService>();
         });
 
         base.ConfigureWebHost(builder);

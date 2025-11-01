@@ -15,6 +15,8 @@ using Infrastructure.Reviews.Jobs;
 using Infrastructure.Stores;
 using Infrastructure.Time;
 using Infrastructure.Wompi;
+using Infrastructure.Products;
+using Application.Abstractions.Services;
 using MercadoPago.Config;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Builder;
@@ -69,6 +71,8 @@ public static class DependencyInjection
         services.AddScoped<ITenantContext>(sp => sp.GetRequiredService<TenantContext>());
 
         services.AddHostedService<DomainEventsPooler>();
+
+        services.AddScoped<IStockReservationService, StockReservationService>();
 
         return services;
     }
