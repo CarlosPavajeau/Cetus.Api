@@ -55,9 +55,16 @@ public sealed class StockReservationService(ApplicationDbContext context) : ISto
             .AsNoTracking()
             .ToListAsync(cancellationToken);
 
+        var foundIds = failedIds.Select(x => x.Id).ToHashSet();
+        var missingIds = ids.Where(id => !foundIds.Contains(id));
+
         var failed = failedIds
-            .Where(x => x.DeletedAt != null || x.StoreId != storeId || x.Stock < quantitiesByVariant[x.Id])
+            .Where(x => x.DeletedAt != null
+                        || x.StoreId != storeId
+                        || !quantitiesByVariant.TryGetValue(x.Id, out var qty)
+                        || x.Stock < qty)
             .Select(x => x.Id)
+            .Concat(missingIds)
             .ToList();
 
         var reserved = ids.Where(id => !failed.Contains(id)).ToArray();
