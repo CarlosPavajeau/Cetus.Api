@@ -1,3 +1,4 @@
+using System.Collections.Immutable;
 using System.Net;
 using System.Net.Http.Json;
 using Application.Abstractions.Data;
@@ -10,6 +11,7 @@ using Application.Products.TopSelling;
 using Application.Products.Update;
 using Application.Products.Variants;
 using Application.Products.Variants.Create;
+using Application.Products.Variants.OrderImages;
 using Application.Products.Variants.Update;
 using Bogus;
 using Cetus.Api.Test.Shared;
@@ -77,7 +79,7 @@ public class ProductsSpec(ApplicationTestCase factory) : ApplicationContextTestC
             Name = "Category Test 2",
             CreatedAt = DateTime.UtcNow
         };
-        
+
         var tenant = Services.GetRequiredService<ITenantContext>();
 
         // Create featured products directly in the database
@@ -130,10 +132,10 @@ public class ProductsSpec(ApplicationTestCase factory) : ApplicationContextTestC
         };
 
         var db = Services.GetRequiredService<IApplicationDbContext>();
-        
+
         await db.Categories.AddAsync(category);
         await db.Products.AddRangeAsync(products);
-        
+
         await db.SaveChangesAsync();
 
         // Act
@@ -258,12 +260,12 @@ public class ProductsSpec(ApplicationTestCase factory) : ApplicationContextTestC
         };
 
         var db = Services.GetRequiredService<IApplicationDbContext>();
-        
+
         await db.Categories.AddAsync(category);
         await db.Products.AddRangeAsync(products);
-        
+
         await db.SaveChangesAsync();
-        
+
         var product = products[0];
 
         // Act
@@ -469,7 +471,7 @@ public class ProductsSpec(ApplicationTestCase factory) : ApplicationContextTestC
         response.EnsureSuccessStatusCode();
 
         var topSellingProducts = await response.DeserializeAsync<List<TopSellingProductResponse>>();
-        
+
         topSellingProducts.ShouldNotBeNull();
         topSellingProducts.ShouldNotBeEmpty();
 
@@ -681,9 +683,9 @@ public class ProductsSpec(ApplicationTestCase factory) : ApplicationContextTestC
             Name = "Category Test By Category",
             CreatedAt = DateTime.UtcNow
         };
-        
+
         var tenant = Services.GetRequiredService<ITenantContext>();
-        
+
         var newProduct = new Product
         {
             Id = Guid.NewGuid(),
@@ -708,10 +710,10 @@ public class ProductsSpec(ApplicationTestCase factory) : ApplicationContextTestC
         };
 
         var db = Services.GetRequiredService<IApplicationDbContext>();
-        
+
         await db.Categories.AddAsync(category);
         await db.Products.AddAsync(newProduct);
-        
+
         await db.SaveChangesAsync();
 
         // Act
@@ -902,15 +904,15 @@ public class ProductsSpec(ApplicationTestCase factory) : ApplicationContextTestC
     {
         // Arrange
         var product = await ProductHelper.CreateProductWithVariant(Client);
-        
+
         // Act
         var response = await Client.GetAsync($"api/products/{product.Id}/variants");
-        
+
         // Assert
         response.EnsureSuccessStatusCode();
-        
+
         var variants = await response.DeserializeAsync<List<ProductVariantResponse>>();
-        
+
         variants.ShouldNotBeEmpty();
     }
 
@@ -919,15 +921,15 @@ public class ProductsSpec(ApplicationTestCase factory) : ApplicationContextTestC
     {
         // Arrange
         var product = await ProductHelper.CreateProductWithVariant(Client);
-        
+
         var getVariantsResponse = await Client.GetAsync($"api/products/{product.Id}/variants");
         getVariantsResponse.EnsureSuccessStatusCode();
-        
+
         var variants = await getVariantsResponse.DeserializeAsync<List<ProductVariantResponse>>();
         variants.ShouldNotBeEmpty();
-        
+
         var variant = variants[0];
-        
+
         var command = new UpdateProductVariantCommand(
             variant.Id,
             variant.Stock + 5,
@@ -935,17 +937,45 @@ public class ProductsSpec(ApplicationTestCase factory) : ApplicationContextTestC
             true,
             true
         );
-        
+
         // Act
         var response = await Client.PutAsJsonAsync($"api/products/variants/{variant.Id}", command);
-        
+
         // Assert
         response.EnsureSuccessStatusCode();
-        
+
         var updatedVariant = await response.DeserializeAsync<SimpleProductVariantResponse>();
-        
+
         updatedVariant.ShouldNotBeNull();
         updatedVariant.Stock.ShouldBe(command.Stock);
         updatedVariant.Price.ShouldBe(command.Price);
+    }
+
+    [Fact(DisplayName = "Should order product variant images")]
+    public async Task ShouldOrderProductVariantImages()
+    {
+        var product = await ProductHelper.CreateProductWithVariant(Client);
+
+        var getVariantsResponse = await Client.GetAsync($"api/products/{product.Id}/variants");
+        getVariantsResponse.EnsureSuccessStatusCode();
+
+        var variants = await getVariantsResponse.DeserializeAsync<List<ProductVariantResponse>>();
+        variants.ShouldNotBeEmpty();
+
+        var variant = variants[0];
+        var images = variant.Images;
+        images.ShouldNotBeEmpty();
+
+        var reorderedImages = images
+            .Select((img, index) => img with {SortOrder = index + 1})
+            .ToImmutableList();
+        var command = new OrderVariantImagesCommand(variant.Id, reorderedImages);
+
+        // Act
+        var response = await Client.PutAsJsonAsync($"api/products/variants/{variant.Id}/images/order", command);
+
+        // Assert
+        response.EnsureSuccessStatusCode();
+        response.StatusCode.ShouldBe(HttpStatusCode.NoContent);
     }
 }
