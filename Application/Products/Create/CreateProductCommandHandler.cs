@@ -41,7 +41,7 @@ internal sealed partial class CreateProductCommandHandler(IApplicationDbContext 
 
         // Combine and ensure no double hyphens
         var combined = $"{baseSlug}-{idSuffix}";
-        
+
         return SlugRegex().Replace(combined, "-").Trim('-');
     }
 
