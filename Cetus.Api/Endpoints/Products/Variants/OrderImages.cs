@@ -1,5 +1,5 @@
 using Application.Abstractions.Messaging;
-using Application.Products.Variants.OrderImages;
+using Application.Products.Variants.Images.Order;
 using Cetus.Api.Extensions;
 using Cetus.Api.Infrastructure;
 

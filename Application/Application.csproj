@@ -24,6 +24,7 @@
     </ItemGroup>
 
     <ItemGroup>
+      <Folder Include="Products\Variants\Images\" />
       <Folder Include="Reviews\ReviewRequests\" />
     </ItemGroup>
 

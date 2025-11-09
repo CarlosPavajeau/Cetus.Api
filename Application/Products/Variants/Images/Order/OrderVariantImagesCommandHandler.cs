@@ -4,7 +4,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using SharedKernel;
 
-namespace Application.Products.Variants.OrderImages;
+namespace Application.Products.Variants.Images.Order;
 
 internal sealed class OrderVariantImagesCommandHandler(
     IApplicationDbContext db,

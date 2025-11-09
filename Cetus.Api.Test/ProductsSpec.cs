@@ -11,7 +11,7 @@ using Application.Products.TopSelling;
 using Application.Products.Update;
 using Application.Products.Variants;
 using Application.Products.Variants.Create;
-using Application.Products.Variants.OrderImages;
+using Application.Products.Variants.Images.Order;
 using Application.Products.Variants.Update;
 using Bogus;
 using Cetus.Api.Test.Shared;
