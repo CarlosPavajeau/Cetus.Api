@@ -3,6 +3,7 @@ using System.Threading.RateLimiting;
 using Application.Abstractions.Data;
 using Application.Abstractions.Email;
 using Application.Abstractions.MercadoPago;
+using Application.Abstractions.Services;
 using Application.Abstractions.Wompi;
 using Domain.Coupons;
 using Domain.Orders;
@@ -11,12 +12,11 @@ using Infrastructure.Database;
 using Infrastructure.DomainEvents;
 using Infrastructure.Email;
 using Infrastructure.MercadoPago;
+using Infrastructure.Products;
 using Infrastructure.Reviews.Jobs;
 using Infrastructure.Stores;
 using Infrastructure.Time;
 using Infrastructure.Wompi;
-using Infrastructure.Products;
-using Application.Abstractions.Services;
 using MercadoPago.Config;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Builder;
@@ -276,7 +276,8 @@ public static class DependencyInjection
         services.AddQuartz(config =>
         {
             var sendPendingReviewRequestsJobKey = new JobKey(SendPendingReviewRequestsJob.Name);
-            config.AddJob<SendPendingReviewRequestsJob>(sendPendingReviewRequestsJobKey);
+            config.AddJob<SendPendingReviewRequestsJob>(options =>
+                options.WithIdentity(sendPendingReviewRequestsJobKey));
 
             config.AddTrigger(trigger =>
             {
