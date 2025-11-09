@@ -15,4 +15,10 @@ public static class ProductErrors
             "Products.NotFoundBySlug",
             $"Product with slug '{slug}' was not found."
         );
+
+    public static Error VariantNotFound(long id) =>
+        Error.NotFound(
+            "Products.VariantNotFound",
+            $"Product variant with ID {id} was not found."
+        );
 }

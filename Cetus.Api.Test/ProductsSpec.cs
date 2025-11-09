@@ -954,6 +954,7 @@ public class ProductsSpec(ApplicationTestCase factory) : ApplicationContextTestC
     [Fact(DisplayName = "Should order product variant images")]
     public async Task ShouldOrderProductVariantImages()
     {
+        // Arrange
         var product = await ProductHelper.CreateProductWithVariant(Client);
 
         var getVariantsResponse = await Client.GetAsync($"api/products/{product.Id}/variants");
@@ -977,5 +978,28 @@ public class ProductsSpec(ApplicationTestCase factory) : ApplicationContextTestC
         // Assert
         response.EnsureSuccessStatusCode();
         response.StatusCode.ShouldBe(HttpStatusCode.NoContent);
+    }
+
+    [Fact(DisplayName = "Should return a product variant by id")]
+    public async Task ShouldReturnAProductVariantById()
+    {
+        // Arrange
+        var product = await ProductHelper.CreateProductWithVariant(Client);
+        var getVariantsResponse = await Client.GetAsync($"api/products/{product.Id}/variants");
+        getVariantsResponse.EnsureSuccessStatusCode();
+
+        var variants = await getVariantsResponse.DeserializeAsync<List<ProductVariantResponse>>();
+        variants.ShouldNotBeEmpty();
+
+        var variant = variants[0];
+
+        // Act
+        var response = await Client.GetAsync($"api/products/variants/{variant.Id}");
+
+        // Assert
+        response.EnsureSuccessStatusCode();
+        var returnedVariant = await response.DeserializeAsync<ProductVariantResponse>();
+        returnedVariant.ShouldNotBeNull();
+        returnedVariant.Id.ShouldBe(variant.Id);
     }
 }
