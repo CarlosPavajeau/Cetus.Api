@@ -1002,4 +1002,17 @@ public class ProductsSpec(ApplicationTestCase factory) : ApplicationContextTestC
         returnedVariant.ShouldNotBeNull();
         returnedVariant.Id.ShouldBe(variant.Id);
     }
+
+    [Fact(DisplayName = "Should return not found when product variant not exists")]
+    public async Task ShouldReturnNotFoundWhenProductVariantNotExists()
+    {
+        // Arrange
+        var id = Guid.NewGuid();
+
+        // Act
+        var response = await Client.GetAsync($"api/products/variants/{id}");
+
+        // Assert
+        response.StatusCode.ShouldBe(HttpStatusCode.NotFound);
+    }
 }
