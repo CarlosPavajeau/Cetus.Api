@@ -12,6 +12,7 @@ using Application.Products.Update;
 using Application.Products.Variants;
 using Application.Products.Variants.Create;
 using Application.Products.Variants.Images.Add;
+using Application.Products.Variants.Images.Delete;
 using Application.Products.Variants.Images.Order;
 using Application.Products.Variants.Update;
 using Bogus;
@@ -1052,5 +1053,42 @@ public class ProductsSpec(ApplicationTestCase factory) : ApplicationContextTestC
         updatedVariant.ShouldNotBeNull();
 
         updatedVariant.Images.Count.ShouldBe(variant.Images.Count + 2);
+    }
+
+    [Fact(DisplayName = "Should delete a product variant image", Skip = "Not supported by InMemory db")]
+    public async Task ShouldDeleteAProductVariantImage()
+    {
+        // Arrange
+        var product = await ProductHelper.CreateProductWithVariant(Client);
+        var getVariantsResponse = await Client.GetAsync($"api/products/{product.Id}/variants");
+        getVariantsResponse.EnsureSuccessStatusCode();
+
+        var variants = await getVariantsResponse.DeserializeAsync<List<ProductVariantResponse>>();
+        variants.ShouldNotBeEmpty();
+
+        var variant = variants[0];
+        var images = variant.Images;
+        images.ShouldNotBeEmpty();
+
+        var imageToDelete = images[0];
+
+        var command = new DeleteVariantImageCommand(variant.Id, imageToDelete.Id);
+
+        // Act
+        var response = await Client.DeleteAsync(
+            $"api/products/variants/images/{imageToDelete.Id}?variantId={variant.Id}"
+        );
+
+        // Assert
+        response.EnsureSuccessStatusCode();
+        response.StatusCode.ShouldBe(HttpStatusCode.NoContent);
+
+        var getVariantResponse = await Client.GetAsync($"api/products/variants/{variant.Id}");
+        getVariantResponse.EnsureSuccessStatusCode();
+
+        var updatedVariant = await getVariantResponse.DeserializeAsync<ProductVariantResponse>();
+        updatedVariant.ShouldNotBeNull();
+
+        updatedVariant.Images.ShouldNotContain(img => img.Id == imageToDelete.Id);
     }
 }
