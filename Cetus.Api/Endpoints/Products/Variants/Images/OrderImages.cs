@@ -3,7 +3,7 @@ using Application.Products.Variants.Images.Order;
 using Cetus.Api.Extensions;
 using Cetus.Api.Infrastructure;
 
-namespace Cetus.Api.Endpoints.Products.Variants;
+namespace Cetus.Api.Endpoints.Products.Variants.Images;
 
 internal sealed class OrderImages : IEndpoint
 {
