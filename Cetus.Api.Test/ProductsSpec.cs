@@ -11,6 +11,7 @@ using Application.Products.TopSelling;
 using Application.Products.Update;
 using Application.Products.Variants;
 using Application.Products.Variants.Create;
+using Application.Products.Variants.Images.Add;
 using Application.Products.Variants.Images.Order;
 using Application.Products.Variants.Update;
 using Bogus;
@@ -1014,5 +1015,42 @@ public class ProductsSpec(ApplicationTestCase factory) : ApplicationContextTestC
 
         // Assert
         response.StatusCode.ShouldBe(HttpStatusCode.NotFound);
+    }
+
+    [Fact(DisplayName = "Should add new images to a product variant")]
+    public async Task ShouldAddNewImagesToAProductVariant()
+    {
+        // Arrange
+        var product = await ProductHelper.CreateProductWithVariant(Client);
+        var getVariantsResponse = await Client.GetAsync($"api/products/{product.Id}/variants");
+        getVariantsResponse.EnsureSuccessStatusCode();
+
+        var variants = await getVariantsResponse.DeserializeAsync<List<ProductVariantResponse>>();
+        variants.ShouldNotBeEmpty();
+
+        var variant = variants[0];
+
+        var command = new AddVariantImagesCommand(
+            variant.Id,
+            [
+                new CreateProductImage(_faker.Image.PicsumUrl(), "New Image 1", 0),
+                new CreateProductImage(_faker.Image.PicsumUrl(), "New Image 2", 1)
+            ]
+        );
+
+        // Act
+        var response = await Client.PostAsJsonAsync($"api/products/variants/{variant.Id}/images", command);
+
+        // Assert
+        response.EnsureSuccessStatusCode();
+        response.StatusCode.ShouldBe(HttpStatusCode.NoContent);
+
+        var getVariantResponse = await Client.GetAsync($"api/products/variants/{variant.Id}");
+        getVariantResponse.EnsureSuccessStatusCode();
+
+        var updatedVariant = await getVariantResponse.DeserializeAsync<ProductVariantResponse>();
+        updatedVariant.ShouldNotBeNull();
+
+        updatedVariant.Images.Count.ShouldBe(variant.Images.Count + 2);
     }
 }
