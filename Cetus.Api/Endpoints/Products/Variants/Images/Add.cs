@@ -12,7 +12,7 @@ internal sealed class Add : IEndpoint
         app.MapPost("products/variants/{id:long}/images", async (
             long id,
             AddVariantImagesCommand command,
-            ICommandHandler<AddVariantImagesCommand> handler,
+            ICommandHandler<AddVariantImagesCommand, AddVariantImagesCommandResponse> handler,
             CancellationToken cancellationToken) =>
         {
             if (id != command.Id)
@@ -25,7 +25,7 @@ internal sealed class Add : IEndpoint
 
             var result = await handler.Handle(command, cancellationToken);
 
-            return result.Match(Results.NoContent, CustomResults.Problem);
+            return result.Match(Results.Ok, CustomResults.Problem);
         }).WithTags(Tags.Products);
     }
 }

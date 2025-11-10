@@ -7,9 +7,10 @@ using SharedKernel;
 namespace Application.Products.Variants.Images.Add;
 
 internal sealed class AddVariantImagesCommandHandler(IApplicationDbContext db)
-    : ICommandHandler<AddVariantImagesCommand>
+    : ICommandHandler<AddVariantImagesCommand, AddVariantImagesCommandResponse>
 {
-    public async Task<Result> Handle(AddVariantImagesCommand command, CancellationToken cancellationToken)
+    public async Task<Result<AddVariantImagesCommandResponse>> Handle(AddVariantImagesCommand command,
+        CancellationToken cancellationToken)
     {
         var variant = await db.ProductVariants
             .AsNoTracking()
@@ -19,7 +20,7 @@ internal sealed class AddVariantImagesCommandHandler(IApplicationDbContext db)
 
         if (variant is null)
         {
-            return Result.Failure(ProductErrors.VariantNotFound(command.Id));
+            return Result.Failure<AddVariantImagesCommandResponse>(ProductErrors.VariantNotFound(command.Id));
         }
 
         var newImages = command.Images.Select(image => new ProductImage
@@ -29,12 +30,18 @@ internal sealed class AddVariantImagesCommandHandler(IApplicationDbContext db)
             SortOrder = image.SortOrder,
             VariantId = command.Id,
             ProductId = variant.ProductId
-        });
+        }).ToList();
 
         await db.ProductImages.AddRangeAsync(newImages, cancellationToken);
 
         await db.SaveChangesAsync(cancellationToken);
 
-        return Result.Success();
+        var responseImages = newImages
+            .Select(img => new ProductImageResponse(img.Id, img.ImageUrl, img.AltText, img.SortOrder))
+            .ToList();
+        
+        var response = new AddVariantImagesCommandResponse(variant.Id, responseImages);
+
+        return response;
     }
 }
