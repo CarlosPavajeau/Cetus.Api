@@ -1044,7 +1044,7 @@ public class ProductsSpec(ApplicationTestCase factory) : ApplicationContextTestC
 
         // Assert
         response.EnsureSuccessStatusCode();
-        response.StatusCode.ShouldBe(HttpStatusCode.NoContent);
+        response.StatusCode.ShouldBe(HttpStatusCode.OK);
 
         var getVariantResponse = await Client.GetAsync($"api/products/variants/{variant.Id}");
         getVariantResponse.EnsureSuccessStatusCode();
