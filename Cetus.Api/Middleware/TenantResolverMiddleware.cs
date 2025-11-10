@@ -69,6 +69,9 @@ public class TenantResolverMiddleware(RequestDelegate next)
             context.Response.Headers.TryAdd("X-Tenant-Id", store.Id.ToString());
             context.Response.Headers.TryAdd("X-Tenant-Domain", store.CustomDomain);
             context.Response.Headers.TryAdd("X-Tenant-Name", store.Name);
+            
+            context.Response.Cookies.Append("X-Tenant-Id", store.Id.ToString());
+            context.Response.Cookies.Append("X-Tenant-Name", store.Name);
         }
         else
         {
