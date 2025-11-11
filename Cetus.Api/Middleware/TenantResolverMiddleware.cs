@@ -13,9 +13,11 @@ public class TenantResolverMiddleware(RequestDelegate next)
         IQueryHandler<FindStoreQuery, SimpleStoreResponse> handler,
         TenantContext tenantContext,
         ILogger<TenantResolverMiddleware> logger,
+        IConfiguration configuration,
         HybridCache cache)
     {
         string? domain = null;
+
         if (context.Request.Headers.TryGetValue("Referer", out var originValues))
         {
             var origin = originValues.FirstOrDefault();
@@ -39,10 +41,26 @@ public class TenantResolverMiddleware(RequestDelegate next)
             domain = context.Request.Host.Host;
         }
 
+        var appDomain = configuration["AllowedOrigin"];
+        if (Uri.TryCreate(appDomain, UriKind.Absolute, out var appDomainUri))
+        {
+            if (string.Equals(domain, appDomainUri.Host, StringComparison.OrdinalIgnoreCase))
+            {
+                domain = null; // Ignore the application domain
+            }
+        }
+
         string? slug = null;
         if (context.Request.Query.TryGetValue("store", out var storeSlug))
         {
             slug = storeSlug.ToString();
+        }
+
+        if (domain is null && slug is null)
+        {
+            logger.LogInformation("No domain or slug provided to resolve tenant.");
+            await next(context);
+            return;
         }
 
         var cacheKey = BuildCacheKey(domain, slug);
