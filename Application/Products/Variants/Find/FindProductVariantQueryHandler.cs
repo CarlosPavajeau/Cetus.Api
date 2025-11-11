@@ -13,7 +13,7 @@ internal sealed class FindProductVariantQueryHandler(IApplicationDbContext db, I
         CancellationToken cancellationToken)
     {
         var variant = await db.ProductVariants
-            .Where(v => v.Id == query.Id)
+            .Where(v => v.Id == query.Id && v.Product!.StoreId == tenant.Id)
             .Select(ProductVariantResponse.Map)
             .FirstOrDefaultAsync(cancellationToken);
 
