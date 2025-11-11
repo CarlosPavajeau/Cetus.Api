@@ -46,16 +46,15 @@ public class TenantResolverMiddleware(RequestDelegate next)
         }
 
         var cacheKey = BuildCacheKey(domain, slug);
-        
+
         logger.LogInformation("Try to find store for domain {Domain} and slug {Slug}", domain, slug);
-        
+
         var result = await cache.GetOrCreateAsync(
             cacheKey,
             async token => await handler.Handle(new FindStoreQuery(domain, slug), token),
             new HybridCacheEntryOptions
             {
-                Expiration = TimeSpan.FromHours(5),
-                LocalCacheExpiration = TimeSpan.FromHours(5)
+                Expiration = TimeSpan.FromHours(5), LocalCacheExpiration = TimeSpan.FromHours(5)
             },
             cancellationToken: context.RequestAborted
         );
@@ -69,9 +68,6 @@ public class TenantResolverMiddleware(RequestDelegate next)
             context.Response.Headers.TryAdd("X-Tenant-Id", store.Id.ToString());
             context.Response.Headers.TryAdd("X-Tenant-Domain", store.CustomDomain);
             context.Response.Headers.TryAdd("X-Tenant-Name", store.Name);
-            
-            context.Response.Cookies.Append("X-Tenant-Id", store.Id.ToString());
-            context.Response.Cookies.Append("X-Tenant-Name", store.Name);
         }
         else
         {
