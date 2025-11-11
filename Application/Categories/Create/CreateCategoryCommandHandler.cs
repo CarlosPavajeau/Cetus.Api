@@ -31,13 +31,13 @@ internal sealed partial class CreateCategoryCommandHandler(IApplicationDbContext
     private static string GenerateSlug(Guid id, string name, Guid storeId)
     {
         var baseSlug = CategoryNameRegex().Replace(name.ToLower(), "-");
-        
+
         var idSuffix = id.ToString()[(id.ToString().Length - 4)..];
         var storeIdSuffix = storeId.ToString()[(storeId.ToString().Length - 4)..];
-        
+
         return SlugRegex().Replace($"{baseSlug}-{idSuffix}-{storeIdSuffix}", "-");
     }
-    
+
     [GeneratedRegex("[^a-z0-9]")]
     private static partial Regex CategoryNameRegex();
 
