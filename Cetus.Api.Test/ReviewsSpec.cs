@@ -29,7 +29,7 @@ public class ReviewsSpec(ApplicationTestCase factory) : ApplicationContextTestCa
     private async Task WaitForCustomerRequests(string customerId)
     {
         var db = Services.GetRequiredService<IApplicationDbContext>();
-        
+
         await WaitUntilHelper.WaitUntilAsync(
             async () => (await db.ReviewRequests.AsNoTracking().AnyAsync(r => r.CustomerId == customerId)),
             timeout: TimeSpan.FromSeconds(10),
@@ -120,7 +120,7 @@ public class ReviewsSpec(ApplicationTestCase factory) : ApplicationContextTestCa
         // Arrange - Deliver the order to generate review request
         var deliverOrderResponse = await Client.PostAsync($"api/orders/{order.Id}/deliver", null);
         deliverOrderResponse.EnsureSuccessStatusCode();
-        
+
         await WaitForCustomerRequests(newCustomer.Id);
 
         // Get the review request token from the database
@@ -182,7 +182,7 @@ public class ReviewsSpec(ApplicationTestCase factory) : ApplicationContextTestCa
             // Deliver order
             var deliverOrderResponse = await Client.PostAsync($"api/orders/{order.Id}/deliver", null);
             deliverOrderResponse.EnsureSuccessStatusCode();
-            
+
             await WaitForCustomerRequests(newCustomer.Id);
 
             // Get review request
@@ -282,7 +282,7 @@ public class ReviewsSpec(ApplicationTestCase factory) : ApplicationContextTestCa
             // Deliver order
             var deliverOrderResponse = await Client.PostAsync($"api/orders/{order.Id}/deliver", null);
             deliverOrderResponse.EnsureSuccessStatusCode();
-            
+
             await WaitForCustomerRequests(newCustomer.Id);
 
             // Get review request
@@ -398,7 +398,7 @@ public class ReviewsSpec(ApplicationTestCase factory) : ApplicationContextTestCa
         // Deliver order
         var deliverOrderResponse = await Client.PostAsync($"api/orders/{order.Id}/deliver", null);
         deliverOrderResponse.EnsureSuccessStatusCode();
-        
+
         await WaitForCustomerRequests(newCustomer.Id);
 
         // Get review request

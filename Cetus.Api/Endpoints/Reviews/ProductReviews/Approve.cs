@@ -20,4 +20,4 @@ internal sealed class Approve : IEndpoint
             return result.Match(Results.NoContent, CustomResults.Problem);
         }).WithTags(Tags.Reviews).RequireAuthorization();
     }
-} 
+}

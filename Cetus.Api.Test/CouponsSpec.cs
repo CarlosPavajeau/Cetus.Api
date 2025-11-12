@@ -508,7 +508,7 @@ public class CouponsSpec(ApplicationTestCase factory) : ApplicationContextTestCa
         // Create a test product first
         var db = Services.GetRequiredService<IApplicationDbContext>();
         await CityHelper.CreateIfNotExists(_cityId, db);
-        
+
         var product = await ProductHelper.CreateProductWithVariant(Client);
 
         var newCustomer = _orderCustomerFaker.Generate();

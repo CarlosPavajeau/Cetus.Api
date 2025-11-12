@@ -23,7 +23,7 @@ internal sealed class Update : IEndpoint
             {
                 return Results.BadRequest("Store ID mismatch.");
             }
-            
+
             var result = await handler.Handle(command, cancellationToken);
 
             if (result.IsSuccess)

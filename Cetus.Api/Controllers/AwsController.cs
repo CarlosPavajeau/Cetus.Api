@@ -16,7 +16,7 @@ namespace Cetus.Api.Controllers;
 public class AwsController : ControllerBase
 {
     private const string FailedToGeneratePreSignedUrl = "Failed to generate pre-signed URL";
-    
+
     private readonly IConfiguration _configuration;
     private readonly ILogger<AwsController> _logger;
 

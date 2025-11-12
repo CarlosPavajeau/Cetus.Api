@@ -5,7 +5,8 @@ using SharedKernel;
 
 namespace Application.Products.Delete;
 
-internal sealed class DeleteProductCommandHandler(IApplicationDbContext context) : ICommandHandler<DeleteProductCommand, bool>
+internal sealed class DeleteProductCommandHandler(IApplicationDbContext context)
+    : ICommandHandler<DeleteProductCommand, bool>
 {
     public async Task<Result<bool>> Handle(DeleteProductCommand request, CancellationToken cancellationToken)
     {

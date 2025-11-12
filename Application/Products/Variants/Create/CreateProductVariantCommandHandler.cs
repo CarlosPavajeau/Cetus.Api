@@ -111,7 +111,7 @@ internal sealed class CreateProductVariantCommandHandler(
         try
         {
             var utcNow = dateTimeProvider.UtcNow;
-            
+
             var variant = new ProductVariant
             {
                 Sku = normalizedSku,

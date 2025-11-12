@@ -5,7 +5,8 @@ using SharedKernel;
 
 namespace Application.Products.Options.SearchAll;
 
-internal sealed class SearchAllProductOptionsQueryHandler(IApplicationDbContext db) : IQueryHandler<SearchAllProductOptionsQuery, IEnumerable<ProductOptionResponse>>
+internal sealed class SearchAllProductOptionsQueryHandler(IApplicationDbContext db)
+    : IQueryHandler<SearchAllProductOptionsQuery, IEnumerable<ProductOptionResponse>>
 {
     public async Task<Result<IEnumerable<ProductOptionResponse>>> Handle(SearchAllProductOptionsQuery query,
         CancellationToken cancellationToken)

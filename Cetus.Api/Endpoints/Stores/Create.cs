@@ -18,7 +18,6 @@ internal sealed class Create : IEndpoint
             var result = await handler.Handle(command, cancellationToken);
 
             return result.Match(Results.NoContent, CustomResults.Problem);
-            
         }).WithTags(Tags.Stores);
     }
 }

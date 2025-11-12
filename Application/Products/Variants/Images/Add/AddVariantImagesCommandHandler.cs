@@ -39,7 +39,7 @@ internal sealed class AddVariantImagesCommandHandler(IApplicationDbContext db)
         var responseImages = newImages
             .Select(img => new ProductImageResponse(img.Id, img.ImageUrl, img.AltText, img.SortOrder))
             .ToList();
-        
+
         var response = new AddVariantImagesCommandResponse(variant.Id, responseImages);
 
         return response;

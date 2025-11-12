@@ -14,12 +14,12 @@ internal sealed class CreateReviewRequestWhenDeliveredOrder(
     public async Task Handle(DeliveredOrderDomainEvent domainEvent, CancellationToken cancellationToken)
     {
         logger.LogInformation("Creating review requests for order {OrderId}", domainEvent.Id);
-        
+
         var items = await db.OrderItems
             .AsNoTracking()
             .Where(o => o.OrderId == domainEvent.Id)
             .ToListAsync(cancellationToken);
-        
+
         var customerId = await db.Orders
             .AsNoTracking()
             .Where(o => o.Id == domainEvent.Id)
@@ -37,7 +37,7 @@ internal sealed class CreateReviewRequestWhenDeliveredOrder(
             CreatedAt = DateTime.UtcNow,
             UpdatedAt = DateTime.UtcNow
         }).ToList();
-        
+
         await db.ReviewRequests.AddRangeAsync(reviews, cancellationToken);
         await db.SaveChangesAsync(cancellationToken);
 

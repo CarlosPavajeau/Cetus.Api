@@ -51,7 +51,7 @@ internal sealed class CalculateOrdersInsightsQueryHandler(IApplicationDbContext 
         var previousMonthAllOrdersCount = await previousMonthOrdersQuery.CountAsync(cancellationToken);
         var previousMonthTotalRevenue = await previousMonthCompletedOrdersQuery
             .SumAsync(order => order.Total, cancellationToken);
-        
+
         var previousMonthCustomersCount = await previousMonthOrdersQuery
             .Select(order => order.CustomerId)
             .Distinct()
@@ -61,7 +61,8 @@ internal sealed class CalculateOrdersInsightsQueryHandler(IApplicationDbContext 
         var revenuePercentageChange = CalculatePercentageChange(previousMonthTotalRevenue, currentMonthTotalRevenue);
         var ordersCountPercentageChange =
             CalculatePercentageChange(previousMonthAllOrdersCount, currentMonthAllOrdersCount);
-        var customerPercentageChange = CalculatePercentageChange(previousMonthCustomersCount, currentMonthCustomersCount);
+        var customerPercentageChange =
+            CalculatePercentageChange(previousMonthCustomersCount, currentMonthCustomersCount);
 
         return new OrdersInsightsResponse(
             currentMonthTotalRevenue,

@@ -20,10 +20,10 @@ internal sealed class Reject : IEndpoint
             {
                 return Results.BadRequest("The review ID in the URL does not match the ID in the request body.");
             }
-            
+
             var result = await handler.Handle(command, cancellationToken);
 
             return result.Match(Results.NoContent, CustomResults.Problem);
         }).WithTags(Tags.Reviews).RequireAuthorization();
     }
-} 
+}

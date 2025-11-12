@@ -6,7 +6,8 @@ using SharedKernel;
 
 namespace Application.Stores.Create;
 
-internal sealed class CreateStoreCommandHandler(IApplicationDbContext db, IDateTimeProvider timeProvider) : ICommandHandler<CreateStoreCommand>
+internal sealed class CreateStoreCommandHandler(IApplicationDbContext db, IDateTimeProvider timeProvider)
+    : ICommandHandler<CreateStoreCommand>
 {
     public async Task<Result> Handle(CreateStoreCommand command, CancellationToken cancellationToken)
     {

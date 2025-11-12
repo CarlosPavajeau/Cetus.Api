@@ -9,7 +9,7 @@ public class ProductVariantOptionValueConfiguration : IEntityTypeConfiguration<P
     public void Configure(EntityTypeBuilder<ProductVariantOptionValue> builder)
     {
         builder.HasKey(p => new {p.VariantId, p.OptionValueId});
-        
+
         builder.HasIndex(p => p.OptionValueId);
 
         builder.HasOne(p => p.ProductOptionValue)

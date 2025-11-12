@@ -6,20 +6,22 @@ using SharedKernel;
 
 namespace Application.Orders.Deliver;
 
-internal sealed class DeliverOrderCommandHandler(IApplicationDbContext db) : ICommandHandler<DeliverOrderCommand, SimpleOrderResponse>
+internal sealed class DeliverOrderCommandHandler(IApplicationDbContext db)
+    : ICommandHandler<DeliverOrderCommand, SimpleOrderResponse>
 {
-    public async Task<Result<SimpleOrderResponse>> Handle(DeliverOrderCommand command, CancellationToken cancellationToken)
+    public async Task<Result<SimpleOrderResponse>> Handle(DeliverOrderCommand command,
+        CancellationToken cancellationToken)
     {
         var order = await db.Orders
             .Include(o => o.Customer)
             .Where(o => o.Id == command.Id)
             .FirstOrDefaultAsync(cancellationToken);
-        
+
         if (order is null)
         {
             return Result.Failure<SimpleOrderResponse>(OrderErrors.NotFound(command.Id));
         }
-        
+
         if (order.Status == OrderStatus.Canceled) // Can't update a canceled order
         {
             return Result.Failure<SimpleOrderResponse>(
@@ -29,7 +31,7 @@ internal sealed class DeliverOrderCommandHandler(IApplicationDbContext db) : ICo
         order.Status = OrderStatus.Delivered;
 
         var customer = order.Customer!;
-        
+
         order.Raise(new SentOrderDomainEvent(new SentOrder(
             order.Id,
             order.OrderNumber,

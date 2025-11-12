@@ -26,7 +26,7 @@ public class CategoriesSpec(ApplicationTestCase factory) : ApplicationContextTes
         response.EnsureSuccessStatusCode();
 
         var category = await response.DeserializeAsync<CategoryResponse>();
-        
+
         category.ShouldNotBeNull();
     }
 

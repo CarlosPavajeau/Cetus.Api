@@ -6,4 +6,4 @@ public enum CouponRuleType
     SpecificProduct,
     SpecificCategory,
     OnePerCustomer
-} 
+}

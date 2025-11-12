@@ -15,7 +15,7 @@ public static class CityHelper
         {
             return;
         }
-        
+
         var city = new City
         {
             Id = cityId,
@@ -26,7 +26,7 @@ public static class CityHelper
                 Name = "Test State"
             }
         };
-        
+
         await db.Cities.AddAsync(city);
         await db.SaveChangesAsync();
     }

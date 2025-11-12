@@ -14,7 +14,7 @@ namespace Application.Abstractions.Data;
 public interface IApplicationDbContext
 {
     DbSet<Category> Categories { get; }
-    
+
     DbSet<Product> Products { get; }
     DbSet<ProductImage> ProductImages { get; }
     DbSet<ProductOptionType> ProductOptionTypes { get; }
@@ -33,13 +33,13 @@ public interface IApplicationDbContext
 
     DbSet<ReviewRequest> ReviewRequests { get; }
     DbSet<ProductReview> ProductReviews { get; }
-    
+
     DbSet<Coupon> Coupons { get; }
     DbSet<CouponRule> CouponRules { get; }
     DbSet<CouponUsage> CouponUsages { get; }
-    
+
     DbSet<Store> Stores { get; }
-    
+
     DbSet<User> Users { get; }
 
     Task<int> SaveChangesAsync(CancellationToken cancellationToken = default);
