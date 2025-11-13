@@ -15,6 +15,7 @@ using Cetus.Api.Test.Shared.Fakers;
 using Cetus.Api.Test.Shared.Helpers;
 using Domain.Orders;
 using Microsoft.Extensions.DependencyInjection;
+using SharedKernel;
 using Shouldly;
 
 namespace Cetus.Api.Test;
@@ -141,11 +142,10 @@ public class OrdersSpec(ApplicationTestCase factory) : ApplicationContextTestCas
         // Assert
         getOrdersResponse.EnsureSuccessStatusCode();
 
-        var orders = await getOrdersResponse.DeserializeAsync<IEnumerable<OrderResponse>>();
+        var orders = await getOrdersResponse.DeserializeAsync<PagedResult<OrderResponse>>();
 
-        var orderResponses = orders?.ToList();
-        orderResponses.ShouldNotBeNull();
-        orderResponses.ShouldNotBeEmpty();
+        orders.ShouldNotBeNull();
+        orders.Items.ShouldNotBeEmpty();
     }
 
     [Fact(DisplayName = "Should deliver an order")]
