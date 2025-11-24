@@ -54,7 +54,8 @@ public sealed class ApplicationDbContext(
         static Expression<Func<DateTime, DateTime>> Deserialize =
             x => x.Kind == DateTimeKind.Unspecified ? DateTime.SpecifyKind(x, DateTimeKind.Utc) : x;
 
-        static Expression<Func<DateTime, DateTime>> Serialize = x => x;
+        static Expression<Func<DateTime, DateTime>> Serialize =
+            x => x.Kind == DateTimeKind.Unspecified ? DateTime.SpecifyKind(x, DateTimeKind.Utc) : x;
     }
 
     protected override void ConfigureConventions(ModelConfigurationBuilder configurationBuilder)
