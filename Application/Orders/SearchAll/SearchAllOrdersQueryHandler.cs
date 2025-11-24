@@ -1,5 +1,6 @@
 using Application.Abstractions.Data;
 using Application.Abstractions.Messaging;
+using Domain.Orders;
 using Microsoft.EntityFrameworkCore;
 using SharedKernel;
 
@@ -21,12 +22,17 @@ internal sealed class SearchAllOrdersQueryHandler(IApplicationDbContext db, ITen
 
         if (request.Statuses is not null && request.Statuses.Length > 0)
         {
-            query = query.Where(o => request.Statuses.Contains(o.Status));
+            var statuses = request.Statuses
+                .Select(s => Enum.Parse<OrderStatus>(s, ignoreCase: true))
+                .ToArray();
+
+            query = query.Where(o => statuses.Contains(o.Status));
         }
 
         if (request.From is not null)
         {
-            query = query.Where(o => o.CreatedAt >= request.From.Value);
+            var from = request.From.Value;
+            query = query.Where(o => o.CreatedAt >= from);
         }
 
         if (request.To is not null)
