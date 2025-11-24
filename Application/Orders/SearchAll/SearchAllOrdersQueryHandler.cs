@@ -39,7 +39,7 @@ internal sealed class SearchAllOrdersQueryHandler(IApplicationDbContext db, ITen
         var total = await query.CountAsync(cancellationToken);
 
         var items = await query
-            .OrderByDescending(o => o.Status)
+            .OrderBy(o => o.Status)
             .ThenBy(o => o.CreatedAt)
             .Skip((page - 1) * size)
             .Take(size)
