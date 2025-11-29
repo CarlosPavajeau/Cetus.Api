@@ -8,6 +8,8 @@ FROM mcr.microsoft.com/dotnet/sdk:10.0 AS build
 ARG BUILD_CONFIGURATION=Release
 WORKDIR /src
 
+COPY ["Directory.Packages.props", "."]
+COPY ["Directory.Build.props", "."]
 COPY ["Cetus.Api/Cetus.Api.csproj", "Cetus.Api/"]
 COPY ["SharedKernel/SharedKernel.csproj", "SharedKernel/"]
 COPY ["Domain/Domain.csproj", "Domain/"]
