@@ -22,7 +22,7 @@ internal sealed class OrderVariantImagesCommandHandler(
 
         foreach (var image in images)
         {
-            if (!newImages.TryGetValue(image.Id, out var newOrder))
+            if (!newImages.TryGetValue(image.Id, out int newOrder))
             {
                 logger.LogWarning(
                     "Image with ID {ImageId} not found in the new images list for variant {VariantId}. Skipping.",

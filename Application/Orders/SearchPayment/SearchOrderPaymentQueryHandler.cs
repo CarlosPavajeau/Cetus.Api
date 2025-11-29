@@ -50,7 +50,7 @@ internal sealed class SearchOrderPaymentQueryHandler(
     private async Task<Result<OrderPaymentResponse>> SearchMercadoPagoPayment(string transactionId, Guid orderId,
         CancellationToken cancellationToken)
     {
-        if (!long.TryParse(transactionId, out var paymentId))
+        if (!long.TryParse(transactionId, out long paymentId))
         {
             return Result.Failure<OrderPaymentResponse>(OrderErrors.InvalidTransactionId(orderId));
         }
@@ -85,7 +85,7 @@ internal sealed class SearchOrderPaymentQueryHandler(
     private async Task<Result<OrderPaymentResponse>> SearchWompiPayment(string transactionId, Guid orderId,
         Guid storeId, CancellationToken cancellationToken)
     {
-        var publicKey = await db.Stores
+        string? publicKey = await db.Stores
             .Where(s => s.Id == storeId)
             .Select(s => s.WompiPublicKey)
             .FirstOrDefaultAsync(cancellationToken);

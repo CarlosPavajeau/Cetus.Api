@@ -14,7 +14,7 @@ namespace Cetus.Api.Endpoints.Webhooks;
 
 internal sealed class WompiPaymentNotification : IEndpoint
 {
-    sealed record WompiTransaction(
+    private sealed record WompiTransaction(
         string Id,
         string Reference,
         string Status,
@@ -22,11 +22,11 @@ internal sealed class WompiPaymentNotification : IEndpoint
         decimal AmountInCents
     );
 
-    sealed record WompiData(WompiTransaction Transaction);
+    private sealed record WompiData(WompiTransaction Transaction);
 
-    sealed record WompiSignature(IEnumerable<string> Properties, string Checksum);
+    private sealed record WompiSignature(IEnumerable<string> Properties, string Checksum);
 
-    sealed record WompiRequest(
+    private sealed record WompiRequest(
         string Event,
         WompiData Data,
         string Environment,
@@ -55,7 +55,7 @@ internal sealed class WompiPaymentNotification : IEndpoint
                 return Results.NotFound();
             }
 
-            var hasValidOrderId = Guid.TryParse(request.Data.Transaction.Reference, out var orderId);
+            bool hasValidOrderId = Guid.TryParse(request.Data.Transaction.Reference, out var orderId);
             if (!hasValidOrderId)
             {
                 logger.LogWarning("Invalid order id received from Mercado Pago payment: {ExternalReference}",
@@ -71,7 +71,7 @@ internal sealed class WompiPaymentNotification : IEndpoint
                 });
             }
 
-            var paymentId = payment.TransactionId;
+            string paymentId = payment.TransactionId;
             var payOrderCommand = new PayOrderCommand(orderId, paymentId, PaymentProvider.Wompi);
 
             var updateResult = await handler.Handle(payOrderCommand, cancellationToken);

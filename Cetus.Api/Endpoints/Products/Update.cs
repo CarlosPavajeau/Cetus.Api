@@ -27,7 +27,7 @@ internal sealed class Update : IEndpoint
 
             if (result.IsSuccess)
             {
-                var cacheKey = $"product-{id}";
+                string cacheKey = $"product-{id}";
                 await cache.RemoveAsync(cacheKey, cancellationToken);
             }
 

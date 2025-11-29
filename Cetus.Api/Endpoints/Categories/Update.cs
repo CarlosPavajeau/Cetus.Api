@@ -19,7 +19,10 @@ internal sealed class Update : IEndpoint
             ITenantContext context,
             CancellationToken cancellationToken) =>
         {
-            if (id != command.Id) return Results.BadRequest("Id in route and command do not match.");
+            if (id != command.Id)
+            {
+                return Results.BadRequest("Id in route and command do not match.");
+            }
 
             var result = await handler.Handle(command, cancellationToken);
 

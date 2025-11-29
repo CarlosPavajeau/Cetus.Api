@@ -18,9 +18,9 @@ public class ResendEmailSender(IResend resend, IConfiguration configuration, ILo
     {
         try
         {
-            var senderEmail = configuration["Resend:From"]
-                              ?? throw new InvalidOperationException(
-                                  "Sender email configuration 'Resend:From' is missing");
+            string senderEmail = configuration["Resend:From"]
+                                 ?? throw new InvalidOperationException(
+                                     "Sender email configuration 'Resend:From' is missing");
 
             var message = new EmailMessage
             {

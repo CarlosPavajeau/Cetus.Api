@@ -17,7 +17,7 @@ public class CustomersSpec(ApplicationTestCase factory) : ApplicationContextTest
     public async Task ShouldFindCustomerById()
     {
         // Arrange
-        var customerId = _faker.Random.Guid().ToString();
+        string customerId = _faker.Random.Guid().ToString();
         var customer = new Customer
         {
             Id = customerId,
@@ -49,7 +49,7 @@ public class CustomersSpec(ApplicationTestCase factory) : ApplicationContextTest
     public async Task ShouldReturnNotFoundForNonExistingCustomer()
     {
         // Arrange
-        var nonExistingId = _faker.Random.Guid().ToString();
+        string nonExistingId = _faker.Random.Guid().ToString();
 
         // Act
         var response = await Client.GetAsync($"api/customers/{nonExistingId}");

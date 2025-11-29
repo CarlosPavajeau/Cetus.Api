@@ -13,8 +13,8 @@ internal sealed class SearchAllOrdersQueryHandler(IApplicationDbContext db, ITen
         SearchAllOrdersQuery request,
         CancellationToken cancellationToken)
     {
-        var page = request.Page <= 0 ? 1 : request.Page;
-        var size = request.PageSize <= 0 ? 20 : Math.Min(request.PageSize, 100);
+        int page = request.Page <= 0 ? 1 : request.Page;
+        int size = request.PageSize <= 0 ? 20 : Math.Min(request.PageSize, 100);
 
         var query = db.Orders
             .AsNoTracking()
@@ -42,7 +42,7 @@ internal sealed class SearchAllOrdersQueryHandler(IApplicationDbContext db, ITen
             query = query.Where(o => o.CreatedAt < toExclusive);
         }
 
-        var total = await query.CountAsync(cancellationToken);
+        int total = await query.CountAsync(cancellationToken);
 
         var items = await query
             .OrderBy(o => o.Status)

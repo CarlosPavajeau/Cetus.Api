@@ -30,7 +30,7 @@ internal sealed class CheckStockWhenOrderCreated(
             .AsNoTracking()
             .Where(v => purchasedVariants.Contains(v.Id))
             .Where(v => v.Stock <= LowStockThreshold)
-            .Select(v => new {v.Id, v.Stock, v.Product!.Name})
+            .Select(v => new { v.Id, v.Stock, v.Product!.Name })
             .ToListAsync(cancellationToken);
 
         if (lowStockVariants.Count == 0)
@@ -41,7 +41,7 @@ internal sealed class CheckStockWhenOrderCreated(
         var store = await db.Stores
             .AsNoTracking()
             .Where(s => s.Id == domainEvent.StoreId)
-            .Select(s => new {s.Name, s.Email, s.ExternalId})
+            .Select(s => new { s.Name, s.Email, s.ExternalId })
             .FirstOrDefaultAsync(cancellationToken);
 
         if (store is null)
@@ -65,7 +65,7 @@ internal sealed class CheckStockWhenOrderCreated(
             return;
         }
 
-        var messageBody = BuildMessageBody(store.Name, lowStockVariants.Select(v => (v.Name, v.Stock)));
+        string messageBody = BuildMessageBody(store.Name, lowStockVariants.Select(v => (v.Name, v.Stock)));
         var notificationEmails = storeMembers.Select(m => m.Email).ToList();
 
         await emailSender.SendEmail(EmailSubject, messageBody, notificationEmails, cancellationToken);
@@ -76,7 +76,7 @@ internal sealed class CheckStockWhenOrderCreated(
     private static string BuildMessageBody(string storeName,
         IEnumerable<(string ProductName, int Stock)> lowStockVariants)
     {
-        var variantsList = string.Join("",
+        string variantsList = string.Join("",
             lowStockVariants.Select(v => $"<li>{v.ProductName}: {v.Stock} unidades restantes</li>"));
 
         return $$"""

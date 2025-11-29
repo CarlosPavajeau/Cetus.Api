@@ -46,7 +46,7 @@ internal sealed class FindProductBySlugQueryHandler(IApplicationDbContext contex
                 v.Id,
                 v.Sku,
                 v.Price,
-                Stock = v.Stock,
+                v.Stock,
                 Images = v.Images
                     .OrderBy(i => i.SortOrder)
                     .ThenBy(i => i.Id)

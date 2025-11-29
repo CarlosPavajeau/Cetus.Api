@@ -15,10 +15,10 @@ internal static class ValidationDecorator
         public async Task<Result> Handle(TCommand command, CancellationToken cancellationToken)
         {
             var context = new ValidationContext<TCommand>(command);
-            ValidationResult[] validationResults = await Task.WhenAll(
+            var validationResults = await Task.WhenAll(
                 validators.Select(v => v.ValidateAsync(context, cancellationToken)));
 
-            ValidationFailure[] failures = validationResults
+            var failures = validationResults
                 .SelectMany(r => r.Errors)
                 .Where(f => f != null)
                 .ToArray();
@@ -40,10 +40,10 @@ internal static class ValidationDecorator
         public async Task<Result<TResponse>> Handle(TCommand command, CancellationToken cancellationToken)
         {
             var context = new ValidationContext<TCommand>(command);
-            ValidationResult[] validationResults = await Task.WhenAll(
+            var validationResults = await Task.WhenAll(
                 validators.Select(v => v.ValidateAsync(context, cancellationToken)));
 
-            ValidationFailure[] failures = validationResults
+            var failures = validationResults
                 .SelectMany(r => r.Errors)
                 .Where(f => f != null)
                 .ToArray();

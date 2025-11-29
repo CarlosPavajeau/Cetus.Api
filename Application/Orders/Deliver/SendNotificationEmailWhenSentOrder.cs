@@ -17,7 +17,7 @@ internal sealed class SendNotificationEmailWhenSentOrder(
         logger.LogInformation("Sending email to {Customer} for order {OrderNumber}", domainEvent.Order.Customer,
             domainEvent.Order.OrderNumber);
 
-        var messageBody = BuildMessageBody(domainEvent.Order);
+        string messageBody = BuildMessageBody(domainEvent.Order);
 
         await emailSender.SendEmail(EmailSubject, messageBody, domainEvent.Order.CustomerEmail, cancellationToken);
 

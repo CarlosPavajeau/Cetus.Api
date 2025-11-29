@@ -17,7 +17,7 @@ public static class HttpResponseDeserializer
     {
         httpResponseMessage.EnsureSuccessStatusCode();
 
-        var responseContent =
+        string responseContent =
             await httpResponseMessage.Content.ReadAsStringAsync();
 
         return JsonSerializer.Deserialize<T>(responseContent,

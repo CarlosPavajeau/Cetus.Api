@@ -29,8 +29,8 @@ public class AwsController : ControllerBase
     [HttpPost("s3/presigned-url")]
     public async Task<IActionResult> GetPreSignedUrl([FromBody] CreateSignedUrlRequest request)
     {
-        var region = _configuration["AWS:Region"];
-        var bucketName = _configuration["AWS:BucketName"];
+        string? region = _configuration["AWS:Region"];
+        string? bucketName = _configuration["AWS:BucketName"];
 
         if (string.IsNullOrWhiteSpace(region) || string.IsNullOrWhiteSpace(bucketName))
         {
@@ -38,8 +38,8 @@ public class AwsController : ControllerBase
             return BadRequest("AWS configuration is missing");
         }
 
-        var accessKey = _configuration["AWS:AccessKey"];
-        var secretKey = _configuration["AWS:SecretKey"];
+        string? accessKey = _configuration["AWS:AccessKey"];
+        string? secretKey = _configuration["AWS:SecretKey"];
 
         if (string.IsNullOrWhiteSpace(accessKey) || string.IsNullOrWhiteSpace(secretKey))
         {
@@ -48,7 +48,7 @@ public class AwsController : ControllerBase
         }
 
         var credentials = new BasicAWSCredentials(accessKey, secretKey);
-        var s3Client = new AmazonS3Client(credentials, RegionEndpoint.GetBySystemName(region));
+        using var s3Client = new AmazonS3Client(credentials, RegionEndpoint.GetBySystemName(region));
 
         try
         {
@@ -60,7 +60,7 @@ public class AwsController : ControllerBase
                 Expires = DateTime.Now.AddMinutes(5)
             };
 
-            var url = await s3Client.GetPreSignedURLAsync(requestObject);
+            string? url = await s3Client.GetPreSignedURLAsync(requestObject);
 
             if (!string.IsNullOrWhiteSpace(url))
             {

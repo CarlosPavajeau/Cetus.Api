@@ -12,8 +12,8 @@ internal sealed class CreateCouponCommandHandler(IApplicationDbContext context, 
     public async Task<Result<CouponResponse>> Handle(CreateCouponCommand command, CancellationToken cancellationToken)
     {
         // Check if coupon code already exists (case-insensitive)
-        var couponCode = command.Code.Trim().ToUpperInvariant();
-        var codeExists = await context.Coupons
+        string couponCode = command.Code.Trim().ToUpperInvariant();
+        bool codeExists = await context.Coupons
             .AnyAsync(c => c.Code == couponCode, cancellationToken);
 
         if (codeExists)

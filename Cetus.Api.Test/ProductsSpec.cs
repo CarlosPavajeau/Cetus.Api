@@ -12,7 +12,6 @@ using Application.Products.Update;
 using Application.Products.Variants;
 using Application.Products.Variants.Create;
 using Application.Products.Variants.Images.Add;
-using Application.Products.Variants.Images.Delete;
 using Application.Products.Variants.Images.Order;
 using Application.Products.Variants.Update;
 using Bogus;
@@ -1071,8 +1070,6 @@ public class ProductsSpec(ApplicationTestCase factory) : ApplicationContextTestC
         images.ShouldNotBeEmpty();
 
         var imageToDelete = images[0];
-
-        var command = new DeleteVariantImageCommand(variant.Id, imageToDelete.Id);
 
         // Act
         var response = await Client.DeleteAsync(

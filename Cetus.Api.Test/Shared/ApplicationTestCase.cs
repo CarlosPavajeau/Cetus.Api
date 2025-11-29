@@ -1,7 +1,7 @@
 using Application.Abstractions.Data;
+using Application.Abstractions.Services;
 using Infrastructure.Database;
 using Infrastructure.Stores;
-using Application.Abstractions.Services;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;
@@ -24,7 +24,7 @@ public class ApplicationTestCase : WebApplicationFactory<Program>
 
         builder.ConfigureTestServices(services =>
         {
-            services.RemoveAll(typeof(DbContextOptions<ApplicationDbContext>));
+            services.RemoveAll<DbContextOptions<ApplicationDbContext>>();
 
             var serviceProvider = new ServiceCollection()
                 .AddEntityFrameworkInMemoryDatabase()

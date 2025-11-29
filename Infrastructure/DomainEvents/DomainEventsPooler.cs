@@ -44,7 +44,7 @@ internal sealed class DomainEventsPooler(
 
             var handlers = scope.ServiceProvider.GetServices(handlerType);
 
-            foreach (var handler in handlers)
+            foreach (object? handler in handlers)
             {
                 if (handler is null)
                 {
@@ -80,25 +80,22 @@ internal sealed class DomainEventsPooler(
                 domainEventType,
                 et => typeof(HandlerWrapper<>).MakeGenericType(et));
 
-            var instance = Activator.CreateInstance(wrapperType, handler);
+            object? instance = Activator.CreateInstance(wrapperType, handler);
 
-            if (instance is null)
-            {
-                throw new InvalidOperationException(
-                    $"Failed to create an instance of {wrapperType} for handler {handler.GetType().FullName}.");
-            }
-
-            return (HandlerWrapper) instance;
+            return instance is null
+                ? throw new InvalidOperationException(
+                    $"Failed to create an instance of {wrapperType} for handler {handler.GetType().FullName}.")
+                : (HandlerWrapper)instance;
         }
     }
 
     private sealed class HandlerWrapper<T>(object handler) : HandlerWrapper where T : IDomainEvent
     {
-        private readonly IDomainEventHandler<T> _handler = (IDomainEventHandler<T>) handler;
+        private readonly IDomainEventHandler<T> _handler = (IDomainEventHandler<T>)handler;
 
         public override async Task Handle(IDomainEvent domainEvent, CancellationToken cancellationToken)
         {
-            await _handler.Handle((T) domainEvent, cancellationToken);
+            await _handler.Handle((T)domainEvent, cancellationToken);
         }
     }
 }

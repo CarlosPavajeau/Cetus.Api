@@ -19,7 +19,7 @@ internal sealed class RejectProductReviewCommandHandler(IApplicationDbContext co
             return Result.Failure(ProductReviewErrors.NotFound(command.Id));
         }
 
-        var moderatorNotes = string.IsNullOrWhiteSpace(command.ModeratorNotes)
+        string? moderatorNotes = string.IsNullOrWhiteSpace(command.ModeratorNotes)
             ? null
             : command.ModeratorNotes.Trim();
 

@@ -35,7 +35,7 @@ internal sealed class RestoreVariantStockOnCanceledOrder(
 
         foreach (var variant in variants)
         {
-            if (quantityByVariantId.TryGetValue(variant.Id, out var quantity))
+            if (quantityByVariantId.TryGetValue(variant.Id, out int quantity))
             {
                 variant.Stock += quantity;
                 logger.LogInformation("Restored {Quantity} units to variant {VariantId}. New stock: {NewStock}",

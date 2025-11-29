@@ -12,7 +12,7 @@ internal sealed class SearchAllProductVariantsQueryHandler(IApplicationDbContext
     public async Task<Result<IEnumerable<ProductVariantResponse>>> Handle(SearchAllProductVariantsQuery query,
         CancellationToken cancellationToken)
     {
-        var productExists = await db.Products
+        bool productExists = await db.Products
             .AsNoTracking()
             .AnyAsync(p => p.Id == query.ProductId && p.DeletedAt == null, cancellationToken);
 

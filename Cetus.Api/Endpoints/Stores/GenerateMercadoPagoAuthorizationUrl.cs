@@ -11,7 +11,7 @@ internal sealed class GenerateMercadoPagoAuthorizationUrl : IEndpoint
             CancellationToken cancellationToken
         ) =>
         {
-            var authorizationUrl = await mercadoPagoClient.GenerateAuthorizationUrl(cancellationToken);
+            string? authorizationUrl = await mercadoPagoClient.GenerateAuthorizationUrl(cancellationToken);
             return Results.Ok(authorizationUrl);
         }).WithTags(Tags.Stores, Tags.MercadoPago);
     }

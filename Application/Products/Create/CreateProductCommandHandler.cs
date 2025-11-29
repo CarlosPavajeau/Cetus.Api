@@ -12,7 +12,7 @@ internal sealed partial class CreateProductCommandHandler(IApplicationDbContext 
     public async Task<Result<ProductResponse>> Handle(CreateProductCommand request, CancellationToken cancellationToken)
     {
         var productId = Guid.NewGuid();
-        var slug = GenerateSlug(request.Name, productId);
+        string slug = GenerateSlug(request.Name, productId);
 
         var product = new Product
         {
@@ -34,13 +34,14 @@ internal sealed partial class CreateProductCommandHandler(IApplicationDbContext 
     internal static string GenerateSlug(string name, Guid id)
     {
         // Convert name to lowercase and replace non-alphanumeric chars with hyphens
-        var baseSlug = ProductNameRegex().Replace(name.ToLowerInvariant(), "-");
+#pragma warning disable CA1308 // TODO: Replace with ToUpper
+        string baseSlug = ProductNameRegex().Replace(name.ToLowerInvariant(), "-");
 
         // Get last 4 chars of the ID
-        var idSuffix = id.ToString("N")[^8..];
+        string idSuffix = id.ToString("N")[^8..];
 
         // Combine and ensure no double hyphens
-        var combined = $"{baseSlug}-{idSuffix}";
+        string combined = $"{baseSlug}-{idSuffix}";
 
         return SlugRegex().Replace(combined, "-").Trim('-');
     }

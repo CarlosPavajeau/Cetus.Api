@@ -48,7 +48,7 @@ internal sealed class RedeemCouponCommandHandler(
             return Result.Failure(OrderErrors.NotFound(command.OrderId));
         }
 
-        var alreadyUsed = await context.CouponUsages
+        bool alreadyUsed = await context.CouponUsages
             .AnyAsync(u => u.CouponId == coupon.Id && u.OrderId == order.Id, cancellationToken);
         if (alreadyUsed)
         {
@@ -65,7 +65,7 @@ internal sealed class RedeemCouponCommandHandler(
             return validationResult;
         }
 
-        var discountAmount = CalculateDiscountAmount(coupon, order);
+        decimal discountAmount = CalculateDiscountAmount(coupon, order);
         if (discountAmount < 0)
         {
             logger.LogWarning("No discount applicable. CouponId: {CouponId}, OrderId: {OrderId}", coupon.Id, order.Id);
@@ -136,12 +136,12 @@ internal sealed class RedeemCouponCommandHandler(
 
     private static Result ValidateMinPurchaseAmount(CouponRule rule, Order order)
     {
-        if (!decimal.TryParse(rule.Value, out var minAmount))
+        if (!decimal.TryParse(rule.Value, out decimal minAmount))
         {
             return Result.Failure(CouponErrors.InvalidRule);
         }
 
-        var orderSubtotal = order.Total;
+        decimal orderSubtotal = order.Total;
         if (orderSubtotal < minAmount)
         {
             return Result.Failure(CouponErrors.MinimumPurchaseNotMet);
@@ -152,12 +152,12 @@ internal sealed class RedeemCouponCommandHandler(
 
     private static Result ValidateSpecificProduct(CouponRule rule, Order order)
     {
-        if (!long.TryParse(rule.Value, out var variantId))
+        if (!long.TryParse(rule.Value, out long variantId))
         {
             return Result.Failure(CouponErrors.InvalidRule);
         }
 
-        var hasProduct = order.Items.Any(i => i.VariantId == variantId);
+        bool hasProduct = order.Items.Any(i => i.VariantId == variantId);
         if (!hasProduct)
         {
             return Result.Failure(CouponErrors.ProductNotInOrder);
@@ -173,7 +173,7 @@ internal sealed class RedeemCouponCommandHandler(
             return Result.Failure(CouponErrors.InvalidRule);
         }
 
-        var hasCategory = order.Items.Any(i => i.Product?.CategoryId == categoryId);
+        bool hasCategory = order.Items.Any(i => i.Product?.CategoryId == categoryId);
         if (!hasCategory)
         {
             return Result.Failure(CouponErrors.CategoryNotInOrder);
@@ -184,7 +184,7 @@ internal sealed class RedeemCouponCommandHandler(
 
     private async Task<Result> ValidateOnePerCustomer(Coupon coupon, Order order, CancellationToken cancellationToken)
     {
-        var existingUsage = await context.CouponUsages
+        bool existingUsage = await context.CouponUsages
             .AnyAsync(u => u.CouponId == coupon.Id && u.CustomerId == order.CustomerId, cancellationToken);
 
         if (existingUsage)
@@ -199,7 +199,7 @@ internal sealed class RedeemCouponCommandHandler(
 
     private static decimal CalculateDiscountAmount(Coupon coupon, Order order)
     {
-        var orderSubtotal = order.Total;
+        decimal orderSubtotal = order.Total;
 
         return coupon.DiscountType switch
         {

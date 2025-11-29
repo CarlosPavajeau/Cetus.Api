@@ -36,7 +36,7 @@ public sealed record ProductVariantResponse(
                         option.OptionValueId,
                         option.ProductOptionValue!.Value,
                         option.ProductOptionValue!.OptionTypeId,
-                        option.ProductOptionValue!.ProductOptionType.Name
+                        option.ProductOptionValue!.ProductOptionType!.Name
                     )
                 ).ToList()
         );

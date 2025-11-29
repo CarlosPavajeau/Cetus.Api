@@ -18,7 +18,6 @@ namespace Cetus.Api.Test;
 public class CouponsSpec(ApplicationTestCase factory) : ApplicationContextTestCase(factory)
 {
     private readonly CreateCouponCommandFaker _couponCommandFaker = new();
-    private readonly CreateProductCommandFaker _productCommandFaker = new();
     private readonly CreateOrderCustomerFaker _orderCustomerFaker = new();
     private readonly Guid _cityId = Guid.Parse("f97957e9-d820-4858-ac26-b5d03d658370");
 
@@ -236,7 +235,7 @@ public class CouponsSpec(ApplicationTestCase factory) : ApplicationContextTestCa
         coupon.ShouldNotBeNull();
 
         var order = await CreateTestOrder();
-        var originalTotal = order.Total;
+        decimal originalTotal = order.Total;
 
         var redeemCommand = new RedeemCouponCommand(coupon.Code, order.Id);
 
@@ -387,8 +386,8 @@ public class CouponsSpec(ApplicationTestCase factory) : ApplicationContextTestCa
         coupon.ShouldNotBeNull();
 
         var order = await CreateTestOrder();
-        var originalTotal = order.Total;
-        var expectedDiscount = originalTotal * (coupon.DiscountValue / 100);
+        decimal originalTotal = order.Total;
+        decimal expectedDiscount = originalTotal * (coupon.DiscountValue / 100);
 
         var redeemCommand = new RedeemCouponCommand(coupon.Code, order.Id);
 
@@ -419,8 +418,8 @@ public class CouponsSpec(ApplicationTestCase factory) : ApplicationContextTestCa
         coupon.ShouldNotBeNull();
 
         var order = await CreateTestOrder();
-        var originalTotal = order.Total;
-        var expectedDiscount = Math.Min(coupon.DiscountValue, originalTotal);
+        decimal originalTotal = order.Total;
+        decimal expectedDiscount = Math.Min(coupon.DiscountValue, originalTotal);
 
         var redeemCommand = new RedeemCouponCommand(coupon.Code, order.Id);
 
@@ -451,7 +450,7 @@ public class CouponsSpec(ApplicationTestCase factory) : ApplicationContextTestCa
         coupon.ShouldNotBeNull();
 
         var order = await CreateTestOrder();
-        var originalDeliveryFee = order.DeliveryFee;
+        decimal originalDeliveryFee = order.DeliveryFee;
 
         var redeemCommand = new RedeemCouponCommand(coupon.Code, order.Id);
 
@@ -537,7 +536,9 @@ public class CouponsSpec(ApplicationTestCase factory) : ApplicationContextTestCa
     {
         var response = await Client.GetAsync($"api/orders/{orderId}");
         if (!response.IsSuccessStatusCode)
+        {
             return null;
+        }
 
         return await response.DeserializeAsync<OrderResponse>();
     }

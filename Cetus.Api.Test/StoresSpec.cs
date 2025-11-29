@@ -80,7 +80,7 @@ public class StoresSpec(ApplicationTestCase factory) : ApplicationContextTestCas
         // Assert
         response.EnsureSuccessStatusCode();
 
-        var result = await response.Content.ReadAsStringAsync();
+        string result = await response.Content.ReadAsStringAsync();
         result.ShouldBeEmpty(); // Expecting no content on successful creation
 
         var db = Services.GetRequiredService<IApplicationDbContext>();

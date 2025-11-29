@@ -18,7 +18,7 @@ internal sealed class FindBySlug : IEndpoint
             CancellationToken cancellationToken) =>
         {
             var query = new FindProductBySlugQuery(slug);
-            var cacheKey = $"product-slug-{slug}";
+            string cacheKey = $"product-slug-{slug}";
 
             var result = await cache.GetOrCreateAsync(
                 cacheKey,
