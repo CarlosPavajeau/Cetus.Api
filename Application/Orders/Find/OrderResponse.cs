@@ -30,7 +30,9 @@ public sealed record OrderResponse(
     CustomerResponse Customer,
     string? TransactionId,
     Guid StoreId,
-    DateTime CreatedAt)
+    DateTime CreatedAt,
+    string? CancellationReason,
+    DateTime? CancelledAt)
 
 {
     public static Expression<Func<Order, OrderResponse>> Map => order =>
@@ -72,5 +74,8 @@ public sealed record OrderResponse(
             ),
             order.TransactionId,
             order.StoreId,
-            order.CreatedAt);
+            order.CreatedAt,
+            order.CancellationReason,
+            order.CancelledAt
+        );
 }
