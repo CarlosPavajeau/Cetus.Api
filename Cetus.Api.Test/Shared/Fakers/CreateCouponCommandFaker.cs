@@ -10,7 +10,7 @@ public sealed class CreateCouponCommandFaker : Faker<CreateCouponCommand>
     public CreateCouponCommandFaker()
     {
         CustomInstantiator(faker => new CreateCouponCommand(
-            faker.Commerce.Ean8().ToUpper(),
+            faker.Commerce.Ean8().ToUpperInvariant(),
             faker.Commerce.ProductDescription(),
             faker.PickRandom<CouponDiscountType>(),
             faker.Random.Decimal(1, 100),

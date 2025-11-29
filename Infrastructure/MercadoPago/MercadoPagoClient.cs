@@ -14,14 +14,14 @@ public class MercadoPagoClient(IConfiguration configuration, ILogger<MercadoPago
 {
     public async Task<string?> GenerateAuthorizationUrl(CancellationToken cancellationToken = default)
     {
-        var clientId = configuration["MercadoPago:ClientId"];
+        string? clientId = configuration["MercadoPago:ClientId"];
 
         if (string.IsNullOrEmpty(clientId))
         {
             throw new InvalidOperationException("MercadoPago clientId is missing");
         }
 
-        var redirectUri = configuration["MercadoPago:RedirectUri"];
+        string? redirectUri = configuration["MercadoPago:RedirectUri"];
 
         if (string.IsNullOrEmpty(redirectUri))
         {
@@ -30,7 +30,7 @@ public class MercadoPagoClient(IConfiguration configuration, ILogger<MercadoPago
 
         var oAuthClient = new OAuthClient();
 
-        var authorizationUrl = await oAuthClient.GetAuthorizationURLAsync(
+        string? authorizationUrl = await oAuthClient.GetAuthorizationURLAsync(
             clientId,
             redirectUri,
             cancellationToken: cancellationToken

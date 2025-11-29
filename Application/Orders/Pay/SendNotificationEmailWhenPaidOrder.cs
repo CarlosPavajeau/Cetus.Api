@@ -19,14 +19,14 @@ internal sealed class SendNotificationEmailWhenPaidOrder(
         logger.LogInformation("Sending email to {Customer} for order {OrderNumber} with total {Total}",
             domainEvent.Order.Customer, domainEvent.Order.OrderNumber, domainEvent.Order.Total);
 
-        var messageBody = BuildEmailBody(domainEvent.Order);
+        string messageBody = BuildEmailBody(domainEvent.Order);
 
         await emailSender.SendEmail(EmailSubject, messageBody, domainEvent.Order.CustomerEmail, cancellationToken);
     }
 
     private static string BuildEmailBody(PaidOrder order)
     {
-        var formattedTotal = order.Total.ToString("C", ColombianCulture);
+        string formattedTotal = order.Total.ToString("C", ColombianCulture);
 
         return $$"""
                  <html>

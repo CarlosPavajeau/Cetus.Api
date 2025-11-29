@@ -37,20 +37,23 @@ public class SendPendingReviewRequestsJob(
             return;
         }
 
-        var senderEmail = configuration["Resend:From"]
-                          ?? throw new InvalidOperationException(
-                              "Sender email configuration 'Resend:From' is missing");
-        var baseUrl = configuration["Clerk:AuthorizedParty"]
-                      ?? throw new InvalidOperationException("Clerk:AuthorizedParty configuration is missing");
+        string senderEmail = configuration["Resend:From"]
+                             ?? throw new InvalidOperationException(
+                                 "Sender email configuration 'Resend:From' is missing");
+        string baseUrl = configuration["Clerk:AuthorizedParty"]
+                         ?? throw new InvalidOperationException("Clerk:AuthorizedParty configuration is missing");
 
         foreach (var request in pendingRequests)
         {
-            if (request.Customer is null) continue;
+            if (request.Customer is null)
+            {
+                continue;
+            }
 
             try
             {
-                var reviewUrl = BuildReviewUrl(request, baseUrl);
-                var messageBody = BuildMessageBody(request, reviewUrl);
+                string reviewUrl = BuildReviewUrl(request, baseUrl);
+                string messageBody = BuildMessageBody(request, reviewUrl);
                 await SendReviewRequestEmail(request.Customer.Email, EmailSubject, messageBody, senderEmail);
 
                 request.Status = ReviewRequestStatus.Sent;

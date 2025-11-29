@@ -18,7 +18,7 @@ internal sealed class Find : IEndpoint
             CancellationToken cancellationToken) =>
         {
             var query = new FindStoreQuery(domain, null);
-            var cacheKey = $"store-${domain}";
+            string cacheKey = $"store-${domain}";
 
             var result = await cache.GetOrCreateAsync(
                 cacheKey,
@@ -36,7 +36,7 @@ internal sealed class Find : IEndpoint
             CancellationToken cancellationToken) =>
         {
             var query = new FindStoreQuery(null, slug);
-            var cacheKey = $"store-${slug}";
+            string cacheKey = $"store-${slug}";
 
             var result = await cache.GetOrCreateAsync(
                 cacheKey,

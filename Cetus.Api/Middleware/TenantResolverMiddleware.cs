@@ -20,7 +20,7 @@ public class TenantResolverMiddleware(RequestDelegate next)
 
         if (context.Request.Headers.TryGetValue("Referer", out var originValues))
         {
-            var origin = originValues.FirstOrDefault();
+            string? origin = originValues.FirstOrDefault();
             if (!string.IsNullOrEmpty(origin) && Uri.TryCreate(origin, UriKind.Absolute, out var originUri))
             {
                 domain = originUri.Host;
@@ -29,7 +29,7 @@ public class TenantResolverMiddleware(RequestDelegate next)
 
         if (string.IsNullOrEmpty(domain) && context.Request.Headers.TryGetValue("Origin", out var refererValues))
         {
-            var referer = refererValues.FirstOrDefault();
+            string? referer = refererValues.FirstOrDefault();
             if (!string.IsNullOrEmpty(referer) && Uri.TryCreate(referer, UriKind.Absolute, out var refererUri))
             {
                 domain = refererUri.Host;
@@ -41,13 +41,10 @@ public class TenantResolverMiddleware(RequestDelegate next)
             domain = context.Request.Host.Host;
         }
 
-        var appDomain = configuration["AllowedOrigin"];
-        if (Uri.TryCreate(appDomain, UriKind.Absolute, out var appDomainUri))
+        string? appDomain = configuration["AllowedOrigin"];
+        if (Uri.TryCreate(appDomain, UriKind.Absolute, out var appDomainUri) && string.Equals(domain, appDomainUri.Host, StringComparison.OrdinalIgnoreCase))
         {
-            if (string.Equals(domain, appDomainUri.Host, StringComparison.OrdinalIgnoreCase))
-            {
-                domain = null; // Ignore the application domain
-            }
+            domain = null; // Ignore the application domain
         }
 
         string? slug = null;
@@ -63,7 +60,7 @@ public class TenantResolverMiddleware(RequestDelegate next)
             return;
         }
 
-        var cacheKey = BuildCacheKey(domain, slug);
+        string cacheKey = BuildCacheKey(domain, slug);
 
         logger.LogInformation("Try to find store for domain {Domain} and slug {Slug}", domain, slug);
 

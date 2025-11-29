@@ -30,10 +30,11 @@ internal sealed partial class CreateCategoryCommandHandler(IApplicationDbContext
 
     private static string GenerateSlug(Guid id, string name, Guid storeId)
     {
-        var baseSlug = CategoryNameRegex().Replace(name.ToLower(), "-");
+#pragma warning disable CA1308 // TODO: Replace with ToUpper
+        string baseSlug = CategoryNameRegex().Replace(name.ToLowerInvariant(), "-");
 
-        var idSuffix = id.ToString()[(id.ToString().Length - 4)..];
-        var storeIdSuffix = storeId.ToString()[(storeId.ToString().Length - 4)..];
+        string idSuffix = id.ToString()[(id.ToString().Length - 4)..];
+        string storeIdSuffix = storeId.ToString()[(storeId.ToString().Length - 4)..];
 
         return SlugRegex().Replace($"{baseSlug}-{idSuffix}-{storeIdSuffix}", "-");
     }

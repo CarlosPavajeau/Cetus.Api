@@ -296,7 +296,7 @@ public class OrdersSpec(ApplicationTestCase factory) : ApplicationContextTestCas
         deliverOrderResponse.EnsureSuccessStatusCode();
 
         // Act
-        var month = DateTime.UtcNow.ToString("MMMM", CultureInfo.InvariantCulture);
+        string month = DateTime.UtcNow.ToString("MMMM", CultureInfo.InvariantCulture);
         var getOrdersInsightsResponse = await Client.GetAsync($"api/orders/insights?month={month}");
 
         // Assert
@@ -337,7 +337,7 @@ public class OrdersSpec(ApplicationTestCase factory) : ApplicationContextTestCas
         deliverOrderResponse.EnsureSuccessStatusCode();
 
         // Act
-        var month = DateTime.Now.ToString("MMMM", CultureInfo.InvariantCulture);
+        string month = DateTime.Now.ToString("MMMM", CultureInfo.InvariantCulture);
         var getOrdersSummaryResponse = await Client.GetAsync($"api/orders/summary?month={month}");
 
         // Assert

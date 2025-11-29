@@ -16,7 +16,7 @@ public sealed class InMemoryStockReservationService(ApplicationDbContext context
             return new StockReservationResult(true, Array.Empty<long>(), Array.Empty<long>());
         }
 
-        var ids = quantitiesByVariant.Keys.ToArray();
+        long[] ids = quantitiesByVariant.Keys.ToArray();
 
         var variants = await context.ProductVariants
             .Include(v => v.Product)
@@ -35,7 +35,7 @@ public sealed class InMemoryStockReservationService(ApplicationDbContext context
 
         if (failed.Count != 0)
         {
-            var reserved = ids.Where(id => !failed.Contains(id)).ToArray();
+            long[] reserved = ids.Where(id => !failed.Contains(id)).ToArray();
             return new StockReservationResult(false, reserved, failed);
         }
 

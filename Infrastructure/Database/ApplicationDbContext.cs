@@ -51,10 +51,10 @@ public sealed class ApplicationDbContext(
 
     private sealed class DateTimeToUtcConverter() : ValueConverter<DateTime, DateTime>(Serialize, Deserialize)
     {
-        static Expression<Func<DateTime, DateTime>> Deserialize =
+        private static readonly Expression<Func<DateTime, DateTime>> Deserialize =
             x => x.Kind == DateTimeKind.Unspecified ? DateTime.SpecifyKind(x, DateTimeKind.Utc) : x;
 
-        static Expression<Func<DateTime, DateTime>> Serialize =
+        private static readonly Expression<Func<DateTime, DateTime>> Serialize =
             x => x.Kind == DateTimeKind.Unspecified ? DateTime.SpecifyKind(x, DateTimeKind.Utc) : x;
     }
 

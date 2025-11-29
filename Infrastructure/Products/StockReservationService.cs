@@ -17,8 +17,8 @@ public sealed class StockReservationService(ApplicationDbContext context) : ISto
             return new StockReservationResult(true, [], []);
         }
 
-        var ids = quantitiesByVariant.Keys.ToArray();
-        var qtys = quantitiesByVariant.Values.ToArray();
+        long[] ids = quantitiesByVariant.Keys.ToArray();
+        int[] qtys = quantitiesByVariant.Values.ToArray();
 
         const string sql = """
                            UPDATE product_variants pv
@@ -41,7 +41,7 @@ public sealed class StockReservationService(ApplicationDbContext context) : ISto
 
         IEnumerable<object> parameters = [idsParam, qtysParam, storeParam];
 
-        var affected = await context.Database.ExecuteSqlRawAsync(sql, parameters, cancellationToken);
+        int affected = await context.Database.ExecuteSqlRawAsync(sql, parameters, cancellationToken);
 
         if (affected == quantitiesByVariant.Count)
         {
@@ -61,13 +61,13 @@ public sealed class StockReservationService(ApplicationDbContext context) : ISto
         var failed = failedIds
             .Where(x => x.DeletedAt != null
                         || x.StoreId != storeId
-                        || !quantitiesByVariant.TryGetValue(x.Id, out var qty)
+                        || !quantitiesByVariant.TryGetValue(x.Id, out int qty)
                         || x.Stock < qty)
             .Select(x => x.Id)
             .Concat(missingIds)
             .ToList();
 
-        var reserved = ids.Where(id => !failed.Contains(id)).ToArray();
+        long[] reserved = ids.Where(id => !failed.Contains(id)).ToArray();
 
         return new StockReservationResult(false, reserved, failed);
     }

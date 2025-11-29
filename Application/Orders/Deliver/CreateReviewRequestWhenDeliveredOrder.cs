@@ -20,7 +20,7 @@ internal sealed class CreateReviewRequestWhenDeliveredOrder(
             .Where(o => o.OrderId == domainEvent.Id)
             .ToListAsync(cancellationToken);
 
-        var customerId = await db.Orders
+        string? customerId = await db.Orders
             .AsNoTracking()
             .Where(o => o.Id == domainEvent.Id)
             .Select(o => o.CustomerId)

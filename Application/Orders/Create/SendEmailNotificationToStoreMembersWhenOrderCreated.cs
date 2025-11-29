@@ -58,7 +58,7 @@ internal sealed class SendEmailNotificationToStoreMembersWhenOrderCreated(
             return;
         }
 
-        var messageBody = BuildMessageBody(domainEvent);
+        string messageBody = BuildMessageBody(domainEvent);
         var notificationEmails = storeMembers.Select(s => s.Email).ToImmutableList();
 
         await emailSender.SendEmail(EmailSubject, messageBody, notificationEmails, cancellationToken);

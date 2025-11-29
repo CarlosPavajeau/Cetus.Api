@@ -1,3 +1,4 @@
+using System.Globalization;
 using Application.Abstractions.MercadoPago;
 using Application.Abstractions.Messaging;
 using Application.Orders;
@@ -12,9 +13,9 @@ namespace Cetus.Api.Endpoints.Webhooks;
 
 internal sealed class MercadoPagoPaymentNotification : IEndpoint
 {
-    sealed record MercadoPagoPaymentData(long Id);
+    private sealed record MercadoPagoPaymentData(long Id);
 
-    sealed record MercadoPagoPaymentNotificationRequest(MercadoPagoPaymentData Data);
+    private sealed record MercadoPagoPaymentNotificationRequest(MercadoPagoPaymentData Data);
 
     public void MapEndpoint(IEndpointRouteBuilder app)
     {
@@ -37,7 +38,7 @@ internal sealed class MercadoPagoPaymentNotification : IEndpoint
                 return Results.NotFound();
             }
 
-            var hasValidOrderId = Guid.TryParse(payment.ExternalReference, out var orderId);
+            bool hasValidOrderId = Guid.TryParse(payment.ExternalReference, out var orderId);
             if (!hasValidOrderId)
             {
                 logger.LogWarning("Invalid order id received from Mercado Pago payment: {ExternalReference}",
@@ -61,8 +62,8 @@ internal sealed class MercadoPagoPaymentNotification : IEndpoint
                 });
             }
 
-            var paymentId = payment.Id.Value;
-            var payOrderCommand = new PayOrderCommand(orderId, paymentId.ToString(), PaymentProvider.MercadoPago);
+            long paymentId = payment.Id.Value;
+            var payOrderCommand = new PayOrderCommand(orderId, paymentId.ToString(CultureInfo.InvariantCulture), PaymentProvider.MercadoPago);
 
             var updateResult = await handler.Handle(payOrderCommand, cancellationToken);
 

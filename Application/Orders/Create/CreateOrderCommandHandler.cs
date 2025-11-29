@@ -1,3 +1,4 @@
+using System.Globalization;
 using Application.Abstractions.Data;
 using Application.Abstractions.Messaging;
 using Application.Abstractions.Services;
@@ -54,14 +55,16 @@ internal sealed class CreateOrderCommandHandler(
 
                 var variantsById = productsResult.Value.ToDictionary(v => v.Id);
                 var outOfStockProducts = reserveResult.FailedVariantIds
-                    .Select(id => variantsById.TryGetValue(id, out var variant) ? variant.ProductName : id.ToString())
+                    .Select(id => variantsById.TryGetValue(id, out var variant) ? variant.ProductName : id.ToString(CultureInfo.InvariantCulture))
                     .ToList();
 
                 var requestedProducts = reserveResult.FailedVariantIds
                     .Select(id =>
                     {
-                        var label = variantsById.TryGetValue(id, out var variant) ? variant.ProductName : id.ToString();
-                        var quantity = quantitiesByVariant.TryGetValue(id, out var qty) ? $"{qty}" : "unknown";
+                        string label = variantsById.TryGetValue(id, out var variant)
+                            ? variant.ProductName
+                            : id.ToString(CultureInfo.InvariantCulture);
+                        string quantity = quantitiesByVariant.TryGetValue(id, out int qty) ? $"{qty}" : "unknown";
 
                         return $"{label} (requested: {quantity})";
                     })
@@ -152,7 +155,7 @@ internal sealed class CreateOrderCommandHandler(
 
         if (missingProducts.Count != 0)
         {
-            var productCodes = missingProducts.Select(p => p.ToString()).ToList();
+            var productCodes = missingProducts.Select(p => p.ToString(CultureInfo.InvariantCulture)).ToList();
             return Result.Failure<List<VariantInfo>>(OrderErrors.ProductsNotFound(productCodes));
         }
 
@@ -162,7 +165,7 @@ internal sealed class CreateOrderCommandHandler(
     private async Task<Order> CreateOrderEntity(CreateOrderCommand request, string customerId,
         IReadOnlyList<VariantInfo> variants, CancellationToken cancellationToken)
     {
-        var deliveryFee = await CalculateDeliveryFee(request.CityId, tenant.Id, cancellationToken);
+        decimal deliveryFee = await CalculateDeliveryFee(request.CityId, tenant.Id, cancellationToken);
 
         var variantById = variants.ToDictionary(v => v.Id);
         var items = request.Items
@@ -180,7 +183,7 @@ internal sealed class CreateOrderCommandHandler(
             })
             .ToList();
 
-        var subtotal = items.Sum(x => x.Price * x.Quantity);
+        decimal subtotal = items.Sum(x => x.Price * x.Quantity);
         const decimal discount = 0m;
 
         return new Order
@@ -200,14 +203,14 @@ internal sealed class CreateOrderCommandHandler(
 
     private async Task<decimal> CalculateDeliveryFee(Guid cityId, Guid tenantId, CancellationToken cancellationToken)
     {
-        var cacheKey = $"{cityId}-{tenantId}";
+        string cacheKey = $"{cityId}-{tenantId}";
 
         var deliveryFee = await cache.GetOrCreateAsync(
             cacheKey,
             async token => await context.DeliveryFees
                 .AsNoTracking()
                 .Where(x => x.CityId == cityId && x.StoreId == tenantId && x.DeletedAt == null)
-                .Select(x => new {x.Fee})
+                .Select(x => new { x.Fee })
                 .FirstOrDefaultAsync(token),
             new HybridCacheEntryOptions
             {

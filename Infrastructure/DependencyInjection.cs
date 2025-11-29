@@ -79,7 +79,7 @@ public static class DependencyInjection
 
     private static IServiceCollection AddDatabase(this IServiceCollection services, IConfiguration configuration)
     {
-        var connectionString = configuration.GetConnectionString("CetusContext");
+        string? connectionString = configuration.GetConnectionString("CetusContext");
         services.AddDbContextPool<ApplicationDbContext>(options =>
         {
             options.UseNpgsql(
@@ -112,7 +112,7 @@ public static class DependencyInjection
 
     private static IServiceCollection AddTelemetry(this IServiceCollection services, IConfiguration configuration)
     {
-        var serviceName = configuration["OTEL_SERVICE_NAME"] ?? "cetus-api";
+        string serviceName = configuration["OTEL_SERVICE_NAME"] ?? "cetus-api";
         var otel = services.AddOpenTelemetry();
 
         otel.ConfigureResource(resource =>
@@ -173,7 +173,7 @@ public static class DependencyInjection
                         using var httpClient = new HttpClient();
                         try
                         {
-                            var jwksJson = httpClient
+                            string jwksJson = httpClient
                                 .GetStringAsync($"{configuration["Jwt:Audience"]}/api/auth/jwks")
                                 .Result;
                             var jwks = new JsonWebKeySet(jwksJson);
@@ -219,7 +219,7 @@ public static class DependencyInjection
 
             options.AddPolicy(AllowSpecificOriginsCorsPolicy, policy =>
             {
-                var allowedOrigin = configuration["AllowedOrigin"]!;
+                string allowedOrigin = configuration["AllowedOrigin"]!;
 
                 policy
                     .WithOrigins(allowedOrigin)

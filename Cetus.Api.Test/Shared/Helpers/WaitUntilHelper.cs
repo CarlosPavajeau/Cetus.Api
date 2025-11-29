@@ -13,7 +13,10 @@ public static class WaitUntilHelper
         while (sw.Elapsed < timeout)
         {
             if (await predicate().ConfigureAwait(false))
+            {
                 return;
+            }
+
             await Task.Delay(pollInterval).ConfigureAwait(false);
         }
 

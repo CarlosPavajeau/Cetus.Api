@@ -11,7 +11,7 @@ internal sealed class CreateStoreCommandHandler(IApplicationDbContext db, IDateT
 {
     public async Task<Result> Handle(CreateStoreCommand command, CancellationToken cancellationToken)
     {
-        var alreadyExists = await db.Stores.AnyAsync(x => x.Slug == command.Slug, cancellationToken);
+        bool alreadyExists = await db.Stores.AnyAsync(x => x.Slug == command.Slug, cancellationToken);
         if (alreadyExists)
         {
             return Result.Failure(StoreErrors.AlreadyExists(command.Slug));

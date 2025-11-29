@@ -17,7 +17,7 @@ internal sealed class CreateProductVariantCommandHandler(
     public async Task<Result<SimpleProductVariantResponse>> Handle(CreateProductVariantCommand command,
         CancellationToken cancellationToken)
     {
-        var productExists = await db.Products
+        bool productExists = await db.Products
             .AnyAsync(p => p.Id == command.ProductId && p.StoreId == tenant.Id, cancellationToken);
 
         if (!productExists)
@@ -25,8 +25,9 @@ internal sealed class CreateProductVariantCommandHandler(
             return Result.Failure<SimpleProductVariantResponse>(ProductErrors.NotFound(command.ProductId.ToString()));
         }
 
-        var normalizedSku = command.Sku.Trim().ToLowerInvariant();
-        var skuExists = await db.ProductVariants
+#pragma warning disable CA1308 // TODO: Replace with ToUpper
+        string normalizedSku = command.Sku.Trim().ToLowerInvariant();
+        bool skuExists = await db.ProductVariants
             .AsNoTracking()
             .AnyAsync(v =>
                     v.Sku == normalizedSku &&
@@ -39,13 +40,13 @@ internal sealed class CreateProductVariantCommandHandler(
         }
 
         // De-duplicate to avoid false negatives and duplicate join rows
-        var distinctOptionValueIds = command.OptionValueIds.Distinct().ToArray();
+        long[] distinctOptionValueIds = command.OptionValueIds.Distinct().ToArray();
 
         // Load option values with their OptionType and Store context
         var optionValueInfos = await db.ProductOptionValues
             .AsNoTracking()
             .Where(v => distinctOptionValueIds.Contains(v.Id))
-            .Select(v => new {v.Id, v.OptionTypeId, v.ProductOptionType!.StoreId})
+            .Select(v => new { v.Id, v.OptionTypeId, v.ProductOptionType!.StoreId })
             .ToListAsync(cancellationToken);
 
         // All must exist
@@ -73,7 +74,7 @@ internal sealed class CreateProductVariantCommandHandler(
         }
 
         // Each option type must have at most one selected value
-        var duplicateTypeIds = optionValueInfos
+        long[] duplicateTypeIds = optionValueInfos
             .GroupBy(v => v.OptionTypeId)
             .Where(g => g.Count() > 1)
             .Select(g => g.Key)

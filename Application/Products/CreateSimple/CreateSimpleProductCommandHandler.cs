@@ -14,8 +14,9 @@ internal sealed class CreateSimpleProductCommandHandler(IApplicationDbContext db
     public async Task<Result<ProductResponse>> Handle(CreateSimpleProductCommand command,
         CancellationToken cancellationToken)
     {
-        var normalizedSku = command.Sku.Trim().ToLowerInvariant();
-        var skuExists = await db.ProductVariants
+#pragma warning disable CA1308 // TODO: Replace with ToUpper
+        string normalizedSku = command.Sku.Trim().ToLowerInvariant();
+        bool skuExists = await db.ProductVariants
             .AsNoTracking()
             .AnyAsync(v =>
                     v.Sku == normalizedSku &&
@@ -28,7 +29,7 @@ internal sealed class CreateSimpleProductCommandHandler(IApplicationDbContext db
         }
 
         var productId = Guid.NewGuid();
-        var slug = CreateProductCommandHandler.GenerateSlug(command.Name, productId);
+        string slug = CreateProductCommandHandler.GenerateSlug(command.Name, productId);
 
         var product = new Product
         {

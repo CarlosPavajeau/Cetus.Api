@@ -36,7 +36,7 @@ internal sealed class CreateProductOptionCommandHandler(IApplicationDbContext db
             return Result.Failure(ProductOptionErrors.CrossStoreAssociation());
         }
 
-        var exists = await db.ProductOptions
+        bool exists = await db.ProductOptions
             .AsNoTracking()
             .AnyAsync(
                 p => p.ProductId == command.ProductId && p.OptionTypeId == command.OptionTypeId,

@@ -14,7 +14,7 @@ internal sealed class CreateProductOptionTypeCommandHandler(
     public async Task<Result> Handle(CreateProductOptionTypeCommand command, CancellationToken cancellationToken)
     {
         var now = dateTimeProvider.UtcNow;
-        var normalizedName = command.Name.Trim();
+        string normalizedName = command.Name.Trim();
 
         var normalizedValues = command.Values
             .Select(v => v.Trim())

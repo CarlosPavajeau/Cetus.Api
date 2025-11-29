@@ -8,7 +8,7 @@ public static class CityHelper
 {
     public static async Task CreateIfNotExists(Guid cityId, IApplicationDbContext db)
     {
-        var alreadyExists = await db.Cities
+        bool alreadyExists = await db.Cities
             .AnyAsync(c => c.Id == cityId);
 
         if (alreadyExists)

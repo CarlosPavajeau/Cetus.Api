@@ -31,7 +31,7 @@ public class ReviewsSpec(ApplicationTestCase factory) : ApplicationContextTestCa
         var db = Services.GetRequiredService<IApplicationDbContext>();
 
         await WaitUntilHelper.WaitUntilAsync(
-            async () => (await db.ReviewRequests.AsNoTracking().AnyAsync(r => r.CustomerId == customerId)),
+            async () => await db.ReviewRequests.AsNoTracking().AnyAsync(r => r.CustomerId == customerId),
             timeout: TimeSpan.FromSeconds(10),
             pollInterval: TimeSpan.FromMilliseconds(100));
     }
@@ -86,7 +86,7 @@ public class ReviewsSpec(ApplicationTestCase factory) : ApplicationContextTestCa
     public async Task ShouldReturnNotFoundForNonExistingReviewRequest()
     {
         // Arrange
-        var nonExistingToken = Convert.ToBase64String(Guid.NewGuid().ToByteArray())
+        string nonExistingToken = Convert.ToBase64String(Guid.NewGuid().ToByteArray())
             .Replace("/", "_")
             .Replace("+", "-")
             .Replace("=", "")[..22];
@@ -163,7 +163,7 @@ public class ReviewsSpec(ApplicationTestCase factory) : ApplicationContextTestCa
         const int reviewCount = 3;
         var createdReviews = new List<ProductReview>();
 
-        for (var i = 0; i < reviewCount; i++)
+        for (int i = 0; i < reviewCount; i++)
         {
             // Create order
             var newCustomer = _orderCustomerFaker.Generate();
@@ -263,7 +263,7 @@ public class ReviewsSpec(ApplicationTestCase factory) : ApplicationContextTestCa
         var db = Services.GetRequiredService<IApplicationDbContext>();
         const int reviewCount = 3;
 
-        for (var i = 0; i < reviewCount; i++)
+        for (int i = 0; i < reviewCount; i++)
         {
             // Create order
             var newCustomer = _orderCustomerFaker.Generate();
