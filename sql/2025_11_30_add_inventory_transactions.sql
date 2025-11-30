@@ -12,7 +12,8 @@ CREATE TABLE IF NOT EXISTS inventory_transactions
     user_id      VARCHAR(100),
     created_at   TIMESTAMP                  NOT NULL DEFAULT CURRENT_TIMESTAMP,
 
-    CONSTRAINT quantity_not_zero CHECK (quantity <> 0)
+    CONSTRAINT quantity_not_zero CHECK (quantity <> 0),
+    CONSTRAINT stock_after_non_negative CHECK (stock_after >= 0)
 );
 
 CREATE INDEX idx_inventory_transactions_variant_id ON inventory_transactions (variant_id);
