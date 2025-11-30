@@ -13,6 +13,9 @@ public class InventoryTransactionConfiguration : IEntityTypeConfiguration<Invent
         builder.Property(x => x.VariantId)
             .IsRequired();
 
+        builder.Property(x => x.Type)
+            .IsRequired();
+
         builder.Property(x => x.Quantity)
             .IsRequired();
 
