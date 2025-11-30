@@ -98,7 +98,9 @@ internal sealed class AdjustInventoryStockCommandHandler(
             logger.LogError(e, "Error adjusting inventory stock");
             await transaction.RollbackAsync(cancellationToken);
 
-            return Result.Failure(InventoryTransactionErrors.CannotAdjustInventoryStock(e.Message));
+            return Result.Failure(
+                InventoryTransactionErrors.CannotAdjustInventoryStock(
+                    "An unexpected error occurred while adjusting inventory stock"));
         }
     }
 }
