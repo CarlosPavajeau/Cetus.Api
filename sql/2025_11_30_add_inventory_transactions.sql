@@ -3,7 +3,7 @@ CREATE TYPE inventory_transaction_type AS ENUM ('sale', 'adjustment', 'return', 
 CREATE TABLE IF NOT EXISTS inventory_transactions
 (
     id           UUID PRIMARY KEY,
-    variant_id   BIGINT,
+    variant_id   BIGINT                     NOT NULL,
     type         inventory_transaction_type NOT NULL,
     quantity     INTEGER                    NOT NULL,
     stock_after  INTEGER                    NOT NULL,
