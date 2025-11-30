@@ -9,6 +9,7 @@ namespace Application.Products.Inventory.Adjust;
 
 internal sealed class AdjustInventoryStockCommandHandler(
     IApplicationDbContext db,
+    IDateTimeProvider dateTimeProvider,
     ILogger<AdjustInventoryStockCommandHandler> logger) : ICommandHandler<AdjustInventoryStockCommand>
 {
     public async Task<Result> Handle(AdjustInventoryStockCommand command, CancellationToken cancellationToken)
@@ -78,7 +79,7 @@ internal sealed class AdjustInventoryStockCommandHandler(
                     Reason = command.GlobalReason +
                              (string.IsNullOrEmpty(adjustment.Reason) ? "" : $" - {adjustment.Reason}"),
                     UserId = command.UserId,
-                    CreatedAt = DateTime.UtcNow
+                    CreatedAt = dateTimeProvider.UtcNow
                 };
 
                 await db.InventoryTransactions.AddAsync(inventoryTransaction, cancellationToken);
