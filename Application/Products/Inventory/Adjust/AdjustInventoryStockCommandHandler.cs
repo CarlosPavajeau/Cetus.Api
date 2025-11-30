@@ -48,6 +48,16 @@ internal sealed class AdjustInventoryStockCommandHandler(
                     quantityChange = newStock - previousStock;
                 }
 
+                if (newStock < 0)
+                {
+                    logger.LogWarning("Adjustment would result in negative stock for variant {VariantId}: {NewStock}",
+                        variant.Id, newStock);
+                    
+                    await transaction.RollbackAsync(cancellationToken);
+                    
+                    return Result.Failure(InventoryTransactionErrors.NegativeStockNotAllowed(variant.Id, newStock));
+                }
+
                 variant.Stock = newStock;
 
                 var inventoryTransaction = new InventoryTransaction
