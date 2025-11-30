@@ -22,11 +22,11 @@ internal sealed class AdjustInventoryStockCommandHandler(
             var variants = await db.ProductVariants
                 .Where(x => variantIds.Contains(x.Id))
                 .ToListAsync(cancellationToken);
+            var variantsById = variants.ToDictionary(x => x.Id);
 
             foreach (var adjustment in command.Adjustments)
             {
-                var variant = variants.FirstOrDefault(x => x.Id == adjustment.VariantId);
-                if (variant is null)
+                if (!variantsById.TryGetValue(adjustment.VariantId, out var variant))
                 {
                     logger.LogWarning("Product variant with ID {VariantId} not found", adjustment.VariantId);
                     await transaction.RollbackAsync(cancellationToken);
