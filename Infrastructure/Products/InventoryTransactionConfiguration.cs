@@ -30,6 +30,7 @@ public class InventoryTransactionConfiguration : IEntityTypeConfiguration<Invent
 
         builder.HasOne(x => x.ProductVariant)
             .WithMany()
+            .HasForeignKey(x => x.VariantId)
             .OnDelete(DeleteBehavior.Restrict);
     }
 }
