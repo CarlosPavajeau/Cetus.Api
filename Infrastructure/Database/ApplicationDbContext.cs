@@ -1,3 +1,4 @@
+using System.Data;
 using System.Linq.Expressions;
 using Application.Abstractions.Data;
 using Domain.Auth;
@@ -96,7 +97,7 @@ public sealed class ApplicationDbContext(
 
     public Task<IDbContextTransaction> BeginTransactionAsync(CancellationToken cancellationToken = default)
     {
-        return Database.BeginTransactionAsync(cancellationToken);
+        return Database.BeginTransactionAsync(IsolationLevel.RepeatableRead, cancellationToken);
     }
 
     private async Task PublishDomainEventsAsync()
