@@ -1171,4 +1171,155 @@ public class ProductsSpec(ApplicationTestCase factory) : ApplicationContextTestC
         updatedVariant.ShouldNotBeNull();
         updatedVariant.Stock.ShouldBe(20);
     }
+
+    [Fact(DisplayName = "Should return not found when adjusting inventory for non-existent variant")]
+    public async Task ShouldReturnNotFoundWhenAdjustingInventoryForNonExistentVariant()
+    {
+        // Arrange
+        const long nonExistentVariantId = long.MaxValue;
+
+        var command = new AdjustInventoryStockCommand(
+            "Global stock correction",
+            "system-user",
+            [
+                new InventoryAdjustmentItem(
+                    nonExistentVariantId,
+                    20,
+                    AdjustmentType.Snapshot,
+                    "Correcting stock to 20"
+                )
+            ]
+        );
+
+        // Act
+        var response = await Client.PostAsJsonAsync("api/inventory/adjustments", command);
+
+        // Assert
+        response.StatusCode.ShouldBe(HttpStatusCode.NotFound);
+    }
+
+    [Fact(DisplayName = "Should return error when adjustment results in negative stock")]
+    public async Task ShouldReturnErrorWhenAdjustmentResultsInNegativeStock()
+    {
+        // Arrange
+        var product = await ProductHelper.CreateProductWithVariant(Client);
+        var getVariantsResponse = await Client.GetAsync($"api/products/{product.Id}/variants");
+        getVariantsResponse.EnsureSuccessStatusCode();
+
+        var variants = await getVariantsResponse.DeserializeAsync<List<ProductVariantResponse>>();
+        variants.ShouldNotBeEmpty();
+
+        var variant = variants[0];
+        // Current stock is 10 (based on ProductHelper/Faker defaults usually, but let's assume it's positive)
+        // Actually looking at ShouldCreateAProductVariant, stock is 10.
+        // Let's try to decrease by 100.
+
+        var command = new AdjustInventoryStockCommand(
+            "Global stock correction",
+            "system-user",
+            [
+                new InventoryAdjustmentItem(
+                    variant.Id,
+                    -100,
+                    AdjustmentType.Delta,
+                    "Reducing stock by 100"
+                )
+            ]
+        );
+
+        // Act
+        var response = await Client.PostAsJsonAsync("api/inventory/adjustments", command);
+
+        // Assert
+        response.StatusCode.ShouldBe(HttpStatusCode.BadRequest);
+    }
+
+    [Fact(DisplayName = "Should handle multiple adjustments in one request")]
+    public async Task ShouldHandleMultipleAdjustmentsInOneRequest()
+    {
+        // Arrange
+        // Create two products/variants
+        var product1 = await ProductHelper.CreateProductWithVariant(Client);
+        var getVariantsResponse1 = await Client.GetAsync($"api/products/{product1.Id}/variants");
+        getVariantsResponse1.EnsureSuccessStatusCode();
+        var variants1 = await getVariantsResponse1.DeserializeAsync<List<ProductVariantResponse>>();
+        variants1.ShouldNotBeNull();
+        variants1.ShouldNotBeEmpty();
+        var variant1 = variants1[0];
+
+        var product2 = await ProductHelper.CreateProductWithVariant(Client);
+        var getVariantsResponse2 = await Client.GetAsync($"api/products/{product2.Id}/variants");
+        getVariantsResponse2.EnsureSuccessStatusCode();
+        var variants2 = await getVariantsResponse2.DeserializeAsync<List<ProductVariantResponse>>();
+        variants2.ShouldNotBeNull();
+        variants2.ShouldNotBeEmpty();
+        var variant2 = variants2[0];
+
+        var command = new AdjustInventoryStockCommand(
+            "Bulk adjustment",
+            "system-user",
+            [
+                new InventoryAdjustmentItem(
+                    variant1.Id,
+                    5,
+                    AdjustmentType.Delta,
+                    "Adding 5"
+                ),
+                new InventoryAdjustmentItem(
+                    variant2.Id,
+                    20,
+                    AdjustmentType.Snapshot,
+                    "Setting to 20"
+                )
+            ]
+        );
+
+        // Act
+        var response = await Client.PostAsJsonAsync("api/inventory/adjustments", command);
+
+        // Assert
+        response.EnsureSuccessStatusCode();
+
+        var getVariant1Response = await Client.GetAsync($"api/products/variants/{variant1.Id}");
+        var updatedVariant1 = await getVariant1Response.DeserializeAsync<ProductVariantResponse>();
+        updatedVariant1.ShouldNotBeNull();
+        updatedVariant1.Stock.ShouldBe(variant1.Stock + 5);
+
+        var getVariant2Response = await Client.GetAsync($"api/products/variants/{variant2.Id}");
+        var updatedVariant2 = await getVariant2Response.DeserializeAsync<ProductVariantResponse>();
+        updatedVariant2.ShouldNotBeNull();
+        updatedVariant2.Stock.ShouldBe(20);
+    }
+
+    [Fact(DisplayName = "Should handle zero quantity change")]
+    public async Task ShouldHandleZeroQuantityChange()
+    {
+        // Arrange
+        var product = await ProductHelper.CreateProductWithVariant(Client);
+        var getVariantsResponse = await Client.GetAsync($"api/products/{product.Id}/variants");
+        getVariantsResponse.EnsureSuccessStatusCode();
+        var variants = await getVariantsResponse.DeserializeAsync<List<ProductVariantResponse>>();
+        variants.ShouldNotBeNull();
+        variants.ShouldNotBeEmpty();
+        var variant = variants[0];
+
+        var command = new AdjustInventoryStockCommand(
+            "Zero adjustment",
+            "system-user",
+            [
+                new InventoryAdjustmentItem(
+                    variant.Id,
+                    0,
+                    AdjustmentType.Delta,
+                    "No change"
+                )
+            ]
+        );
+
+        // Act
+        var response = await Client.PostAsJsonAsync("api/inventory/adjustments", command);
+
+        // Assert
+        response.StatusCode.ShouldBe(HttpStatusCode.BadRequest);
+    }
 }
