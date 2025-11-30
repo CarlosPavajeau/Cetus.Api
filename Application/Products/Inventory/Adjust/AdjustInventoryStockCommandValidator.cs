@@ -22,8 +22,6 @@ public sealed class AdjustInventoryStockCommandValidator : AbstractValidator<Adj
             .ChildRules(i =>
             {
                 i.RuleFor(p => p.VariantId)
-                    .NotEmpty()
-                    .WithMessage("{PropertyName} must not be empty.")
                     .GreaterThan(0)
                     .WithMessage("{PropertyName} must be greater than 0");
 
@@ -33,7 +31,19 @@ public sealed class AdjustInventoryStockCommandValidator : AbstractValidator<Adj
 
                 i.RuleFor(p => p.Reason)
                     .MaximumLength(100)
-                    .WithMessage("{PropertyName} must not exceed 100 characters");
+                    .WithMessage("{PropertyName} must not exceed 100 characters")
+                    .Must((_, reason, context) =>
+                    {
+                        if (!context.RootContextData.TryGetValue("GlobalReason", out object? globalReasonObj) ||
+                            globalReasonObj is not string globalReason)
+                        {
+                            return (reason?.Length ?? 0) <= 255;
+                        }
+
+                        int combinedLength = globalReason.Length + (reason?.Length ?? 0) + 3;
+                        return combinedLength <= 255;
+                    })
+                    .WithMessage("The combined length of GlobalReason and Reason must not exceed 255 characters.");
             });
     }
 }
