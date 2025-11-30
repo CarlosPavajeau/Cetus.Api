@@ -29,7 +29,7 @@ public sealed class AdjustInventoryStockCommandValidator : AbstractValidator<Adj
 
                 i.RuleFor(p => p.Value)
                     .NotEqual(0)
-                    .WithMessage("{PropertyName} must be not equal to 0");
+                    .WithMessage("{PropertyName} must not be equal to 0");
 
                 i.RuleFor(p => p.Reason)
                     .MaximumLength(100)
