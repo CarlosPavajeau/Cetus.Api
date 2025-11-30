@@ -7,6 +7,7 @@ using Application.Abstractions.Services;
 using Application.Abstractions.Wompi;
 using Domain.Coupons;
 using Domain.Orders;
+using Domain.Products;
 using Domain.Reviews;
 using Infrastructure.Database;
 using Infrastructure.DomainEvents;
@@ -92,6 +93,7 @@ public static class DependencyInjection
                         dbContextOptionsBuilder.MapEnum<CouponDiscountType>("coupon_discount_type");
                         dbContextOptionsBuilder.MapEnum<CouponRuleType>("coupon_rule_type");
                         dbContextOptionsBuilder.MapEnum<PaymentProvider>("order_payment_provider");
+                        dbContextOptionsBuilder.MapEnum<InventoryTransactionType>("inventory_transaction_type");
                     })
                 .UseSnakeCaseNamingConvention();
         });
