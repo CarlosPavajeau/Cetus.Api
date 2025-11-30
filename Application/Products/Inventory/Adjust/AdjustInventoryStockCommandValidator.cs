@@ -11,12 +11,14 @@ public sealed class AdjustInventoryStockCommandValidator : AbstractValidator<Adj
             .WithMessage("{PropertyName} must not exceed 100 characters");
 
         RuleFor(x => x.UserId)
+            .NotEmpty()
+            .WithMessage("{PropertyName} must not be empty")
             .MaximumLength(100)
             .WithMessage("{PropertyName} must not exceed 100 characters");
 
         RuleFor(x => x.Adjustments)
             .NotEmpty()
-            .WithMessage("{PropertyName} must not be empty.");
+            .WithMessage("{PropertyName} must not be empty");
 
         RuleForEach(x => x.Adjustments)
             .ChildRules(i =>
@@ -43,7 +45,7 @@ public sealed class AdjustInventoryStockCommandValidator : AbstractValidator<Adj
                         int combinedLength = globalReason.Length + (reason?.Length ?? 0) + 3;
                         return combinedLength <= 255;
                     })
-                    .WithMessage("The combined length of GlobalReason and Reason must not exceed 255 characters.");
+                    .WithMessage("The combined length of GlobalReason and Reason must not exceed 255 characters");
             });
     }
 }
