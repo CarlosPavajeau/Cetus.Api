@@ -4,6 +4,7 @@ using System.Net.Http.Json;
 using Application.Abstractions.Data;
 using Application.Products;
 using Application.Products.Create;
+using Application.Products.Inventory.Adjust;
 using Application.Products.Options;
 using Application.Products.Options.Create;
 using Application.Products.Options.CreateType;
@@ -813,8 +814,8 @@ public class ProductsSpec(ApplicationTestCase factory) : ApplicationContextTestC
             StoreId = tenant.Id,
             ProductOptionValues =
             [
-                new ProductOptionValue {Value = "Red"},
-                new ProductOptionValue {Value = "Blue"}
+                new ProductOptionValue { Value = "Red" },
+                new ProductOptionValue { Value = "Blue" }
             ]
         };
 
@@ -856,8 +857,8 @@ public class ProductsSpec(ApplicationTestCase factory) : ApplicationContextTestC
             StoreId = tenant.Id,
             ProductOptionValues =
             [
-                new ProductOptionValue {Value = "Red"},
-                new ProductOptionValue {Value = "Blue"}
+                new ProductOptionValue { Value = "Red" },
+                new ProductOptionValue { Value = "Blue" }
             ]
         };
 
@@ -969,7 +970,7 @@ public class ProductsSpec(ApplicationTestCase factory) : ApplicationContextTestC
         images.ShouldNotBeEmpty();
 
         var reorderedImages = images
-            .Select((img, index) => img with {SortOrder = index + 1})
+            .Select((img, index) => img with { SortOrder = index + 1 })
             .ToImmutableList();
         var command = new OrderVariantImagesCommand(variant.Id, reorderedImages);
 
@@ -1087,5 +1088,87 @@ public class ProductsSpec(ApplicationTestCase factory) : ApplicationContextTestC
         updatedVariant.ShouldNotBeNull();
 
         updatedVariant.Images.ShouldNotContain(img => img.Id == imageToDelete.Id);
+    }
+
+    [Fact(DisplayName = "Should make a delta inventory adjustment")]
+    public async Task ShouldMakeADeltaInventoryAdjustment()
+    {
+        // Arrange
+        var product = await ProductHelper.CreateProductWithVariant(Client);
+        var getVariantsResponse = await Client.GetAsync($"api/products/{product.Id}/variants");
+        getVariantsResponse.EnsureSuccessStatusCode();
+
+        var variants = await getVariantsResponse.DeserializeAsync<List<ProductVariantResponse>>();
+        variants.ShouldNotBeEmpty();
+
+        var variant = variants[0];
+
+        var command = new AdjustInventoryStockCommand(
+            "Global restocking adjustment",
+            "system-user",
+            [
+                new InventoryAdjustmentItem(
+                    variant.Id,
+                    5,
+                    AdjustmentType.Delta,
+                    "Restocking"
+                )
+            ]
+        );
+
+        // Act
+        var response = await Client.PostAsJsonAsync("api/inventory/adjustments", command);
+
+        // Assert
+        response.EnsureSuccessStatusCode();
+        response.StatusCode.ShouldBe(HttpStatusCode.NoContent);
+
+        var getVariantAfterAdjustmentResponse = await Client.GetAsync($"api/products/variants/{variant.Id}");
+        getVariantAfterAdjustmentResponse.EnsureSuccessStatusCode();
+
+        var updatedVariant = await getVariantAfterAdjustmentResponse.DeserializeAsync<ProductVariantResponse>();
+        updatedVariant.ShouldNotBeNull();
+        updatedVariant.Stock.ShouldBe(variant.Stock + 5);
+    }
+
+    [Fact(DisplayName = "Should make a snapshot inventory adjustment")]
+    public async Task ShouldMakeASnapshotInventoryAdjustment()
+    {
+        // Arrange
+        var product = await ProductHelper.CreateProductWithVariant(Client);
+        var getVariantsResponse = await Client.GetAsync($"api/products/{product.Id}/variants");
+        getVariantsResponse.EnsureSuccessStatusCode();
+
+        var variants = await getVariantsResponse.DeserializeAsync<List<ProductVariantResponse>>();
+        variants.ShouldNotBeEmpty();
+
+        var variant = variants[0];
+
+        var command = new AdjustInventoryStockCommand(
+            "Global stock correction",
+            "system-user",
+            [
+                new InventoryAdjustmentItem(
+                    variant.Id,
+                    20,
+                    AdjustmentType.Snapshot,
+                    "Correcting stock to 20"
+                )
+            ]
+        );
+
+        // Act
+        var response = await Client.PostAsJsonAsync("api/inventory/adjustments", command);
+
+        // Assert
+        response.EnsureSuccessStatusCode();
+        response.StatusCode.ShouldBe(HttpStatusCode.NoContent);
+
+        var getVariantAfterAdjustmentResponse = await Client.GetAsync($"api/products/variants/{variant.Id}");
+        getVariantAfterAdjustmentResponse.EnsureSuccessStatusCode();
+
+        var updatedVariant = await getVariantAfterAdjustmentResponse.DeserializeAsync<ProductVariantResponse>();
+        updatedVariant.ShouldNotBeNull();
+        updatedVariant.Stock.ShouldBe(20);
     }
 }

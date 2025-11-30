@@ -1,0 +1,80 @@
+using Application.Abstractions.Data;
+using Application.Abstractions.Messaging;
+using Domain.Products;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
+using SharedKernel;
+
+namespace Application.Products.Inventory.Adjust;
+
+internal sealed class AdjustInventoryStockCommandHandler(
+    IApplicationDbContext db,
+    ILogger<AdjustInventoryStockCommandHandler> logger) : ICommandHandler<AdjustInventoryStockCommand>
+{
+    public async Task<Result> Handle(AdjustInventoryStockCommand command, CancellationToken cancellationToken)
+    {
+        await using var transaction = await db.BeginTransactionAsync(cancellationToken);
+
+        try
+        {
+            var variantIds = command.Adjustments.Select(x => x.VariantId).ToList();
+            var variants = await db.ProductVariants
+                .Where(x => variantIds.Contains(x.Id))
+                .ToListAsync(cancellationToken);
+
+            foreach (var adjustment in command.Adjustments)
+            {
+                var variant = variants.FirstOrDefault(x => x.Id == adjustment.VariantId);
+                if (variant is null)
+                {
+                    logger.LogWarning("Product variant with ID {VariantId} not found", adjustment.VariantId);
+                    continue;
+                }
+
+                int previousStock = variant.Stock;
+                int newStock;
+                int quantityChange;
+
+                if (adjustment.Type == AdjustmentType.Delta)
+                {
+                    quantityChange = adjustment.Value;
+                    newStock = previousStock + quantityChange;
+                }
+                else
+                {
+                    newStock = adjustment.Value;
+                    quantityChange = newStock - previousStock;
+                }
+
+                variant.Stock = newStock;
+
+                var inventoryTransaction = new InventoryTransaction
+                {
+                    Id = Guid.CreateVersion7(),
+                    VariantId = variant.Id,
+                    Type = InventoryTransactionType.Adjustment,
+                    Quantity = quantityChange,
+                    StockAfter = newStock,
+                    Reason = command.GlobalReason +
+                             (string.IsNullOrEmpty(adjustment.Reason) ? "" : $" - {adjustment.Reason}"),
+                    UserId = command.UserId,
+                    CreatedAt = DateTime.UtcNow
+                };
+
+                await db.InventoryTransactions.AddAsync(inventoryTransaction, cancellationToken);
+            }
+
+            await db.SaveChangesAsync(cancellationToken);
+            await transaction.CommitAsync(cancellationToken);
+
+            return Result.Success();
+        }
+        catch (Exception e)
+        {
+            logger.LogError(e, "Error adjusting inventory stock");
+            await transaction.RollbackAsync(cancellationToken);
+
+            return Result.Failure(InventoryTransactionErrors.CannotAdjustInventoryStock(e.Message));
+        }
+    }
+}
