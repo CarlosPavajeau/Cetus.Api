@@ -1,3 +1,4 @@
+using System.Data;
 using System.Linq.Expressions;
 using Application.Abstractions.Data;
 using Domain.Auth;
@@ -29,6 +30,7 @@ public sealed class ApplicationDbContext(
     public DbSet<ProductOption> ProductOptions { get; set; }
     public DbSet<ProductVariant> ProductVariants { get; set; }
     public DbSet<ProductVariantOptionValue> ProductVariantOptionValues { get; set; }
+    public DbSet<InventoryTransaction> InventoryTransactions { get; set; }
 
     public DbSet<Customer> Customers { get; set; }
     public DbSet<Order> Orders { get; set; }
@@ -95,7 +97,7 @@ public sealed class ApplicationDbContext(
 
     public Task<IDbContextTransaction> BeginTransactionAsync(CancellationToken cancellationToken = default)
     {
-        return Database.BeginTransactionAsync(cancellationToken);
+        return Database.BeginTransactionAsync(IsolationLevel.RepeatableRead, cancellationToken);
     }
 
     private async Task PublishDomainEventsAsync()

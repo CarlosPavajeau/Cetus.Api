@@ -22,6 +22,7 @@ public interface IApplicationDbContext
     DbSet<ProductOption> ProductOptions { get; }
     DbSet<ProductVariant> ProductVariants { get; }
     DbSet<ProductVariantOptionValue> ProductVariantOptionValues { get; }
+    DbSet<InventoryTransaction> InventoryTransactions { get; }
 
     DbSet<Customer> Customers { get; }
     DbSet<Order> Orders { get; }
