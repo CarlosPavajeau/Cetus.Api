@@ -52,13 +52,21 @@ internal sealed class AdjustInventoryStockCommandHandler(
                 {
                     logger.LogWarning("Adjustment would result in negative stock for variant {VariantId}: {NewStock}",
                         variant.Id, newStock);
-                    
+
                     await transaction.RollbackAsync(cancellationToken);
-                    
+
                     return Result.Failure(InventoryTransactionErrors.NegativeStockNotAllowed(variant.Id, newStock));
                 }
 
                 variant.Stock = newStock;
+
+                if (quantityChange == 0)
+                {
+                    logger.LogInformation("Skipping transaction record for variant {VariantId} - no stock change",
+                        variant.Id);
+
+                    continue;
+                }
 
                 var inventoryTransaction = new InventoryTransaction
                 {
