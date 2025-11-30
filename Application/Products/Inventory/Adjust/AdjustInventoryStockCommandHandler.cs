@@ -69,6 +69,12 @@ internal sealed class AdjustInventoryStockCommandHandler(
                     continue;
                 }
 
+                string reason = string.Join(" - ", new[]
+                {
+                    command.GlobalReason,
+                    string.IsNullOrWhiteSpace(adjustment.Reason) ? null : adjustment.Reason
+                }.Where(x => !string.IsNullOrWhiteSpace(x)));
+
                 var inventoryTransaction = new InventoryTransaction
                 {
                     Id = Guid.CreateVersion7(),
@@ -76,11 +82,7 @@ internal sealed class AdjustInventoryStockCommandHandler(
                     Type = InventoryTransactionType.Adjustment,
                     Quantity = quantityChange,
                     StockAfter = newStock,
-                    Reason = string.Join(" - ", new[]
-                    {
-                        command.GlobalReason,
-                        string.IsNullOrWhiteSpace(adjustment.Reason) ? null : adjustment.Reason
-                    }.Where(x => !string.IsNullOrWhiteSpace(x))),
+                    Reason = string.IsNullOrWhiteSpace(reason) ? null : reason,
                     UserId = command.UserId,
                     CreatedAt = dateTimeProvider.UtcNow
                 };
