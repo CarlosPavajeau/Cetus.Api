@@ -35,5 +35,8 @@ public class InventoryTransactionConfiguration : IEntityTypeConfiguration<Invent
             .WithMany()
             .HasForeignKey(x => x.VariantId)
             .OnDelete(DeleteBehavior.Restrict);
+
+        builder.Property(x => x.CreatedAt)
+            .IsRequired();
     }
 }
