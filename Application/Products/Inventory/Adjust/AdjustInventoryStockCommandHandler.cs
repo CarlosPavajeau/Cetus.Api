@@ -28,7 +28,9 @@ internal sealed class AdjustInventoryStockCommandHandler(
                 if (variant is null)
                 {
                     logger.LogWarning("Product variant with ID {VariantId} not found", adjustment.VariantId);
-                    continue;
+                    await transaction.RollbackAsync(cancellationToken);
+
+                    return Result.Failure(ProductVariantErrors.NotFound(adjustment.VariantId));
                 }
 
                 int previousStock = variant.Stock;
