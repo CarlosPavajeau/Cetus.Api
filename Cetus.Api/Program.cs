@@ -14,8 +14,6 @@ using DependencyInjection = Infrastructure.DependencyInjection;
 
 var builder = WebApplication.CreateBuilder(args);
 
-builder.Configuration.AddEnvironmentVariables();
-
 builder.Host.UseSerilog((context, loggerConfig) =>
 {
     loggerConfig.ReadFrom.Configuration(context.Configuration);
@@ -26,7 +24,7 @@ builder.Host.UseSerilog((context, loggerConfig) =>
         config.Protocol = OtlpProtocol.HttpProtobuf;
         config.Headers = new Dictionary<string, string>
         {
-            {"api-key", context.Configuration["OTEL_EXPORTER_OTLP_API_KEY"] ?? string.Empty}
+            { "api-key", context.Configuration["OTEL_EXPORTER_OTLP_API_KEY"] ?? string.Empty }
         };
 
         config.ResourceAttributes.Add("service.name", context.Configuration["OTEL_SERVICE_NAME"] ?? "cetus-api");
