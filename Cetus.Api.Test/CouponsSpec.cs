@@ -310,8 +310,7 @@ public class CouponsSpec(ApplicationTestCase factory) : ApplicationContextTestCa
         response.StatusCode.ShouldBe(HttpStatusCode.NotFound);
     }
 
-    [Fact(DisplayName = "Should not redeem a coupon that exceeds usage limit",
-        Skip = "This test is currently ignored because it requires a specific setup for usage limits.")]
+    [Fact(DisplayName = "Should not redeem a coupon that exceeds usage limit")]
     public async Task ShouldNotRedeemACouponThatExceedsUsageLimit()
     {
         // Arrange
@@ -387,7 +386,7 @@ public class CouponsSpec(ApplicationTestCase factory) : ApplicationContextTestCa
 
         var order = await CreateTestOrder();
         decimal originalTotal = order.Total;
-        decimal expectedDiscount = originalTotal * (coupon.DiscountValue / 100);
+        decimal expectedDiscount = Math.Round(originalTotal * (coupon.DiscountValue / 100), 2);
 
         var redeemCommand = new RedeemCouponCommand(coupon.Code, order.Id);
 
@@ -399,7 +398,11 @@ public class CouponsSpec(ApplicationTestCase factory) : ApplicationContextTestCa
 
         var updatedOrder = await GetOrder(order.Id);
         updatedOrder.ShouldNotBeNull();
-        updatedOrder.Total.ShouldBe(originalTotal - expectedDiscount);
+
+        decimal total = Math.Round(updatedOrder.Total, 0, MidpointRounding.ToEven);
+        decimal expectedTotal = Math.Round(originalTotal - expectedDiscount, 0, MidpointRounding.ToEven);
+
+        total.ShouldBe(expectedTotal);
     }
 
     [Fact(DisplayName = "Should successfully redeem a coupon with fixed amount discount")]
@@ -419,7 +422,7 @@ public class CouponsSpec(ApplicationTestCase factory) : ApplicationContextTestCa
 
         var order = await CreateTestOrder();
         decimal originalTotal = order.Total;
-        decimal expectedDiscount = Math.Min(coupon.DiscountValue, originalTotal);
+        decimal expectedDiscount = Math.Round(Math.Min(coupon.DiscountValue, originalTotal), 2);
 
         var redeemCommand = new RedeemCouponCommand(coupon.Code, order.Id);
 
@@ -466,8 +469,7 @@ public class CouponsSpec(ApplicationTestCase factory) : ApplicationContextTestCa
         updatedOrder.Total.ShouldBe(order.Total - originalDeliveryFee);
     }
 
-    [Fact(DisplayName = "Should not redeem a coupon twice by the same customer",
-        Skip = "This test is currently ignored because it requires a specific setup for one-per-customer rules.")]
+    [Fact(DisplayName = "Should not redeem a coupon twice by the same customer")]
     public async Task ShouldNotRedeemACouponTwiceByTheSameCustomer()
     {
         // Arrange
@@ -485,8 +487,9 @@ public class CouponsSpec(ApplicationTestCase factory) : ApplicationContextTestCa
         var coupon = await createResponse.DeserializeAsync<CouponResponse>();
         coupon.ShouldNotBeNull();
 
-        var order1 = await CreateTestOrder();
-        var order2 = await CreateTestOrder();
+        string customerId = _orderCustomerFaker.Generate().Id;
+        var order1 = await CreateTestOrder(customerId);
+        var order2 = await CreateTestOrder(customerId);
 
         var redeemCommand1 = new RedeemCouponCommand(coupon.Code, order1.Id);
         var redeemCommand2 = new RedeemCouponCommand(coupon.Code, order2.Id);
@@ -502,7 +505,7 @@ public class CouponsSpec(ApplicationTestCase factory) : ApplicationContextTestCa
         response2.StatusCode.ShouldBe(HttpStatusCode.BadRequest);
     }
 
-    private async Task<OrderResponse> CreateTestOrder()
+    private async Task<OrderResponse> CreateTestOrder(string? customerId = null)
     {
         // Create a test product first
         var db = Services.GetRequiredService<IApplicationDbContext>();
@@ -510,7 +513,14 @@ public class CouponsSpec(ApplicationTestCase factory) : ApplicationContextTestCa
 
         var product = await ProductHelper.CreateProductWithVariant(Client);
 
-        var newCustomer = _orderCustomerFaker.Generate();
+        var newCustomer = _orderCustomerFaker
+            .Generate();
+
+        if (customerId is not null)
+        {
+            newCustomer = newCustomer with { Id = customerId };
+        }
+
         var newOrderItems = new List<CreateOrderItem>
         {
             new(product.Name, product.ImageUrl, 1, product.Price, product.VariantId)
