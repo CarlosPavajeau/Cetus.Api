@@ -46,6 +46,7 @@ jobs:
       - name: Post Schema Diff Comment to PR
         uses: neondatabase/schema-diff-action@v1
         with:
+          database: 'cetus'
           project_id: ${{ vars.NEON_PROJECT_ID }}
           compare_branch: preview/pr-${{ github.event.number }}-${{ needs.setup.outputs.branch }}
           api_key: ${{ secrets.NEON_API_KEY }}
