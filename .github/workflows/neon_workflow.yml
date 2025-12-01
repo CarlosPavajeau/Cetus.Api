@@ -11,6 +11,10 @@ on:
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
 
+env:
+  ASPNETCORE_ENVIRONMENT: Test
+  DOTNET_VERSION: '10'
+
 jobs:
   setup:
     name: Setup
@@ -27,6 +31,9 @@ jobs:
 
   create_neon_branch:
     name: Create Neon Branch
+    outputs:
+      db_url: ${{ steps.create_neon_branch.outputs.db_url }}
+      db_url_with_pooler: ${{ steps.create_neon_branch.outputs.db_url_with_pooler }}
     needs: setup
     if: |
       github.event_name == 'pull_request' && (
@@ -52,6 +59,50 @@ jobs:
           project_id: ${{ vars.NEON_PROJECT_ID }}
           compare_branch: preview/pr-${{ github.event.number }}-${{ needs.setup.outputs.branch }}
           api_key: ${{ secrets.NEON_API_KEY }}
+  
+  build_and_test:
+    name: Build and Test
+    needs: [ setup, create_neon_branch ]
+    if: |
+      github.event_name == 'pull_request' && (
+      github.event.action == 'synchronize'
+      || github.event.action == 'opened'
+      || github.event.action == 'reopened')
+    
+    runs-on: ubuntu-latest
+    
+    env:
+      DATABASE_URL: ${{ needs.create_neon_branch.outputs.db_url }}
+      DATABASE_URL_WITH_POOLER: ${{ needs.create_neon_branch.outputs.db_url_with_pooler }}
+    
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Set up .NET Core
+        uses: actions/setup-dotnet@v5
+        with:
+          dotnet-version: ${{ env.DOTNET_VERSION }}
+
+      - name: Set up dependency caching for faster builds
+        uses: actions/cache@v4
+        with:
+          path: ~/.nuget/packages
+          key: ${{ runner.os }}-nuget-${{ hashFiles('**/packages.lock.json') }}
+          restore-keys: |
+            ${{ runner.os }}-nuget-
+
+      - name: Seed connection string into configuration
+        run: |
+          echo "ConnectionStrings__DefaultConnection=${{ needs.create_neon_branch.outputs.db_url_with_pooler }}" >> $GITHUB_ENV
+
+      - name: Restore dependencies
+        run: dotnet restore
+
+      - name: Build
+        run: dotnet build --no-restore
+
+      - name: Test
+        run: dotnet test --no-build --verbosity normal
 
   delete_neon_branch:
     name: Delete Neon Branch
