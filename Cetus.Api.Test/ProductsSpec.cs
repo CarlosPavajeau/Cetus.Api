@@ -91,8 +91,8 @@ public class ProductsSpec(ApplicationTestCase factory) : ApplicationContextTestC
             new()
             {
                 Id = Guid.NewGuid(),
-                Name = "Featured Product 1",
-                Description = "Description 1",
+                Name = _faker.Commerce.ProductName(),
+                Description = _faker.Commerce.ProductDescription(),
                 Slug = _faker.Lorem.Slug(10),
                 Enabled = true,
                 CategoryId = categoryId,
@@ -115,8 +115,8 @@ public class ProductsSpec(ApplicationTestCase factory) : ApplicationContextTestC
             new()
             {
                 Id = Guid.NewGuid(),
-                Name = "Featured Product 2",
-                Description = "Description 2",
+                Name = _faker.Commerce.ProductName(),
+                Description = _faker.Commerce.ProductDescription(),
                 Slug = _faker.Lorem.Slug(10),
                 Enabled = true,
                 CategoryId = categoryId,
@@ -208,8 +208,8 @@ public class ProductsSpec(ApplicationTestCase factory) : ApplicationContextTestC
             new()
             {
                 Id = Guid.NewGuid(),
-                Name = "Featured Product 1",
-                Description = "Description 1",
+                Name = _faker.Commerce.ProductName(),
+                Description = _faker.Commerce.ProductDescription(),
                 Slug = _faker.Lorem.Slug(10),
                 Enabled = true,
                 CategoryId = categoryId,
@@ -232,8 +232,8 @@ public class ProductsSpec(ApplicationTestCase factory) : ApplicationContextTestC
             new()
             {
                 Id = Guid.NewGuid(),
-                Name = "Featured Product 2",
-                Description = "Description 2",
+                Name = _faker.Commerce.ProductName(),
+                Description = _faker.Commerce.ProductDescription(),
                 Slug = _faker.Lorem.Slug(10),
                 Enabled = true,
                 CategoryId = categoryId,
@@ -353,7 +353,7 @@ public class ProductsSpec(ApplicationTestCase factory) : ApplicationContextTestC
                 Guid.NewGuid(),
                 "test-update",
                 "test-update",
-                Guid.NewGuid(),
+                categoryId,
                 true
             );
 
@@ -416,8 +416,8 @@ public class ProductsSpec(ApplicationTestCase factory) : ApplicationContextTestC
             new()
             {
                 Id = Guid.NewGuid(),
-                Name = "Featured Product 1",
-                Description = "Description 1",
+                Name = _faker.Commerce.ProductName(),
+                Description = _faker.Commerce.ProductDescription(),
                 Slug = _faker.Lorem.Slug(10),
                 Enabled = true,
                 CategoryId = categoryId,
@@ -440,8 +440,8 @@ public class ProductsSpec(ApplicationTestCase factory) : ApplicationContextTestC
             new()
             {
                 Id = Guid.NewGuid(),
-                Name = "Featured Product 2",
-                Description = "Description 2",
+                Name = _faker.Commerce.ProductName(),
+                Description = _faker.Commerce.ProductDescription(),
                 Slug = _faker.Lorem.Slug(10),
                 Enabled = true,
                 CategoryId = categoryId,
@@ -538,8 +538,8 @@ public class ProductsSpec(ApplicationTestCase factory) : ApplicationContextTestC
             new()
             {
                 Id = Guid.NewGuid(),
-                Name = "Featured Product 1",
-                Description = "Description 1",
+                Name = _faker.Commerce.ProductName(),
+                Description = _faker.Commerce.ProductDescription(),
                 Slug = _faker.Lorem.Slug(10),
                 Enabled = true,
                 CategoryId = categoryId,
@@ -562,8 +562,8 @@ public class ProductsSpec(ApplicationTestCase factory) : ApplicationContextTestC
             new()
             {
                 Id = Guid.NewGuid(),
-                Name = "Featured Product 2",
-                Description = "Description 2",
+                Name = _faker.Commerce.ProductName(),
+                Description = _faker.Commerce.ProductDescription(),
                 Slug = _faker.Lorem.Slug(10),
                 Enabled = true,
                 CategoryId = categoryId,
@@ -614,8 +614,8 @@ public class ProductsSpec(ApplicationTestCase factory) : ApplicationContextTestC
             new()
             {
                 Id = Guid.NewGuid(),
-                Name = "Featured Product 1",
-                Description = "Description 1",
+                Name = _faker.Commerce.ProductName(),
+                Description = _faker.Commerce.ProductDescription(),
                 Slug = _faker.Lorem.Slug(10),
                 Enabled = true,
                 CategoryId = categoryId,
@@ -638,8 +638,8 @@ public class ProductsSpec(ApplicationTestCase factory) : ApplicationContextTestC
             new()
             {
                 Id = Guid.NewGuid(),
-                Name = "Featured Product 2",
-                Description = "Description 2",
+                Name = _faker.Commerce.ProductName(),
+                Description = _faker.Commerce.ProductDescription(),
                 Slug = _faker.Lorem.Slug(10),
                 Enabled = true,
                 CategoryId = categoryId,
@@ -687,8 +687,8 @@ public class ProductsSpec(ApplicationTestCase factory) : ApplicationContextTestC
         var newProduct = new Product
         {
             Id = Guid.NewGuid(),
-            Name = "Featured Product 1",
-            Description = "Description 1",
+            Name = _faker.Commerce.ProductName(),
+            Description = _faker.Commerce.ProductDescription(),
             Slug = _faker.Lorem.Slug(10),
             Enabled = true,
             CategoryId = categoryId,
