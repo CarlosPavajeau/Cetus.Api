@@ -50,7 +50,7 @@ public sealed class StockReservationService(ApplicationDbContext context) : ISto
         var qtysParam = new NpgsqlParameter<int[]>("@qtys", qtys);
         var storeParam = new NpgsqlParameter<Guid>("@store_id", storeId);
 
-        IEnumerable<object> parameters = [idsParam, qtysParam, storeParam];
+        object[] parameters = [idsParam, qtysParam, storeParam];
 
         var successfulUpdates = await context.Database
             .SqlQueryRaw<UpdatedStockResult>(sql, parameters)
