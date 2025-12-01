@@ -73,7 +73,7 @@ public sealed class StockReservationService(ApplicationDbContext context) : ISto
             Quantity = -quantitiesByVariant[update.Id],
             StockAfter = update.NewStock,
             ReferenceId = orderId.ToString(),
-            Reason = "Reserva de Orden",
+            Reason = "Order Reservation",
             CreatedAt = DateTime.UtcNow
         });
 
