@@ -72,8 +72,6 @@ jobs:
     runs-on: ubuntu-latest
     
     env:
-      DATABASE_URL: ${{ needs.create_neon_branch.outputs.db_url }}
-      DATABASE_URL_WITH_POOLER: ${{ needs.create_neon_branch.outputs.db_url_with_pooler }}
       ConnectionStrings__CetusContext: ${{ needs.create_neon_branch.outputs.db_url_with_pooler }}
     
     steps:
@@ -100,6 +98,8 @@ jobs:
 
       - name: Test
         run: dotnet test --no-build --verbosity normal
+        env:
+          ConnectionStrings__CetusContext: ${{ needs.create_neon_branch.outputs.db_url_with_pooler }}
 
   delete_neon_branch:
     name: Delete Neon Branch
