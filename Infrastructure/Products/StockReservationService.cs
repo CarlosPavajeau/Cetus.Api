@@ -41,9 +41,9 @@ public sealed class StockReservationService(ApplicationDbContext context) : ISto
                                        AND p.deleted_at IS NULL
                                        AND p.store_id = @store_id
                                  )
-                               RETURNING pv.id, pv.stock as "NewStock"
+                               RETURNING pv.id AS id, pv.stock AS new_stock
                            )
-                           SELECT id, "NewStock" FROM updated_rows;
+                           SELECT id, new_stock FROM updated_rows;
                            """;
 
         var idsParam = new NpgsqlParameter<long[]>("@ids", ids);
