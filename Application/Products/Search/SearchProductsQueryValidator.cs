@@ -10,6 +10,8 @@ public sealed class SearchProductsQueryValidator : AbstractValidator<SearchProdu
             .NotEmpty()
             .MinimumLength(2)
             .MaximumLength(100)
-            .WithMessage("Search term must be between 2 and 100 characters");
+            .WithMessage("Search term must be between 2 and 100 characters")
+            .Matches(@"^[a-zA-Z0-9\s\-_,.]+$")
+            .WithMessage("Search term contains invalid characters.");
     }
 }
