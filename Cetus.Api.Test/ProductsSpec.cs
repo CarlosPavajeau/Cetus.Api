@@ -730,8 +730,8 @@ public class ProductsSpec(ApplicationTestCase factory) : ApplicationContextTestC
     {
         // Arrange
         var command = new CreateProductOptionTypeCommand(
-            _faker.Commerce.ProductMaterial(),
-            ["Red", "Blue", "Green"]
+            $"{_faker.Commerce.ProductMaterial()}-{Guid.NewGuid():N}",
+            [_faker.Lorem.Sentence(5), _faker.Lorem.Sentence(5), _faker.Lorem.Sentence(5)]
         );
 
         // Act
@@ -746,8 +746,11 @@ public class ProductsSpec(ApplicationTestCase factory) : ApplicationContextTestC
     public async Task ShouldReturnAllProductOptionTypes()
     {
         // Arrange
-        var command =
-            new CreateProductOptionTypeCommand(_faker.Commerce.ProductMaterial(), ["Small", "Medium", "Large"]);
+        var command = new CreateProductOptionTypeCommand(
+            $"{_faker.Commerce.ProductMaterial()}-{Guid.NewGuid():N}",
+            [_faker.Lorem.Sentence(5), _faker.Lorem.Sentence(5), _faker.Lorem.Sentence(5)]
+        );
+        
         await Client.PostAsJsonAsync("api/products/option-types", command);
 
         // Act
@@ -769,13 +772,13 @@ public class ProductsSpec(ApplicationTestCase factory) : ApplicationContextTestC
         var tenant = Services.GetRequiredService<ITenantContext>();
         var optionType = new ProductOptionType
         {
-            Name = _faker.Commerce.ProductMaterial(),
+            Name = $"{_faker.Commerce.ProductMaterial()}-{Guid.NewGuid():N}",
             StoreId = tenant.Id,
             ProductOptionValues =
             [
                 new ProductOptionValue
                 {
-                    Value = "Red"
+                    Value = _faker.Lorem.Sentence(5)
                 }
             ]
         };
@@ -814,12 +817,12 @@ public class ProductsSpec(ApplicationTestCase factory) : ApplicationContextTestC
 
         var optionType = new ProductOptionType
         {
-            Name = _faker.Commerce.ProductMaterial(),
+            Name = $"{_faker.Commerce.ProductMaterial()}-{Guid.NewGuid():N}",
             StoreId = tenant.Id,
             ProductOptionValues =
             [
-                new ProductOptionValue { Value = "Red" },
-                new ProductOptionValue { Value = "Blue" }
+                new ProductOptionValue { Value = _faker.Lorem.Sentence(5) },
+                new ProductOptionValue { Value = _faker.Lorem.Sentence(5) }
             ]
         };
 
@@ -862,7 +865,7 @@ public class ProductsSpec(ApplicationTestCase factory) : ApplicationContextTestC
 
         var optionType = new ProductOptionType
         {
-            Name = _faker.Commerce.ProductMaterial(),
+            Name = $"{_faker.Commerce.ProductMaterial()}-{Guid.NewGuid():N}",
             StoreId = tenant.Id,
             ProductOptionValues =
             [
