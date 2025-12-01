@@ -14,6 +14,7 @@ internal sealed class SearchProductsQueryHandler(IApplicationDbContext db, ITena
         CancellationToken cancellationToken)
     {
         var products = await db.Products
+            .AsNoTracking()
             .Where(p =>
                 p.DeletedAt == null && p.StoreId == tenant.Id &&
                 p.SearchVector.Matches(EF.Functions.PhraseToTsQuery("spanish", query.SearchTerm))
