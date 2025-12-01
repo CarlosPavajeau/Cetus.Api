@@ -4,6 +4,7 @@ public interface IStockReservationService
 {
     Task<StockReservationResult> TryReserveAsync(
         IReadOnlyDictionary<long, int> quantitiesByVariant,
+        Guid orderId,
         Guid storeId,
         CancellationToken cancellationToken);
 }

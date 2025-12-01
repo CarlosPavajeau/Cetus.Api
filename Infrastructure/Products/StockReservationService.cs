@@ -1,4 +1,5 @@
 using Application.Abstractions.Services;
+using Domain.Products;
 using Infrastructure.Database;
 using Microsoft.EntityFrameworkCore;
 using Npgsql;
@@ -7,8 +8,11 @@ namespace Infrastructure.Products;
 
 public sealed class StockReservationService(ApplicationDbContext context) : IStockReservationService
 {
+    private sealed record UpdatedStockResult(long Id, int NewStock);
+
     public async Task<StockReservationResult> TryReserveAsync(
         IReadOnlyDictionary<long, int> quantitiesByVariant,
+        Guid orderId,
         Guid storeId,
         CancellationToken cancellationToken)
     {
@@ -17,22 +21,29 @@ public sealed class StockReservationService(ApplicationDbContext context) : ISto
             return new StockReservationResult(true, [], []);
         }
 
-        long[] ids = quantitiesByVariant.Keys.ToArray();
-        int[] qtys = quantitiesByVariant.Values.ToArray();
+        long[] ids = [.. quantitiesByVariant.Keys];
+        int[] qtys = [.. quantitiesByVariant.Values];
 
         const string sql = """
-                           UPDATE product_variants pv
-                           SET stock = pv.stock - v.qty
-                           FROM (SELECT UNNEST(@ids)::bigint AS id, UNNEST(@qtys)::int AS qty) v
-                           WHERE pv.id = v.id
-                             AND pv.deleted_at IS NULL
-                             AND pv.stock >= v.qty
-                             AND EXISTS (
-                                 SELECT 1 FROM products p
-                                 WHERE p.id = pv.product_id
-                                   AND p.deleted_at IS NULL
-                                   AND p.store_id = @store_id
-                             );
+                           WITH input_data AS (
+                               SELECT UNNEST(@ids)::bigint AS id, UNNEST(@qtys)::int AS qty
+                           ),
+                           updated_rows AS (
+                               UPDATE product_variants pv
+                               SET stock = pv.stock - v.qty
+                               FROM input_data v
+                               WHERE pv.id = v.id
+                                 AND pv.deleted_at IS NULL
+                                 AND pv.stock >= v.qty  -- Constraint de negocio
+                                 AND EXISTS (
+                                     SELECT 1 FROM products p
+                                     WHERE p.id = pv.product_id
+                                       AND p.deleted_at IS NULL
+                                       AND p.store_id = @store_id
+                                 )
+                               RETURNING pv.id, pv.stock as "NewStock"
+                           )
+                           SELECT id, "NewStock" FROM updated_rows;
                            """;
 
         var idsParam = new NpgsqlParameter<long[]>("@ids", ids);
@@ -41,34 +52,35 @@ public sealed class StockReservationService(ApplicationDbContext context) : ISto
 
         IEnumerable<object> parameters = [idsParam, qtysParam, storeParam];
 
-        int affected = await context.Database.ExecuteSqlRawAsync(sql, parameters, cancellationToken);
-
-        if (affected == quantitiesByVariant.Count)
-        {
-            return new StockReservationResult(true, ids, []);
-        }
-
-        // Re-check to know which failed by selecting those that cannot fulfill the qty
-        var failedIds = await context.ProductVariants
-            .Where(v => ids.Contains(v.Id))
-            .Select(v => new {v.Id, v.Stock, v.Product!.DeletedAt, v.Product.StoreId})
-            .AsNoTracking()
+        var successfulUpdates = await context.Database
+            .SqlQueryRaw<UpdatedStockResult>(sql, parameters)
             .ToListAsync(cancellationToken);
 
-        var foundIds = failedIds.Select(x => x.Id).ToHashSet();
-        var missingIds = ids.Where(id => !foundIds.Contains(id));
+        var reservedIds = successfulUpdates.Select(x => x.Id).ToHashSet();
+        long[] failedIds = ids.Where(id => !reservedIds.Contains(id)).ToArray();
 
-        var failed = failedIds
-            .Where(x => x.DeletedAt != null
-                        || x.StoreId != storeId
-                        || !quantitiesByVariant.TryGetValue(x.Id, out int qty)
-                        || x.Stock < qty)
-            .Select(x => x.Id)
-            .Concat(missingIds)
-            .ToList();
+        bool isSuccess = failedIds.Length == 0;
 
-        long[] reserved = ids.Where(id => !failed.Contains(id)).ToArray();
+        if (!isSuccess)
+        {
+            return new StockReservationResult(false, reservedIds.ToArray(), failedIds);
+        }
 
-        return new StockReservationResult(false, reserved, failed);
+        var transactions = successfulUpdates.Select(update => new InventoryTransaction
+        {
+            VariantId = update.Id,
+            Type = InventoryTransactionType.Sale,
+            Quantity = -quantitiesByVariant[update.Id],
+            StockAfter = update.NewStock,
+            ReferenceId = orderId.ToString(),
+            Reason = "Reserva de Orden",
+            CreatedAt = DateTime.UtcNow
+        });
+
+        await context.InventoryTransactions.AddRangeAsync(transactions, cancellationToken);
+
+        await context.SaveChangesAsync(cancellationToken);
+
+        return new StockReservationResult(true, ids, []);
     }
 }
