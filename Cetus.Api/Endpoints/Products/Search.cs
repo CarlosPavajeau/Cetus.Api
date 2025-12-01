@@ -28,8 +28,8 @@ internal sealed class Search : IEndpoint
                 async token => await handler.Handle(query, token),
                 new HybridCacheEntryOptions
                 {
-                    Expiration = TimeSpan.FromHours(1),
-                    LocalCacheExpiration = TimeSpan.FromHours(1)
+                    Expiration = TimeSpan.FromMinutes(5),
+                    LocalCacheExpiration = TimeSpan.FromMinutes(5)
                 },
                 cancellationToken: cancellationToken
             );
