@@ -32,7 +32,6 @@ public sealed record SearchProductResponse(
             product.Category.Slug,
             product.Enabled,
             product.StoreId,
-            // Variants - will be populated by the updated handler query
             product.Variants.Select(v =>
                 new SearchProductVariantResponse(
                     v.Id,
