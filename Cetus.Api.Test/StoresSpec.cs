@@ -2,6 +2,7 @@ using System.Net.Http.Json;
 using Application.Abstractions.Data;
 using Application.Stores;
 using Application.Stores.Create;
+using Bogus;
 using Cetus.Api.Test.Shared;
 using Domain.Stores;
 using Microsoft.EntityFrameworkCore;
@@ -12,6 +13,8 @@ namespace Cetus.Api.Test;
 
 public class StoresSpec(ApplicationTestCase factory) : ApplicationContextTestCase(factory)
 {
+    private readonly Faker _faker = new();
+
     [Fact(DisplayName = "Should get a store by domain")]
     public async Task ShouldGetAStoreByDomain()
     {
@@ -19,9 +22,10 @@ public class StoresSpec(ApplicationTestCase factory) : ApplicationContextTestCas
         var store = new Store
         {
             Id = Guid.NewGuid(),
-            Name = "Test store",
-            CustomDomain = "customdomain.com",
-            Slug = "custom_domain"
+            Name = _faker.Company.CompanyName(),
+            CustomDomain = _faker.Internet.DomainName(),
+            Slug = _faker.Lorem.Slug(10),
+            ExternalId = Guid.NewGuid().ToString()
         };
 
         var db = Services.GetRequiredService<IApplicationDbContext>();
@@ -47,9 +51,10 @@ public class StoresSpec(ApplicationTestCase factory) : ApplicationContextTestCas
         var store = new Store
         {
             Id = Guid.NewGuid(),
-            Name = "Test store",
-            CustomDomain = "customdomain.com",
-            Slug = "custom_domain"
+            Name = _faker.Company.CompanyName(),
+            CustomDomain = _faker.Internet.DomainName(),
+            Slug = _faker.Lorem.Slug(10),
+            ExternalId = Guid.NewGuid().ToString()
         };
 
         var db = Services.GetRequiredService<IApplicationDbContext>();
@@ -72,7 +77,11 @@ public class StoresSpec(ApplicationTestCase factory) : ApplicationContextTestCas
     public async Task ShouldCreateAStore()
     {
         // Arrange
-        var command = new CreateStoreCommand("Test Store", "test_store", "external-id-123");
+        var command = new CreateStoreCommand(
+            _faker.Company.CompanyName(),
+            _faker.Lorem.Slug(10),
+            Guid.NewGuid().ToString()
+        );
 
         // Act
         var response = await Client.PostAsJsonAsync("api/stores", command);
@@ -99,9 +108,10 @@ public class StoresSpec(ApplicationTestCase factory) : ApplicationContextTestCas
         var store = new Store
         {
             Id = Guid.NewGuid(),
-            Name = "Test store",
-            CustomDomain = "customdomain.com",
-            Slug = "custom_domain"
+            Name = _faker.Company.CompanyName(),
+            CustomDomain = _faker.Internet.DomainName(),
+            Slug = _faker.Lorem.Slug(10),
+            ExternalId = Guid.NewGuid().ToString()
         };
 
         var db = Services.GetRequiredService<IApplicationDbContext>();
@@ -130,10 +140,10 @@ public class StoresSpec(ApplicationTestCase factory) : ApplicationContextTestCas
         var store = new Store
         {
             Id = Guid.NewGuid(),
-            Name = "Test store",
-            CustomDomain = "customdomain.com",
-            Slug = "custom_domain",
-            ExternalId = "external-id-123"
+            Name = _faker.Company.CompanyName(),
+            CustomDomain = _faker.Internet.DomainName(),
+            Slug = _faker.Lorem.Slug(10),
+            ExternalId = Guid.NewGuid().ToString()
         };
 
         var db = Services.GetRequiredService<IApplicationDbContext>();
