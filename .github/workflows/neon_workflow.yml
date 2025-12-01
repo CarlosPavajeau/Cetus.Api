@@ -93,7 +93,7 @@ jobs:
 
       - name: Seed connection string into configuration
         run: |
-          echo "ConnectionStrings__DefaultConnection=${{ needs.create_neon_branch.outputs.db_url_with_pooler }}" >> $GITHUB_ENV
+          echo "ConnectionStrings__CetusContext=${{ needs.create_neon_branch.outputs.db_url_with_pooler }}" >> $GITHUB_ENV
 
       - name: Restore dependencies
         run: dotnet restore
