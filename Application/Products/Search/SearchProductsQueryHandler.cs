@@ -19,6 +19,9 @@ internal sealed class SearchProductsQueryHandler(IApplicationDbContext db, ITena
                 p.DeletedAt == null && p.StoreId == tenant.Id &&
                 p.SearchVector!.Matches(EF.Functions.PlainToTsQuery("spanish", query.SearchTerm))
             )
+            .OrderByDescending(p =>
+                p.SearchVector!.Rank(EF.Functions.PlainToTsQuery("spanish", query.SearchTerm))
+            )
             .Take(MaxResults)
             .Select(SearchProductResponse.Map)
             .ToListAsync(cancellationToken);
