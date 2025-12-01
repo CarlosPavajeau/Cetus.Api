@@ -32,8 +32,8 @@ jobs:
   create_neon_branch:
     name: Create Neon Branch
     outputs:
-      db_url: ${{ steps.create_neon_branch_encode.outputs.db_url }}
-      db_url_with_pooler: ${{ steps.create_neon_branch_encode.outputs.db_url_with_pooler }}
+      db_url: ${{ steps.create_neon_branch.outputs.db_url }}
+      db_url_pooled: ${{ steps.create_neon_branch.outputs.db_url_pooled }}
     needs: setup
     if: |
       github.event_name == 'pull_request' && (
@@ -67,7 +67,7 @@ jobs:
     
     env:
       DATABASE_URL: ${{ needs.create_neon_branch.outputs.db_url }}
-      DATABASE_URL_WITH_POOLER: ${{ needs.create_neon_branch.outputs.db_url_with_pooler }}
+      DATABASE_URL_WITH_POOLER: ${{ needs.create_neon_branch.outputs.db_url_pooled }}
     
     steps:
       - uses: actions/checkout@v6
@@ -87,7 +87,7 @@ jobs:
 
       - name: Seed connection string into configuration
         run: |
-          echo "ConnectionStrings__DefaultConnection=${{ needs.create_neon_branch.outputs.db_url_with_pooler }}" >> $GITHUB_ENV
+          echo "ConnectionStrings__DefaultConnection=${{ needs.create_neon_branch.outputs.db_url_pooled }}" >> $GITHUB_ENV
 
       - name: Restore dependencies
         run: dotnet restore
