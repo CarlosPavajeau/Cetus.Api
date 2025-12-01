@@ -1,4 +1,5 @@
 using Domain.Categories;
+using NpgsqlTypes;
 
 namespace Domain.Products;
 
@@ -21,6 +22,8 @@ public sealed class Product
     public ICollection<ProductVariant> Variants { get; set; } = new HashSet<ProductVariant>();
 
     public Guid StoreId { get; set; }
+
+    public NpgsqlTsVector? SearchVector { get; set; }
 
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
     public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
