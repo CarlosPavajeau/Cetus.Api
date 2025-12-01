@@ -13,14 +13,21 @@ internal sealed class SearchProductsQueryHandler(IApplicationDbContext db, ITena
     public async Task<Result<IEnumerable<SearchProductResponse>>> Handle(SearchProductsQuery query,
         CancellationToken cancellationToken)
     {
+        if (string.IsNullOrWhiteSpace(query.SearchTerm))
+        {
+            return Array.Empty<SearchProductResponse>();
+        }
+        
+        var tsQuery = EF.Functions.PlainToTsQuery("spanish", query.SearchTerm);
+
         var products = await db.Products
             .AsNoTracking()
             .Where(p =>
                 p.DeletedAt == null && p.StoreId == tenant.Id &&
-                p.SearchVector!.Matches(EF.Functions.PlainToTsQuery("spanish", query.SearchTerm))
+                p.SearchVector!.Matches(tsQuery)
             )
             .OrderByDescending(p =>
-                p.SearchVector!.Rank(EF.Functions.PlainToTsQuery("spanish", query.SearchTerm))
+                p.SearchVector!.Rank(tsQuery)
             )
             .Take(MaxResults)
             .Select(SearchProductResponse.Map)
