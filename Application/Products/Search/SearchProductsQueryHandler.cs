@@ -17,7 +17,7 @@ internal sealed class SearchProductsQueryHandler(IApplicationDbContext db, ITena
             .AsNoTracking()
             .Where(p =>
                 p.DeletedAt == null && p.StoreId == tenant.Id &&
-                p.SearchVector.Matches(EF.Functions.PhraseToTsQuery("spanish", query.SearchTerm))
+                p.SearchVector!.Matches(EF.Functions.PhraseToTsQuery("spanish", query.SearchTerm))
             )
             .Take(MaxResults)
             .Select(SearchProductResponse.Map)

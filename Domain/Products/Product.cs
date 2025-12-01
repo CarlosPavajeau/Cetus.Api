@@ -23,7 +23,7 @@ public sealed class Product
 
     public Guid StoreId { get; set; }
 
-    public NpgsqlTsVector SearchVector { get; set; }
+    public NpgsqlTsVector? SearchVector { get; set; }
 
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
     public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
