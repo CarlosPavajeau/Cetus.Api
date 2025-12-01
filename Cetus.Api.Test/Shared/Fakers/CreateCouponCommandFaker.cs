@@ -15,8 +15,8 @@ public sealed class CreateCouponCommandFaker : Faker<CreateCouponCommand>
             faker.PickRandom<CouponDiscountType>(),
             faker.Random.Decimal(1, 100),
             faker.Random.Int(1, 1000),
-            faker.Date.Recent(2),
-            faker.Date.Soon(5),
+            faker.Date.Recent(2).ToUniversalTime(),
+            faker.Date.Soon(5).ToUniversalTime(),
             new List<CreateCouponRuleCommand>
             {
                 new(CouponRuleType.MinPurchaseAmount,

@@ -203,8 +203,10 @@ internal sealed class RedeemCouponCommandHandler(
 
         return coupon.DiscountType switch
         {
-            CouponDiscountType.Percentage => orderSubtotal * (coupon.DiscountValue / 100),
-            CouponDiscountType.FixedAmount => Math.Min(coupon.DiscountValue, orderSubtotal),
+            CouponDiscountType.Percentage =>
+                Math.Round(orderSubtotal * (coupon.DiscountValue / 100), 2, MidpointRounding.ToEven),
+            CouponDiscountType.FixedAmount =>
+                Math.Round(Math.Min(coupon.DiscountValue, orderSubtotal), 2, MidpointRounding.ToEven),
             _ => 0
         };
     }

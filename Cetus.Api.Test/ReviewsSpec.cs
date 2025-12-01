@@ -237,7 +237,12 @@ public class ReviewsSpec(ApplicationTestCase factory) : ApplicationContextTestCa
     public async Task ShouldReturnEmptyListForProductWithNoReviews()
     {
         // Arrange - Create a product
-        var newProduct = _productCommandFaker.Generate();
+        var categoryId = await ProductHelper.GetOrCreateCategoryId(Client);
+
+        var newProduct = _productCommandFaker
+            .WithCategoryId(categoryId)
+            .Generate();
+
         var createProductResponse = await Client.PostAsJsonAsync("api/products", newProduct);
         createProductResponse.EnsureSuccessStatusCode();
         var product = await createProductResponse.DeserializeAsync<ProductResponse>();

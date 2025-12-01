@@ -1,4 +1,6 @@
 using System.Net.Http.Json;
+using Application.Categories.Create;
+using Application.Categories.SearchAll;
 using Application.Products;
 using Application.Products.Create;
 using Application.Products.Variants;
@@ -18,12 +20,20 @@ public sealed record CreateProductWithVariantResponse(
 
 public static class ProductHelper
 {
-    private static readonly CreateProductCommandFaker _productCommandFaker = new();
-    private static readonly Faker _faker = new();
+    private static readonly CreateProductCommandFaker ProductCommandFaker = new();
+    private static readonly Faker Faker = new();
+    private static readonly SemaphoreSlim CategoryLock = new(1, 1);
+
+    private static Guid? _categoryId;
 
     public static async Task<CreateProductWithVariantResponse> CreateProductWithVariant(HttpClient client)
     {
-        var newProduct = _productCommandFaker.Generate();
+        await SetCategoryIdIfDontExists(client);
+
+        var newProduct = ProductCommandFaker
+            .WithCategoryId(_categoryId ?? Guid.NewGuid())
+            .Generate();
+
         var createResponse = await client.PostAsJsonAsync("api/products", newProduct);
 
         createResponse.EnsureSuccessStatusCode();
@@ -34,11 +44,11 @@ public static class ProductHelper
 
         var command = new CreateProductVariantCommand(
             product.Id,
-            Guid.NewGuid().ToString(),
+            Faker.Lorem.Slug(10),
             100.00m,
             10,
             [],
-            [new CreateProductImage(_faker.Image.PicsumUrl(), _faker.Commerce.ProductName(), 0)]
+            [new CreateProductImage(Faker.Image.PicsumUrl(), Faker.Commerce.ProductName(), 0)]
         );
 
         // Act
@@ -57,5 +67,39 @@ public static class ProductHelper
             productVariant.Price,
             command.Images[0].ImageUrl
         );
+    }
+
+    public static async Task<Guid> GetOrCreateCategoryId(HttpClient client)
+    {
+        await SetCategoryIdIfDontExists(client);
+        return _categoryId ?? throw new InvalidOperationException("Category creation failed unexpectedly.");
+    }
+
+    private static async Task SetCategoryIdIfDontExists(HttpClient client)
+    {
+        await CategoryLock.WaitAsync();
+
+        try
+        {
+            if (_categoryId.HasValue)
+            {
+                return;
+            }
+
+            var newCategory = new CreateCategoryCommand(Faker.PickRandom(Faker.Commerce.Categories(20)));
+            var response = await client.PostAsJsonAsync("api/categories", newCategory);
+
+            response.EnsureSuccessStatusCode();
+
+            var category = await response.DeserializeAsync<CategoryResponse>();
+
+            category.ShouldNotBeNull();
+
+            _categoryId = category.Id;
+        }
+        finally
+        {
+            CategoryLock.Release();
+        }
     }
 }

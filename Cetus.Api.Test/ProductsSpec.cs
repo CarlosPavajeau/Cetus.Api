@@ -19,7 +19,6 @@ using Bogus;
 using Cetus.Api.Test.Shared;
 using Cetus.Api.Test.Shared.Fakers;
 using Cetus.Api.Test.Shared.Helpers;
-using Domain.Categories;
 using Domain.Products;
 using Microsoft.Extensions.DependencyInjection;
 using Shouldly;
@@ -28,7 +27,6 @@ namespace Cetus.Api.Test;
 
 public class ProductsSpec(ApplicationTestCase factory) : ApplicationContextTestCase(factory)
 {
-    private readonly Guid categoryId = Guid.Parse("f97957e9-d820-4858-ac26-b5d03d658370");
     private readonly CreateProductCommandFaker _productCommandFaker = new();
     private readonly Faker _faker = new();
 
@@ -36,7 +34,11 @@ public class ProductsSpec(ApplicationTestCase factory) : ApplicationContextTestC
     public async Task ShouldCreateANewProduct()
     {
         // Arrange
-        var newProduct = _productCommandFaker.Generate();
+        var categoryId = await ProductHelper.GetOrCreateCategoryId(Client);
+
+        var newProduct = _productCommandFaker
+            .WithCategoryId(categoryId)
+            .Generate();
 
         // Act
         var response = await Client.PostAsJsonAsync("api/products", newProduct);
@@ -54,7 +56,11 @@ public class ProductsSpec(ApplicationTestCase factory) : ApplicationContextTestC
     public async Task ShouldReturnAllProducts()
     {
         // Arrange
-        var newProduct = _productCommandFaker.Generate();
+        var categoryId = await ProductHelper.GetOrCreateCategoryId(Client);
+
+        var newProduct = _productCommandFaker
+            .WithCategoryId(categoryId)
+            .Generate();
 
         var createResponse = await Client.PostAsJsonAsync("api/products", newProduct);
 
@@ -75,12 +81,7 @@ public class ProductsSpec(ApplicationTestCase factory) : ApplicationContextTestC
     public async Task ShouldReturnAllProductsForSale()
     {
         // Arrange
-        var category = new Category
-        {
-            Id = Guid.NewGuid(),
-            Name = "Category Test 2",
-            CreatedAt = DateTime.UtcNow
-        };
+        var categoryId = await ProductHelper.GetOrCreateCategoryId(Client);
 
         var tenant = Services.GetRequiredService<ITenantContext>();
 
@@ -90,52 +91,55 @@ public class ProductsSpec(ApplicationTestCase factory) : ApplicationContextTestC
             new()
             {
                 Id = Guid.NewGuid(),
-                Name = "Featured Product 1",
-                Description = "Description 1",
+                Name = _faker.Commerce.ProductName(),
+                Description = _faker.Commerce.ProductDescription(),
+                Slug = _faker.Lorem.Slug(10),
                 Enabled = true,
-                CategoryId = category.Id,
+                CategoryId = categoryId,
                 StoreId = tenant.Id,
                 CreatedAt = DateTime.UtcNow,
                 UpdatedAt = DateTime.UtcNow,
-                Variants = new List<ProductVariant>
-                {
-                    new()
+                Variants =
+                [
+                    new ProductVariant
                     {
-                        Sku = "featured-1",
+                        Sku = _faker.Commerce.Ean13(),
                         Price = 100,
                         Stock = 10,
                         Enabled = true,
-                        Featured = true
+                        Featured = true,
+                        SalesCount = 10
                     }
-                }
+                ]
             },
             new()
             {
                 Id = Guid.NewGuid(),
-                Name = "Featured Product 2",
-                Description = "Description 2",
+                Name = _faker.Commerce.ProductName(),
+                Description = _faker.Commerce.ProductDescription(),
+                Slug = _faker.Lorem.Slug(10),
                 Enabled = true,
-                CategoryId = category.Id,
+                CategoryId = categoryId,
                 StoreId = tenant.Id,
                 CreatedAt = DateTime.UtcNow,
                 UpdatedAt = DateTime.UtcNow,
-                Variants = new List<ProductVariant>
-                {
-                    new()
+                Variants =
+                [
+                    new ProductVariant
                     {
-                        Sku = "featured-2",
+                        Sku = _faker.Commerce.Ean13(),
                         Price = 100,
                         Stock = 10,
                         Enabled = true,
-                        Featured = true
+                        Featured = true,
+                        SalesCount = 50
                     }
-                }
+                ]
             }
         };
 
         var db = Services.GetRequiredService<IApplicationDbContext>();
 
-        await db.Categories.AddAsync(category);
         await db.Products.AddRangeAsync(products);
 
         await db.SaveChangesAsync();
@@ -155,16 +159,7 @@ public class ProductsSpec(ApplicationTestCase factory) : ApplicationContextTestC
     public async Task ShouldReturnAProductById()
     {
         // Arrange
-        var category = new Category
-        {
-            Id = categoryId,
-            Name = "Category Test",
-            CreatedAt = DateTime.UtcNow
-        };
-
-        var db = Services.GetRequiredService<IApplicationDbContext>();
-        await db.Categories.AddAsync(category);
-        await db.SaveChangesAsync();
+        var categoryId = await ProductHelper.GetOrCreateCategoryId(Client);
 
         var newProduct = _productCommandFaker.WithCategoryId(categoryId).Generate();
         var createResponse = await Client.PostAsJsonAsync("api/products", newProduct);
@@ -203,12 +198,7 @@ public class ProductsSpec(ApplicationTestCase factory) : ApplicationContextTestC
     public async Task ShouldReturnProductSuggestions()
     {
         // Arrange
-        var category = new Category
-        {
-            Id = Guid.NewGuid(),
-            Name = "Category Test 2",
-            CreatedAt = DateTime.UtcNow
-        };
+        var categoryId = await ProductHelper.GetOrCreateCategoryId(Client);
 
         var tenant = Services.GetRequiredService<ITenantContext>();
 
@@ -218,54 +208,56 @@ public class ProductsSpec(ApplicationTestCase factory) : ApplicationContextTestC
             new()
             {
                 Id = Guid.NewGuid(),
-                Name = "Featured Product 1",
-                Description = "Description 1",
+                Name = _faker.Commerce.ProductName(),
+                Description = _faker.Commerce.ProductDescription(),
+                Slug = _faker.Lorem.Slug(10),
                 Enabled = true,
-                CategoryId = category.Id,
+                CategoryId = categoryId,
                 StoreId = tenant.Id,
                 CreatedAt = DateTime.UtcNow,
                 UpdatedAt = DateTime.UtcNow,
-                Variants = new List<ProductVariant>
-                {
-                    new()
+                Variants =
+                [
+                    new ProductVariant
                     {
-                        Sku = "featured-1",
+                        Sku = _faker.Commerce.Ean13(),
                         Price = 100,
                         Stock = 10,
                         Enabled = true,
-                        Featured = true
+                        Featured = true,
+                        SalesCount = 10
                     }
-                }
+                ]
             },
             new()
             {
                 Id = Guid.NewGuid(),
-                Name = "Featured Product 2",
-                Description = "Description 2",
+                Name = _faker.Commerce.ProductName(),
+                Description = _faker.Commerce.ProductDescription(),
+                Slug = _faker.Lorem.Slug(10),
                 Enabled = true,
-                CategoryId = category.Id,
+                CategoryId = categoryId,
                 StoreId = tenant.Id,
                 CreatedAt = DateTime.UtcNow,
                 UpdatedAt = DateTime.UtcNow,
-                Variants = new List<ProductVariant>
-                {
-                    new()
+                Variants =
+                [
+                    new ProductVariant
                     {
-                        Sku = "featured-2",
+                        Sku = _faker.Commerce.Ean13(),
                         Price = 100,
                         Stock = 10,
                         Enabled = true,
-                        Featured = true
+                        Featured = true,
+                        SalesCount = 50
                     }
-                }
+                ]
             }
         };
 
         var db = Services.GetRequiredService<IApplicationDbContext>();
 
-        await db.Categories.AddAsync(category);
         await db.Products.AddRangeAsync(products);
-
         await db.SaveChangesAsync();
 
         var product = products[0];
@@ -282,11 +274,16 @@ public class ProductsSpec(ApplicationTestCase factory) : ApplicationContextTestC
         suggestions.ShouldNotBeEmpty();
     }
 
-    [Fact(DisplayName = "Should update a product", Skip = "ExecuteDeleteAsync is not supporter for InMemoryDatabase")]
+    [Fact(DisplayName = "Should update a product")]
     public async Task ShouldUpdateAProduct()
     {
         // Arrange
-        var newProduct = _productCommandFaker.Generate();
+        var categoryId = await ProductHelper.GetOrCreateCategoryId(Client);
+
+        var newProduct = _productCommandFaker
+            .WithCategoryId(categoryId)
+            .Generate();
+
         var createResponse = await Client.PostAsJsonAsync("api/products", newProduct);
 
         createResponse.EnsureSuccessStatusCode();
@@ -338,7 +335,12 @@ public class ProductsSpec(ApplicationTestCase factory) : ApplicationContextTestC
     public async Task ShouldReturnBadRequestWhenUpdatingAProductWithDifferentId()
     {
         // Arrange
-        var newProduct = _productCommandFaker.Generate();
+        var categoryId = await ProductHelper.GetOrCreateCategoryId(Client);
+
+        var newProduct = _productCommandFaker
+            .WithCategoryId(categoryId)
+            .Generate();
+
         var createResponse = await Client.PostAsJsonAsync("api/products", newProduct);
 
         createResponse.EnsureSuccessStatusCode();
@@ -351,7 +353,7 @@ public class ProductsSpec(ApplicationTestCase factory) : ApplicationContextTestC
                 Guid.NewGuid(),
                 "test-update",
                 "test-update",
-                Guid.NewGuid(),
+                categoryId,
                 true
             );
 
@@ -366,7 +368,12 @@ public class ProductsSpec(ApplicationTestCase factory) : ApplicationContextTestC
     public async Task ShouldDeleteAProduct()
     {
         // Arrange
-        var newProduct = _productCommandFaker.Generate();
+        var categoryId = await ProductHelper.GetOrCreateCategoryId(Client);
+
+        var newProduct = _productCommandFaker
+            .WithCategoryId(categoryId)
+            .Generate();
+
         var createResponse = await Client.PostAsJsonAsync("api/products", newProduct);
 
         createResponse.EnsureSuccessStatusCode();
@@ -399,17 +406,8 @@ public class ProductsSpec(ApplicationTestCase factory) : ApplicationContextTestC
     public async Task ShouldReturnTopSellingProducts()
     {
         // Arrange
-        var category = new Category
-        {
-            Id = Guid.NewGuid(),
-            Name = "Category Test Top Selling",
-            CreatedAt = DateTime.UtcNow
-        };
-
+        var categoryId = await ProductHelper.GetOrCreateCategoryId(Client);
         var db = Services.GetRequiredService<IApplicationDbContext>();
-        await db.Categories.AddAsync(category);
-        await db.SaveChangesAsync();
-
         var tenant = Services.GetRequiredService<ITenantContext>();
 
         // Create products directly in the database with different sales counts
@@ -418,48 +416,50 @@ public class ProductsSpec(ApplicationTestCase factory) : ApplicationContextTestC
             new()
             {
                 Id = Guid.NewGuid(),
-                Name = "Featured Product 1",
-                Description = "Description 1",
+                Name = _faker.Commerce.ProductName(),
+                Description = _faker.Commerce.ProductDescription(),
+                Slug = _faker.Lorem.Slug(10),
                 Enabled = true,
-                CategoryId = category.Id,
+                CategoryId = categoryId,
                 StoreId = tenant.Id,
                 CreatedAt = DateTime.UtcNow,
                 UpdatedAt = DateTime.UtcNow,
-                Variants = new List<ProductVariant>
-                {
-                    new()
+                Variants =
+                [
+                    new ProductVariant
                     {
-                        Sku = "featured-1",
+                        Sku = _faker.Commerce.Ean13(),
                         Price = 100,
                         Stock = 10,
                         Enabled = true,
                         Featured = true,
                         SalesCount = 10
                     }
-                }
+                ]
             },
             new()
             {
                 Id = Guid.NewGuid(),
-                Name = "Featured Product 2",
-                Description = "Description 2",
+                Name = _faker.Commerce.ProductName(),
+                Description = _faker.Commerce.ProductDescription(),
+                Slug = _faker.Lorem.Slug(10),
                 Enabled = true,
-                CategoryId = category.Id,
+                CategoryId = categoryId,
                 StoreId = tenant.Id,
                 CreatedAt = DateTime.UtcNow,
                 UpdatedAt = DateTime.UtcNow,
-                Variants = new List<ProductVariant>
-                {
-                    new()
+                Variants =
+                [
+                    new ProductVariant
                     {
-                        Sku = "featured-2",
+                        Sku = _faker.Commerce.Ean13(),
                         Price = 100,
                         Stock = 10,
                         Enabled = true,
                         Featured = true,
                         SalesCount = 50
                     }
-                }
+                ]
             }
         };
 
@@ -485,18 +485,12 @@ public class ProductsSpec(ApplicationTestCase factory) : ApplicationContextTestC
     public async Task ShouldReturnAProductBySlug()
     {
         // Arrange
-        var category = new Category
-        {
-            Id = Guid.NewGuid(),
-            Name = "Category Test",
-            CreatedAt = DateTime.UtcNow
-        };
+        var categoryId = await ProductHelper.GetOrCreateCategoryId(Client);
 
-        var db = Services.GetRequiredService<IApplicationDbContext>();
-        await db.Categories.AddAsync(category);
-        await db.SaveChangesAsync();
+        var newProduct = _productCommandFaker
+            .WithCategoryId(categoryId)
+            .Generate();
 
-        var newProduct = _productCommandFaker.WithCategoryId(category.Id).Generate();
         var createResponse = await Client.PostAsJsonAsync("api/products", newProduct);
 
         createResponse.EnsureSuccessStatusCode();
@@ -534,17 +528,8 @@ public class ProductsSpec(ApplicationTestCase factory) : ApplicationContextTestC
     public async Task ShouldReturnAllFeaturedProducts()
     {
         // Arrange
-        var category = new Category
-        {
-            Id = Guid.NewGuid(),
-            Name = "Category Test Featured",
-            CreatedAt = DateTime.UtcNow
-        };
-
+        var categoryId = await ProductHelper.GetOrCreateCategoryId(Client);
         var db = Services.GetRequiredService<IApplicationDbContext>();
-        await db.Categories.AddAsync(category);
-        await db.SaveChangesAsync();
-
         var tenant = Services.GetRequiredService<ITenantContext>();
 
         // Create featured products directly in the database
@@ -553,46 +538,50 @@ public class ProductsSpec(ApplicationTestCase factory) : ApplicationContextTestC
             new()
             {
                 Id = Guid.NewGuid(),
-                Name = "Featured Product 1",
-                Description = "Description 1",
+                Name = _faker.Commerce.ProductName(),
+                Description = _faker.Commerce.ProductDescription(),
+                Slug = _faker.Lorem.Slug(10),
                 Enabled = true,
-                CategoryId = category.Id,
+                CategoryId = categoryId,
                 StoreId = tenant.Id,
                 CreatedAt = DateTime.UtcNow,
                 UpdatedAt = DateTime.UtcNow,
-                Variants = new List<ProductVariant>
-                {
-                    new()
+                Variants =
+                [
+                    new ProductVariant
                     {
-                        Sku = "featured-1",
+                        Sku = _faker.Commerce.Ean13(),
                         Price = 100,
                         Stock = 10,
                         Enabled = true,
-                        Featured = true
+                        Featured = true,
+                        SalesCount = 10
                     }
-                }
+                ]
             },
             new()
             {
                 Id = Guid.NewGuid(),
-                Name = "Featured Product 2",
-                Description = "Description 2",
+                Name = _faker.Commerce.ProductName(),
+                Description = _faker.Commerce.ProductDescription(),
+                Slug = _faker.Lorem.Slug(10),
                 Enabled = true,
-                CategoryId = category.Id,
+                CategoryId = categoryId,
                 StoreId = tenant.Id,
                 CreatedAt = DateTime.UtcNow,
                 UpdatedAt = DateTime.UtcNow,
-                Variants = new List<ProductVariant>
-                {
-                    new()
+                Variants =
+                [
+                    new ProductVariant
                     {
-                        Sku = "featured-2",
+                        Sku = _faker.Commerce.Ean13(),
                         Price = 100,
                         Stock = 10,
                         Enabled = true,
-                        Featured = true
+                        Featured = true,
+                        SalesCount = 50
                     }
-                }
+                ]
             }
         };
 
@@ -615,17 +604,8 @@ public class ProductsSpec(ApplicationTestCase factory) : ApplicationContextTestC
     public async Task ShouldReturnAllPopularProducts()
     {
         // Arrange
-        var category = new Category
-        {
-            Id = Guid.NewGuid(),
-            Name = "Category Test Popular",
-            CreatedAt = DateTime.UtcNow
-        };
-
+        var categoryId = await ProductHelper.GetOrCreateCategoryId(Client);
         var db = Services.GetRequiredService<IApplicationDbContext>();
-        await db.Categories.AddAsync(category);
-        await db.SaveChangesAsync();
-
         var tenant = Services.GetRequiredService<ITenantContext>();
 
         // Create popular products directly in the database
@@ -634,28 +614,50 @@ public class ProductsSpec(ApplicationTestCase factory) : ApplicationContextTestC
             new()
             {
                 Id = Guid.NewGuid(),
-                Name = "Popular Product 1",
-                Description = "Description 1",
+                Name = _faker.Commerce.ProductName(),
+                Description = _faker.Commerce.ProductDescription(),
+                Slug = _faker.Lorem.Slug(10),
                 Enabled = true,
-                Rating = 4.5m,
-                SalesCount = 50,
-                CategoryId = category.Id,
+                CategoryId = categoryId,
                 StoreId = tenant.Id,
                 CreatedAt = DateTime.UtcNow,
-                UpdatedAt = DateTime.UtcNow
+                UpdatedAt = DateTime.UtcNow,
+                Variants =
+                [
+                    new ProductVariant
+                    {
+                        Sku = _faker.Commerce.Ean13(),
+                        Price = 100,
+                        Stock = 10,
+                        Enabled = true,
+                        Featured = true,
+                        SalesCount = 10
+                    }
+                ]
             },
             new()
             {
                 Id = Guid.NewGuid(),
-                Name = "Popular Product 2",
-                Description = "Description 2",
+                Name = _faker.Commerce.ProductName(),
+                Description = _faker.Commerce.ProductDescription(),
+                Slug = _faker.Lorem.Slug(10),
                 Enabled = true,
-                Rating = 4.8m,
-                SalesCount = 100,
-                CategoryId = category.Id,
+                CategoryId = categoryId,
                 StoreId = tenant.Id,
                 CreatedAt = DateTime.UtcNow,
-                UpdatedAt = DateTime.UtcNow
+                UpdatedAt = DateTime.UtcNow,
+                Variants =
+                [
+                    new ProductVariant
+                    {
+                        Sku = _faker.Commerce.Ean13(),
+                        Price = 100,
+                        Stock = 10,
+                        Enabled = true,
+                        Featured = true,
+                        SalesCount = 50
+                    }
+                ]
             }
         };
 
@@ -679,47 +681,40 @@ public class ProductsSpec(ApplicationTestCase factory) : ApplicationContextTestC
     public async Task ShouldReturnAllProductsByCategory()
     {
         // Arrange
-        var category = new Category
-        {
-            Id = Guid.NewGuid(),
-            Name = "Category Test By Category",
-            CreatedAt = DateTime.UtcNow
-        };
-
+        var categoryId = await ProductHelper.GetOrCreateCategoryId(Client);
         var tenant = Services.GetRequiredService<ITenantContext>();
 
         var newProduct = new Product
         {
             Id = Guid.NewGuid(),
-            Name = "Featured Product 1",
-            Description = "Description 1",
+            Name = _faker.Commerce.ProductName(),
+            Description = _faker.Commerce.ProductDescription(),
+            Slug = _faker.Lorem.Slug(10),
             Enabled = true,
-            CategoryId = category.Id,
+            CategoryId = categoryId,
             StoreId = tenant.Id,
             CreatedAt = DateTime.UtcNow,
             UpdatedAt = DateTime.UtcNow,
-            Variants = new List<ProductVariant>
-            {
-                new()
+            Variants =
+            [
+                new ProductVariant
                 {
-                    Sku = "featured-1",
+                    Sku = _faker.Commerce.Ean13(),
                     Price = 100,
                     Stock = 10,
                     Enabled = true,
                     Featured = true
                 }
-            }
+            ]
         };
 
         var db = Services.GetRequiredService<IApplicationDbContext>();
-
-        await db.Categories.AddAsync(category);
         await db.Products.AddAsync(newProduct);
 
         await db.SaveChangesAsync();
 
         // Act
-        var response = await Client.GetAsync($"api/products/category/{category.Id}");
+        var response = await Client.GetAsync($"api/products/category/{categoryId}");
 
         // Assert
         response.EnsureSuccessStatusCode();
@@ -727,14 +722,17 @@ public class ProductsSpec(ApplicationTestCase factory) : ApplicationContextTestC
         var products = await response.DeserializeAsync<List<SimpleProductForSaleResponse>>();
 
         products.ShouldNotBeEmpty();
-        products.ShouldAllBe(p => p.CategoryId == category.Id);
+        products.ShouldAllBe(p => p.CategoryId == categoryId);
     }
 
     [Fact(DisplayName = "Should create a product option type")]
     public async Task ShouldCreateProductOptionType()
     {
         // Arrange
-        var command = new CreateProductOptionTypeCommand("Color", ["Red", "Blue", "Green"]);
+        var command = new CreateProductOptionTypeCommand(
+            $"{_faker.Commerce.ProductMaterial()}-{Guid.NewGuid():N}",
+            [_faker.Lorem.Sentence(5), _faker.Lorem.Sentence(5), _faker.Lorem.Sentence(5)]
+        );
 
         // Act
         var response = await Client.PostAsJsonAsync("api/products/option-types", command);
@@ -748,7 +746,11 @@ public class ProductsSpec(ApplicationTestCase factory) : ApplicationContextTestC
     public async Task ShouldReturnAllProductOptionTypes()
     {
         // Arrange
-        var command = new CreateProductOptionTypeCommand("Size", ["Small", "Medium", "Large"]);
+        var command = new CreateProductOptionTypeCommand(
+            $"{_faker.Commerce.ProductMaterial()}-{Guid.NewGuid():N}",
+            [_faker.Lorem.Sentence(5), _faker.Lorem.Sentence(5), _faker.Lorem.Sentence(5)]
+        );
+        
         await Client.PostAsJsonAsync("api/products/option-types", command);
 
         // Act
@@ -770,13 +772,13 @@ public class ProductsSpec(ApplicationTestCase factory) : ApplicationContextTestC
         var tenant = Services.GetRequiredService<ITenantContext>();
         var optionType = new ProductOptionType
         {
-            Name = "Color",
+            Name = $"{_faker.Commerce.ProductMaterial()}-{Guid.NewGuid():N}",
             StoreId = tenant.Id,
             ProductOptionValues =
             [
                 new ProductOptionValue
                 {
-                    Value = "Red"
+                    Value = _faker.Lorem.Sentence(5)
                 }
             ]
         };
@@ -784,7 +786,12 @@ public class ProductsSpec(ApplicationTestCase factory) : ApplicationContextTestC
         await db.ProductOptionTypes.AddAsync(optionType);
         await db.SaveChangesAsync();
 
-        var product = _productCommandFaker.Generate();
+        var categoryId = await ProductHelper.GetOrCreateCategoryId(Client);
+
+        var product = _productCommandFaker
+            .WithCategoryId(categoryId)
+            .Generate();
+
         var createProductResponse = await Client.PostAsJsonAsync("api/products", product);
         createProductResponse.EnsureSuccessStatusCode();
 
@@ -810,19 +817,24 @@ public class ProductsSpec(ApplicationTestCase factory) : ApplicationContextTestC
 
         var optionType = new ProductOptionType
         {
-            Name = "Color",
+            Name = $"{_faker.Commerce.ProductMaterial()}-{Guid.NewGuid():N}",
             StoreId = tenant.Id,
             ProductOptionValues =
             [
-                new ProductOptionValue { Value = "Red" },
-                new ProductOptionValue { Value = "Blue" }
+                new ProductOptionValue { Value = _faker.Lorem.Sentence(5) },
+                new ProductOptionValue { Value = _faker.Lorem.Sentence(5) }
             ]
         };
 
         await db.ProductOptionTypes.AddAsync(optionType);
         await db.SaveChangesAsync();
 
-        var product = _productCommandFaker.Generate();
+        var categoryId = await ProductHelper.GetOrCreateCategoryId(Client);
+
+        var product = _productCommandFaker
+            .WithCategoryId(categoryId)
+            .Generate();
+
         var createProductResponse = await Client.PostAsJsonAsync("api/products", product);
         createProductResponse.EnsureSuccessStatusCode();
 
@@ -853,19 +865,24 @@ public class ProductsSpec(ApplicationTestCase factory) : ApplicationContextTestC
 
         var optionType = new ProductOptionType
         {
-            Name = "Color",
+            Name = $"{_faker.Commerce.ProductMaterial()}-{Guid.NewGuid():N}",
             StoreId = tenant.Id,
             ProductOptionValues =
             [
-                new ProductOptionValue { Value = "Red" },
-                new ProductOptionValue { Value = "Blue" }
+                new ProductOptionValue { Value = _faker.Lorem.Sentence(5) },
+                new ProductOptionValue { Value = _faker.Lorem.Sentence(5) }
             ]
         };
 
         await db.ProductOptionTypes.AddAsync(optionType);
         await db.SaveChangesAsync();
 
-        var product = _productCommandFaker.Generate();
+        var categoryId = await ProductHelper.GetOrCreateCategoryId(Client);
+
+        var product = _productCommandFaker
+            .WithCategoryId(categoryId)
+            .Generate();
+
         var createProductResponse = await Client.PostAsJsonAsync("api/products", product);
         createProductResponse.EnsureSuccessStatusCode();
 
@@ -1055,7 +1072,7 @@ public class ProductsSpec(ApplicationTestCase factory) : ApplicationContextTestC
         updatedVariant.Images.Count.ShouldBe(variant.Images.Count + 2);
     }
 
-    [Fact(DisplayName = "Should delete a product variant image", Skip = "Not supported by InMemory db")]
+    [Fact(DisplayName = "Should delete a product variant image")]
     public async Task ShouldDeleteAProductVariantImage()
     {
         // Arrange

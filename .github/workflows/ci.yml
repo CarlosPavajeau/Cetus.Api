@@ -1,23 +1,58 @@
-name: Build and test app
+name: Build and test preview
 
 on:
-  push:
-    branches: [ "main" ]
   pull_request:
-    branches: [ "main" ]
+    types:
+      - opened
+      - reopened
+      - synchronize
+      - closed
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
 
 env:
   ASPNETCORE_ENVIRONMENT: Test
-  DOTNET_VERSION: '8'
-
-permissions:
-  contents: read
+  DOTNET_VERSION: '10'
 
 jobs:
-  build:
+  setup:
+    name: Setup
+    outputs:
+      branch: ${{ steps.branch_name.outputs.current_branch }}
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: write
+    steps:
+      - name: Get branch name
+        id: branch_name
+        uses: tj-actions/branch-names@v8
+  
+  build_and_test:
+    name: Build and Test
+    
+    needs: [ setup ]
+    
+    if: |
+      github.event_name == 'pull_request' && (
+      github.event.action == 'synchronize'
+      || github.event.action == 'opened'
+      || github.event.action == 'reopened')
+    
     runs-on: ubuntu-latest
 
     steps:
+      - name: Create Neon Branch
+        id: create_neon_branch
+        uses: neondatabase/create-branch-action@v6
+        with:
+          database: 'cetus'
+          role: 'cetus_owner'
+          project_id: ${{ vars.NEON_PROJECT_ID }}
+          branch_name: preview/pr-${{ github.event.number }}-${{ needs.setup.outputs.branch }}
+          api_key: ${{ secrets.NEON_API_KEY }}
+
       - uses: actions/checkout@v6
 
       - name: Set up .NET Core
@@ -41,3 +76,18 @@ jobs:
 
       - name: Test
         run: dotnet test --no-build --verbosity normal
+        env:
+          ConnectionStrings__CetusContext: "Host=${{ steps.create_neon_branch.outputs.db_host_pooled }}; Database=cetus; Username=cetus_owner; Password=${{ steps.create_neon_branch.outputs.password }}; SSL Mode=VerifyFull; Channel Binding=Require;"
+
+  delete_neon_branch:
+    name: Delete Neon Branch
+    needs: setup
+    if: github.event_name == 'pull_request' && github.event.action == 'closed'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Delete Neon Branch
+        uses: neondatabase/delete-branch-action@v3
+        with:
+          project_id: ${{ vars.NEON_PROJECT_ID }}
+          branch: preview/pr-${{ github.event.number }}-${{ needs.setup.outputs.branch }}
+          api_key: ${{ secrets.NEON_API_KEY }}
