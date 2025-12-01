@@ -19,10 +19,12 @@ internal sealed class Search : IEndpoint
             HybridCache cache,
             CancellationToken cancellationToken) =>
         {
-            var query = new SearchProductsQuery(searchTerm);
-
+#pragma warning disable CA1308
+            string normalizedSearchTerm = searchTerm.Trim().ToLowerInvariant();
+            var query = new SearchProductsQuery(normalizedSearchTerm);
+            
             var result = await cache.GetOrCreateAsync(
-                $"{tenant.Id}-products-search-{searchTerm}",
+                $"{tenant.Id}-products-search-{normalizedSearchTerm}",
                 async token => await handler.Handle(query, token),
                 new HybridCacheEntryOptions
                 {
