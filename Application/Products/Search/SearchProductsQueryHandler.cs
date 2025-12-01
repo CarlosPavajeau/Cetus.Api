@@ -17,17 +17,15 @@ internal sealed class SearchProductsQueryHandler(IApplicationDbContext db, ITena
         {
             return Array.Empty<SearchProductResponse>();
         }
-        
-        var tsQuery = EF.Functions.PlainToTsQuery("spanish", query.SearchTerm);
 
         var products = await db.Products
             .AsNoTracking()
             .Where(p =>
                 p.DeletedAt == null && p.StoreId == tenant.Id &&
-                p.SearchVector!.Matches(tsQuery)
+                p.SearchVector!.Matches(EF.Functions.PlainToTsQuery("spanish", query.SearchTerm))
             )
             .OrderByDescending(p =>
-                p.SearchVector!.Rank(tsQuery)
+                p.SearchVector!.Rank(EF.Functions.PlainToTsQuery("spanish", query.SearchTerm))
             )
             .Take(MaxResults)
             .Select(SearchProductResponse.Map)
