@@ -28,19 +28,20 @@ jobs:
       - name: Get branch name
         id: branch_name
         uses: tj-actions/branch-names@v8
-
-  create_neon_branch:
-    name: Create Neon Branch
-    outputs:
-      db_url: ${{ steps.create_neon_branch.outputs.db_url }}
-      db_url_with_pooler: ${{ steps.create_neon_branch.outputs.db_url_with_pooler }}
-    needs: setup
+  
+  build_and_test:
+    name: Build and Test
+    
+    needs: [ setup ]
+    
     if: |
       github.event_name == 'pull_request' && (
       github.event.action == 'synchronize'
       || github.event.action == 'opened'
       || github.event.action == 'reopened')
+    
     runs-on: ubuntu-latest
+
     steps:
       - name: Create Neon Branch
         id: create_neon_branch
@@ -59,22 +60,7 @@ jobs:
           project_id: ${{ vars.NEON_PROJECT_ID }}
           compare_branch: preview/pr-${{ github.event.number }}-${{ needs.setup.outputs.branch }}
           api_key: ${{ secrets.NEON_API_KEY }}
-  
-  build_and_test:
-    name: Build and Test
-    needs: [ setup, create_neon_branch ]
-    if: |
-      github.event_name == 'pull_request' && (
-      github.event.action == 'synchronize'
-      || github.event.action == 'opened'
-      || github.event.action == 'reopened')
-    
-    runs-on: ubuntu-latest
-    
-    env:
-      ConnectionStrings__CetusContext: ${{ needs.create_neon_branch.outputs.db_url_with_pooler }}
-    
-    steps:
+
       - uses: actions/checkout@v6
 
       - name: Set up .NET Core
@@ -99,7 +85,7 @@ jobs:
       - name: Test
         run: dotnet test --no-build --verbosity normal
         env:
-          ConnectionStrings__CetusContext: ${{ needs.create_neon_branch.outputs.db_url_with_pooler }}
+          ConnectionStrings__CetusContext: ${{ steps.create-branch.outputs.db_url_with_pooler }}
 
   delete_neon_branch:
     name: Delete Neon Branch
