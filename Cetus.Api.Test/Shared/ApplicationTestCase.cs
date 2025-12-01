@@ -1,13 +1,10 @@
 using Application.Abstractions.Data;
 using Application.Abstractions.Services;
-using Infrastructure.Database;
 using Infrastructure.Stores;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.AspNetCore.TestHost;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Moq;
@@ -24,18 +21,6 @@ public class ApplicationTestCase : WebApplicationFactory<Program>
 
         builder.ConfigureTestServices(services =>
         {
-            services.RemoveAll<DbContextOptions<ApplicationDbContext>>();
-
-            var serviceProvider = new ServiceCollection()
-                .AddEntityFrameworkInMemoryDatabase()
-                .BuildServiceProvider();
-            services.AddDbContextPool<ApplicationDbContext>(options =>
-            {
-                options.UseInMemoryDatabase("test");
-                options.UseInternalServiceProvider(serviceProvider);
-                options.ConfigureWarnings(warnings => { warnings.Ignore(InMemoryEventId.TransactionIgnoredWarning); });
-            });
-
             services.AddAuthentication("Test")
                 .AddScheme<AuthenticationSchemeOptions, TestAuthHandler>("Test", _ => { });
 
