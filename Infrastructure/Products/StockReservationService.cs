@@ -79,8 +79,6 @@ public sealed class StockReservationService(ApplicationDbContext context) : ISto
 
         await context.InventoryTransactions.AddRangeAsync(transactions, cancellationToken);
 
-        await context.SaveChangesAsync(cancellationToken);
-
         return new StockReservationResult(true, ids, []);
     }
 }
