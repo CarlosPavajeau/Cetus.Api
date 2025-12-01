@@ -47,7 +47,8 @@ internal sealed class CreateOrderCommandHandler(
             await context.Orders.AddAsync(order, cancellationToken);
 
             var reserveResult =
-                await stockReservationService.TryReserveAsync(quantitiesByVariant, tenant.Id, cancellationToken);
+                await stockReservationService.TryReserveAsync(quantitiesByVariant, order.Id, tenant.Id,
+                    cancellationToken);
 
             if (!reserveResult.Success)
             {
@@ -55,7 +56,10 @@ internal sealed class CreateOrderCommandHandler(
 
                 var variantsById = productsResult.Value.ToDictionary(v => v.Id);
                 var outOfStockProducts = reserveResult.FailedVariantIds
-                    .Select(id => variantsById.TryGetValue(id, out var variant) ? variant.ProductName : id.ToString(CultureInfo.InvariantCulture))
+                    .Select(id =>
+                        variantsById.TryGetValue(id, out var variant)
+                            ? variant.ProductName
+                            : id.ToString(CultureInfo.InvariantCulture))
                     .ToList();
 
                 var requestedProducts = reserveResult.FailedVariantIds
