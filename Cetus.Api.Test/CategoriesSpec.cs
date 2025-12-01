@@ -17,7 +17,7 @@ public class CategoriesSpec(ApplicationTestCase factory) : ApplicationContextTes
     public async Task ShouldCreateANewCategory()
     {
         // Arrange 
-        var newCategory = new CreateCategoryCommand(_faker.Commerce.Categories(1)[0]);
+        var newCategory = new CreateCategoryCommand(_faker.PickRandom(_faker.Commerce.Categories(20)));
 
         // Act
         var response = await Client.PostAsJsonAsync("api/categories", newCategory);
@@ -34,7 +34,7 @@ public class CategoriesSpec(ApplicationTestCase factory) : ApplicationContextTes
     public async Task ShouldReturnAll()
     {
         // Arrange 
-        var newCategory = new CreateCategoryCommand(_faker.Commerce.Categories(1)[0]);
+        var newCategory = new CreateCategoryCommand(_faker.PickRandom(_faker.Commerce.Categories(20)));
         await Client.PostAsJsonAsync("api/categories", newCategory);
 
         // Act
@@ -52,7 +52,7 @@ public class CategoriesSpec(ApplicationTestCase factory) : ApplicationContextTes
     public async Task ShouldUpdate()
     {
         // Arrange 
-        var newCategory = new CreateCategoryCommand(_faker.Commerce.Categories(1)[0]);
+        var newCategory = new CreateCategoryCommand(_faker.PickRandom(_faker.Commerce.Categories(20)));
         var createResponse = await Client.PostAsJsonAsync("api/categories", newCategory);
         createResponse.EnsureSuccessStatusCode();
 
@@ -78,7 +78,7 @@ public class CategoriesSpec(ApplicationTestCase factory) : ApplicationContextTes
     public async Task ShouldDelete()
     {
         // Arrange 
-        var newCategory = new CreateCategoryCommand(_faker.Commerce.Categories(1)[0]);
+        var newCategory = new CreateCategoryCommand(_faker.PickRandom(_faker.Commerce.Categories(20)));
         var createResponse = await Client.PostAsJsonAsync("api/categories", newCategory);
         createResponse.EnsureSuccessStatusCode();
 
@@ -102,7 +102,7 @@ public class CategoriesSpec(ApplicationTestCase factory) : ApplicationContextTes
     public async Task ShouldFindBySlug()
     {
         // Arrange 
-        var newCategory = new CreateCategoryCommand(_faker.Commerce.Categories(1)[0]);
+        var newCategory = new CreateCategoryCommand(_faker.PickRandom(_faker.Commerce.Categories(20)));
         var createResponse = await Client.PostAsJsonAsync("api/categories", newCategory);
         createResponse.EnsureSuccessStatusCode();
 
