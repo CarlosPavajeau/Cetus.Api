@@ -74,6 +74,7 @@ jobs:
     env:
       DATABASE_URL: ${{ needs.create_neon_branch.outputs.db_url }}
       DATABASE_URL_WITH_POOLER: ${{ needs.create_neon_branch.outputs.db_url_with_pooler }}
+      ConnectionStrings__CetusContext: ${{ needs.create_neon_branch.outputs.db_url_with_pooler }}
     
     steps:
       - uses: actions/checkout@v6
@@ -90,10 +91,6 @@ jobs:
           key: ${{ runner.os }}-nuget-${{ hashFiles('**/packages.lock.json') }}
           restore-keys: |
             ${{ runner.os }}-nuget-
-
-      - name: Seed connection string into configuration
-        run: |
-          echo "ConnectionStrings__CetusContext=${{ needs.create_neon_branch.outputs.db_url_with_pooler }}" >> $GITHUB_ENV
 
       - name: Restore dependencies
         run: dotnet restore
