@@ -26,6 +26,15 @@ internal sealed class ProductConfiguration : IEntityTypeConfiguration<Product>
             .HasForeignKey(p => p.ProductId)
             .OnDelete(DeleteBehavior.Cascade);
 
-        builder.HasIndex(p => new {p.StoreId, p.DeletedAt});
+        builder
+            .HasGeneratedTsVectorColumn(
+                p => p.SearchVector,
+                "spanish",
+                p => new { p.Name, p.Description }
+            )
+            .HasIndex(p => p.SearchVector)
+            .HasMethod("GIN");
+
+        builder.HasIndex(p => new { p.StoreId, p.DeletedAt });
     }
 }

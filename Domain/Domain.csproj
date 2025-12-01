@@ -1,5 +1,8 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
-  <ItemGroup>
-    <ProjectReference Include="..\SharedKernel\SharedKernel.csproj"/>
-  </ItemGroup>
+    <ItemGroup>
+        <ProjectReference Include="..\SharedKernel\SharedKernel.csproj"/>
+    </ItemGroup>
+    <ItemGroup>
+        <PackageReference Include="Npgsql"/>
+    </ItemGroup>
 </Project>
