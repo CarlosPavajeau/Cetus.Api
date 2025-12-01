@@ -34,7 +34,7 @@ public sealed class StockReservationService(ApplicationDbContext context) : ISto
                                FROM input_data v
                                WHERE pv.id = v.id
                                  AND pv.deleted_at IS NULL
-                                 AND pv.stock >= v.qty  -- Constraint de negocio
+                                 AND pv.stock >= v.qty  -- Business constraint: ensure sufficient stock
                                  AND EXISTS (
                                      SELECT 1 FROM products p
                                      WHERE p.id = pv.product_id
