@@ -53,14 +53,6 @@ jobs:
           branch_name: preview/pr-${{ github.event.number }}-${{ needs.setup.outputs.branch }}
           api_key: ${{ secrets.NEON_API_KEY }}
 
-      - name: Post Schema Diff Comment to PR
-        uses: neondatabase/schema-diff-action@v1
-        with:
-          database: 'cetus'
-          project_id: ${{ vars.NEON_PROJECT_ID }}
-          compare_branch: preview/pr-${{ github.event.number }}-${{ needs.setup.outputs.branch }}
-          api_key: ${{ secrets.NEON_API_KEY }}
-
       - uses: actions/checkout@v6
 
       - name: Set up .NET Core
@@ -85,7 +77,7 @@ jobs:
       - name: Test
         run: dotnet test --no-build --verbosity normal
         env:
-          ConnectionStrings__CetusContext: ${{ steps.create-branch.outputs.db_url_with_pooler }}
+          ConnectionStrings__CetusContext: ${{ steps.create_neon_branch.outputs.db_url_with_pooler }}
 
   delete_neon_branch:
     name: Delete Neon Branch
