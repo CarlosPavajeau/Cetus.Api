@@ -11,19 +11,15 @@ on:
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
 
-env:
-  ASPNETCORE_ENVIRONMENT: Test
-  DOTNET_VERSION: '10'
-
-permissions:
-  contents: read
-
 jobs:
   setup:
     name: Setup
     outputs:
       branch: ${{ steps.branch_name.outputs.current_branch }}
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: write
     steps:
       - name: Get branch name
         id: branch_name
@@ -31,9 +27,6 @@ jobs:
 
   create_neon_branch:
     name: Create Neon Branch
-    outputs:
-      db_url: ${{ steps.create_neon_branch.outputs.db_url }}
-      db_url_pooled: ${{ steps.create_neon_branch.outputs.db_url_pooled }}
     needs: setup
     if: |
       github.event_name == 'pull_request' && (
@@ -42,9 +35,6 @@ jobs:
       || github.event.action == 'reopened')
     runs-on: ubuntu-latest
     steps:
-      - name: Get branch expiration date as an env variable (1 day from now)
-        id: get_expiration_date
-        run: echo "EXPIRES_AT=$(date -u --date '+1 days' +'%Y-%m-%dT%H:%M:%SZ')" >> "$GITHUB_ENV"
       - name: Create Neon Branch
         id: create_neon_branch
         uses: neondatabase/create-branch-action@v6
@@ -52,51 +42,13 @@ jobs:
           project_id: ${{ vars.NEON_PROJECT_ID }}
           branch_name: preview/pr-${{ github.event.number }}-${{ needs.setup.outputs.branch }}
           api_key: ${{ secrets.NEON_API_KEY }}
-          expires_at: ${{ env.EXPIRES_AT }}
-  
-  build_and_test:
-    name: Build and Test
-    needs: [ setup, create_neon_branch ]
-    if: |
-      github.event_name == 'pull_request' && (
-      github.event.action == 'synchronize'
-      || github.event.action == 'opened'
-      || github.event.action == 'reopened')
-    
-    runs-on: ubuntu-latest
-    
-    env:
-      DATABASE_URL: ${{ needs.create_neon_branch.outputs.db_url }}
-      DATABASE_URL_WITH_POOLER: ${{ needs.create_neon_branch.outputs.db_url_pooled }}
-    
-    steps:
-      - uses: actions/checkout@v6
 
-      - name: Set up .NET Core
-        uses: actions/setup-dotnet@v5
+      - name: Post Schema Diff Comment to PR
+        uses: neondatabase/schema-diff-action@v1
         with:
-          dotnet-version: ${{ env.DOTNET_VERSION }}
-
-      - name: Set up dependency caching for faster builds
-        uses: actions/cache@v4
-        with:
-          path: ~/.nuget/packages
-          key: ${{ runner.os }}-nuget-${{ hashFiles('**/packages.lock.json') }}
-          restore-keys: |
-            ${{ runner.os }}-nuget-
-
-      - name: Seed connection string into configuration
-        run: |
-          echo "ConnectionStrings__DefaultConnection=${{ needs.create_neon_branch.outputs.db_url_pooled }}" >> $GITHUB_ENV
-
-      - name: Restore dependencies
-        run: dotnet restore
-
-      - name: Build
-        run: dotnet build --no-restore
-
-      - name: Test
-        run: dotnet test --no-build --verbosity normal
+          project_id: ${{ vars.NEON_PROJECT_ID }}
+          compare_branch: preview/pr-${{ github.event.number }}-${{ needs.setup.outputs.branch }}
+          api_key: ${{ secrets.NEON_API_KEY }}
 
   delete_neon_branch:
     name: Delete Neon Branch
