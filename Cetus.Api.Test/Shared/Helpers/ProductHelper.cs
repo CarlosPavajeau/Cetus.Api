@@ -44,7 +44,7 @@ public static class ProductHelper
 
         var command = new CreateProductVariantCommand(
             product.Id,
-            Guid.NewGuid().ToString(),
+            Faker.Lorem.Slug(10),
             100.00m,
             10,
             [],
@@ -86,7 +86,7 @@ public static class ProductHelper
                 return;
             }
 
-            var newCategory = new CreateCategoryCommand(Faker.Commerce.Categories(1)[0]);
+            var newCategory = new CreateCategoryCommand(Faker.PickRandom(Faker.Commerce.Categories(20)));
             var response = await client.PostAsJsonAsync("api/categories", newCategory);
 
             response.EnsureSuccessStatusCode();
