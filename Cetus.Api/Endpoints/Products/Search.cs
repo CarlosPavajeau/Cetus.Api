@@ -22,7 +22,7 @@ internal sealed class Search : IEndpoint
 #pragma warning disable CA1308
             string normalizedSearchTerm = searchTerm.Trim().ToLowerInvariant();
             var query = new SearchProductsQuery(normalizedSearchTerm);
-            
+
             var result = await cache.GetOrCreateAsync(
                 $"{tenant.Id}-products-search-{normalizedSearchTerm}",
                 async token => await handler.Handle(query, token),
@@ -31,6 +31,7 @@ internal sealed class Search : IEndpoint
                     Expiration = TimeSpan.FromMinutes(5),
                     LocalCacheExpiration = TimeSpan.FromMinutes(5)
                 },
+                tags: ["products", $"tenant-{tenant.Id}"],
                 cancellationToken: cancellationToken
             );
 
