@@ -3,7 +3,7 @@
         <ManagePackageVersionsCentrally>true</ManagePackageVersionsCentrally>
     </PropertyGroup>
     <ItemGroup>
-        <PackageVersion Include="SonarAnalyzer.CSharp" Version="10.16.1.129956"/>
+        <PackageVersion Include="SonarAnalyzer.CSharp" Version="10.17.0.131074"/>
         <!-- Application -->
         <PackageVersion Include="Scrutor" Version="7.0.0"/>
         <PackageVersion Include="FluentValidation.DependencyInjectionExtensions" Version="12.1.1"/>
