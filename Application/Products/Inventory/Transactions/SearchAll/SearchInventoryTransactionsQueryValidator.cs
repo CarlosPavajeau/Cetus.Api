@@ -13,7 +13,7 @@ public sealed class SearchInventoryTransactionsQueryValidator : AbstractValidato
         RuleFor(query => query.PageSize)
             .GreaterThan(0)
             .WithMessage("PageSize must be greater than zero")
-            .LessThan(100)
+            .LessThanOrEqualTo(100)
             .WithMessage("PageSize must be less than 100");
     }
 }
