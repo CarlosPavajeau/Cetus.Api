@@ -5,6 +5,7 @@ using Application.Abstractions.Data;
 using Application.Products;
 using Application.Products.Create;
 using Application.Products.Inventory.Adjust;
+using Application.Products.Inventory.Transactions;
 using Application.Products.Options;
 using Application.Products.Options.Create;
 using Application.Products.Options.CreateType;
@@ -21,6 +22,7 @@ using Cetus.Api.Test.Shared.Fakers;
 using Cetus.Api.Test.Shared.Helpers;
 using Domain.Products;
 using Microsoft.Extensions.DependencyInjection;
+using SharedKernel;
 using Shouldly;
 
 namespace Cetus.Api.Test;
@@ -750,7 +752,7 @@ public class ProductsSpec(ApplicationTestCase factory) : ApplicationContextTestC
             $"{_faker.Commerce.ProductMaterial()}-{Guid.NewGuid():N}",
             [_faker.Lorem.Sentence(5), _faker.Lorem.Sentence(5), _faker.Lorem.Sentence(5)]
         );
-        
+
         await Client.PostAsJsonAsync("api/products/option-types", command);
 
         // Act
@@ -1338,5 +1340,47 @@ public class ProductsSpec(ApplicationTestCase factory) : ApplicationContextTestC
 
         // Assert
         response.StatusCode.ShouldBe(HttpStatusCode.BadRequest);
+    }
+
+    [Fact(DisplayName = "Should return all inventory transactions for a variant")]
+    public async Task ShouldReturnAllInventoryTransactions()
+    {
+        // Arrange
+        var product = await ProductHelper.CreateProductWithVariant(Client);
+        var getVariantsResponse = await Client.GetAsync($"api/products/{product.Id}/variants");
+        getVariantsResponse.EnsureSuccessStatusCode();
+        var variants = await getVariantsResponse.DeserializeAsync<List<ProductVariantResponse>>();
+        variants.ShouldNotBeNull();
+        variants.ShouldNotBeEmpty();
+        var variant = variants[0];
+
+        // Make an inventory adjustment to create a transaction
+        var adjustmentCommand = new AdjustInventoryStockCommand(
+            "Initial stock adjustment",
+            "system-user",
+            [
+                new InventoryAdjustmentItem(
+                    variant.Id,
+                    10,
+                    AdjustmentType.Delta,
+                    "Adding initial stock"
+                )
+            ]
+        );
+
+        var adjustmentResponse = await Client.PostAsJsonAsync("api/inventory/adjustments", adjustmentCommand);
+        adjustmentResponse.EnsureSuccessStatusCode();
+
+        // Act
+        var response = await Client.GetAsync($"api/inventory/transactions?variantId={variant.Id}&page=1&pageSize=10");
+
+        // Assert
+        response.EnsureSuccessStatusCode();
+
+        var pagedResult = await response.DeserializeAsync<PagedResult<InventoryTransactionResponse>>();
+
+        pagedResult.ShouldNotBeNull();
+        pagedResult.Items.ShouldNotBeEmpty();
+        pagedResult.Items.ShouldAllBe(t => t.VariantId == variant.Id);
     }
 }
