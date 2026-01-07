@@ -9,5 +9,12 @@ internal sealed class OrderTimelineConfiguration : IEntityTypeConfiguration<Orde
     public void Configure(EntityTypeBuilder<OrderTimeline> builder)
     {
         builder.HasKey(o => o.Id);
+
+        builder.HasOne<Order>()
+            .WithMany()
+            .HasForeignKey(o => o.OrderId)
+            .OnDelete(DeleteBehavior.Cascade);
+
+        builder.HasIndex(o => o.OrderId);
     }
 }
