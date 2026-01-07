@@ -33,7 +33,7 @@ internal sealed class CancelOrderCommandHandler(
             return Result.Failure<SimpleOrderResponse>(OrderErrors.NotFound(command.Id));
         }
 
-        if (order.Status == OrderStatus.Canceled)
+        if (order.CanTransitionTo(OrderStatus.Canceled))
         {
             return Result.Failure<SimpleOrderResponse>(OrderErrors.AlreadyCanceled(command.Id));
         }

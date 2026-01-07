@@ -22,7 +22,7 @@ internal sealed class DeliverOrderCommandHandler(IApplicationDbContext db)
             return Result.Failure<SimpleOrderResponse>(OrderErrors.NotFound(command.Id));
         }
 
-        if (order.Status == OrderStatus.Canceled) // Can't update a canceled order
+        if (order.CanTransitionTo(OrderStatus.Delivered)) // Can't update a canceled order
         {
             return Result.Failure<SimpleOrderResponse>(
                 OrderErrors.InvalidStatusTransition(order.Status, OrderStatus.Delivered));
