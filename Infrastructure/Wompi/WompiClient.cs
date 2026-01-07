@@ -1,14 +1,12 @@
 using System.Net.Http.Json;
 using Application.Abstractions.Wompi;
-using Application.Orders.SearchPayment;
-using Domain.Orders;
 using Microsoft.Extensions.Logging;
 
 namespace Infrastructure.Wompi;
 
 internal sealed class WompiClient(IHttpClientFactory clientFactory, ILogger<WompiClient> logger) : IWompiClient
 {
-    public async Task<OrderPaymentResponse?> FindPaymentById(string paymentId,
+    public async Task<WompiPaymentResponse?> FindPaymentById(string paymentId,
         CancellationToken cancellationToken = default)
     {
         var client = clientFactory.CreateClient(nameof(WompiClient));
@@ -23,8 +21,7 @@ internal sealed class WompiClient(IHttpClientFactory clientFactory, ILogger<Womp
                 return null;
             }
 
-            return new OrderPaymentResponse(
-                PaymentProvider.Wompi,
+            return new WompiPaymentResponse(
                 transaction.Data.Id,
                 transaction.Data.Status,
                 transaction.Data.PaymentMethodType,
