@@ -6,7 +6,7 @@ public record OrderPaymentResponse(
     PaymentProvider PaymentProvider,
     string TransactionId,
     string Status,
-    string PaymentMethod,
+    PaymentMethod PaymentMethod,
     DateTime? CreatedAt,
     DateTime? ApprovedAt
 );

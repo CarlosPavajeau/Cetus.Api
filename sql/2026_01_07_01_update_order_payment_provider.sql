@@ -1,0 +1,1 @@
+ALTER TYPE order_payment_provider ADD VALUE 'manual' BEFORE 'mercado_pago';
