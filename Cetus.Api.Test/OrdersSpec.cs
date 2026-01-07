@@ -217,7 +217,7 @@ public class OrdersSpec(ApplicationTestCase factory) : ApplicationContextTestCas
         orderId.ShouldNotBeNull();
 
         // Act
-        var cancelOrderCommand = new CancelOrderCommand(orderId.Id, "Customer requested cancellation");
+        var cancelOrderCommand = new CancelOrderCommand(orderId.Id, "Customer requested cancellation", "admin");
         var cancelOrderResponse = await Client.PostAsJsonAsync($"api/orders/{orderId.Id}/cancel", cancelOrderCommand);
 
         // Assert
@@ -256,13 +256,14 @@ public class OrdersSpec(ApplicationTestCase factory) : ApplicationContextTestCas
         var orderId = await response.DeserializeAsync<OrderResponse>();
         orderId.ShouldNotBeNull();
 
-        var cancelOrderCommand = new CancelOrderCommand(orderId.Id, "Customer requested cancellation");
+        var cancelOrderCommand = new CancelOrderCommand(orderId.Id, "Customer requested cancellation", "admin");
         var cancelOrderResponse = await Client.PostAsJsonAsync($"api/orders/{orderId.Id}/cancel", cancelOrderCommand);
 
         cancelOrderResponse.EnsureSuccessStatusCode();
 
         // Act
-        var secondCancelOrderCommand = new CancelOrderCommand(orderId.Id, "Customer requested cancellation again");
+        var secondCancelOrderCommand =
+            new CancelOrderCommand(orderId.Id, "Customer requested cancellation again", "admin");
         var secondCancelOrderResponse =
             await Client.PostAsJsonAsync($"api/orders/{orderId.Id}/cancel", secondCancelOrderCommand);
 

@@ -83,6 +83,7 @@ internal sealed class CancelOrderCommandHandler(
             OrderId = order.Id,
             FromStatus = oldStatus,
             ToStatus = OrderStatus.Canceled,
+            ChangedById = command.UserId,
             Notes = command.Reason,
             CreatedAt = dateTimeProvider.UtcNow
         };
