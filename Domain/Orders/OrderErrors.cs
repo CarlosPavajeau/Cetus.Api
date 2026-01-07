@@ -84,4 +84,10 @@ public static class OrderErrors
             "Orders.PaymentSearchFailed",
             $"Failed to search payment for order with ID {orderId}."
         );
+
+    public static Error ChangeStatusFailed(Guid orderId, string reason) =>
+        Error.Problem(
+            "Orders.ChangeStatusFailed",
+            $"Failed to change status for order with ID {orderId}. Reason: {reason}"
+        );
 }

@@ -6,7 +6,7 @@ using SharedKernel;
 
 namespace Application.Orders.Deliver;
 
-internal sealed class DeliverOrderCommandHandler(IApplicationDbContext db)
+internal sealed class DeliverOrderCommandHandler(IApplicationDbContext db, IDateTimeProvider dateTimeProvider)
     : ICommandHandler<DeliverOrderCommand, SimpleOrderResponse>
 {
     public async Task<Result<SimpleOrderResponse>> Handle(DeliverOrderCommand command,
@@ -28,8 +28,9 @@ internal sealed class DeliverOrderCommandHandler(IApplicationDbContext db)
                 OrderErrors.InvalidStatusTransition(order.Status, OrderStatus.Delivered));
         }
 
-        order.Status = OrderStatus.Delivered;
+        var oldStatus = order.Status;
 
+        order.Status = OrderStatus.Delivered;
         var customer = order.Customer!;
 
         order.Raise(new SentOrderDomainEvent(new SentOrder(
@@ -39,9 +40,18 @@ internal sealed class DeliverOrderCommandHandler(IApplicationDbContext db)
             customer.Address,
             customer.Email
         )));
-
         order.Raise(new DeliveredOrderDomainEvent(order.Id));
 
+        var timelineEntry = new OrderTimeline
+        {
+            Id = Guid.CreateVersion7(),
+            OrderId = order.Id,
+            FromStatus = oldStatus,
+            ToStatus = OrderStatus.Delivered,
+            CreatedAt = dateTimeProvider.UtcNow
+        };
+
+        await db.OrderTimeline.AddAsync(timelineEntry, cancellationToken);
         await db.SaveChangesAsync(cancellationToken);
 
         return SimpleOrderResponse.From(order);

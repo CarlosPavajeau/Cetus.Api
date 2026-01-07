@@ -69,12 +69,25 @@ internal sealed class CancelOrderCommandHandler(
             }
         }
 
+        var oldStatus = order.Status;
+
         order.Status = OrderStatus.Canceled;
         order.CancellationReason = command.Reason;
         order.CancelledAt = dateTimeProvider.UtcNow;
 
         order.Raise(new CanceledOrderDomainEvent(order.Id));
 
+        var timelineEntry = new OrderTimeline
+        {
+            Id = Guid.CreateVersion7(),
+            OrderId = order.Id,
+            FromStatus = oldStatus,
+            ToStatus = OrderStatus.Canceled,
+            Notes = command.Reason,
+            CreatedAt = dateTimeProvider.UtcNow
+        };
+
+        await db.OrderTimeline.AddAsync(timelineEntry, cancellationToken);
         await db.SaveChangesAsync(cancellationToken);
 
         return SimpleOrderResponse.From(order);

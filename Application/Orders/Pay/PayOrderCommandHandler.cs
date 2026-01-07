@@ -6,7 +6,7 @@ using SharedKernel;
 
 namespace Application.Orders.Pay;
 
-internal sealed class PayOrderCommandHandler(IApplicationDbContext db)
+internal sealed class PayOrderCommandHandler(IApplicationDbContext db, IDateTimeProvider dateTimeProvider)
     : ICommandHandler<PayOrderCommand, SimpleOrderResponse>
 {
     public async Task<Result<SimpleOrderResponse>> Handle(PayOrderCommand command, CancellationToken cancellationToken)
@@ -27,6 +27,8 @@ internal sealed class PayOrderCommandHandler(IApplicationDbContext db)
                 OrderErrors.InvalidStatusTransition(order.Status, OrderStatus.PaymentConfirmed));
         }
 
+        var oldStatus = order.Status;
+
         order.Status = OrderStatus.PaymentConfirmed;
         order.TransactionId = command.TransactionId;
         order.PaymentProvider = command.PaymentProvider;
@@ -39,6 +41,16 @@ internal sealed class PayOrderCommandHandler(IApplicationDbContext db)
             order.Total
         )));
 
+        var timelineEntry = new OrderTimeline
+        {
+            Id = Guid.CreateVersion7(),
+            OrderId = order.Id,
+            FromStatus = oldStatus,
+            ToStatus = OrderStatus.PaymentConfirmed,
+            CreatedAt = dateTimeProvider.UtcNow
+        };
+
+        await db.OrderTimeline.AddAsync(timelineEntry, cancellationToken);
         await db.SaveChangesAsync(cancellationToken);
 
         return SimpleOrderResponse.From(order);
