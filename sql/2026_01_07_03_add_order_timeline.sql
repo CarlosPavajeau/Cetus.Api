@@ -13,3 +13,4 @@ CREATE TABLE IF NOT EXISTS order_timeline
 );
 
 CREATE INDEX idx_order_timeline_order_id ON order_timeline (order_id);
+CREATE INDEX idx_order_timeline_order_id_created_at ON order_timeline (order_id, created_at);
