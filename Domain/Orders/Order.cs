@@ -51,14 +51,6 @@ public sealed class Order : Entity
 
     public bool CanTransitionTo(OrderStatus nextState)
     {
-        bool isBasicTransitionValid = AllowedTransitions.ContainsKey(Status) &&
-                                      AllowedTransitions[Status].Contains(nextState);
-
-        if (!isBasicTransitionValid)
-        {
-            return false;
-        }
-
         // Special Business Rule: Cash on Delivery (COD)
         // In Colombia, if it is cash on delivery,
         // I can skip from Pending to Processing without the payment being confirmed yet.
@@ -67,6 +59,9 @@ public sealed class Order : Entity
         {
             return true;
         }
+
+        bool isBasicTransitionValid = AllowedTransitions.ContainsKey(Status) &&
+                                      AllowedTransitions[Status].Contains(nextState);
 
         return isBasicTransitionValid;
     }
