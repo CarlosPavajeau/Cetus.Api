@@ -8,7 +8,7 @@ public sealed class Order : Entity
     private static readonly Dictionary<OrderStatus, OrderStatus[]> AllowedTransitions = new()
     {
         { OrderStatus.PendingPayment, [OrderStatus.PaymentConfirmed, OrderStatus.Canceled] },
-        { OrderStatus.PaymentConfirmed, [OrderStatus.Processing, OrderStatus.Canceled] },
+        { OrderStatus.PaymentConfirmed, [OrderStatus.Processing, OrderStatus.Delivered, OrderStatus.Canceled] },
         { OrderStatus.Processing, [OrderStatus.ReadyForPickup, OrderStatus.Shipped, OrderStatus.Canceled] },
         { OrderStatus.ReadyForPickup, [OrderStatus.Delivered, OrderStatus.Canceled] },
         { OrderStatus.Shipped, [OrderStatus.Delivered, OrderStatus.FailedDelivery] },
