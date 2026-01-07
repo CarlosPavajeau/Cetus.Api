@@ -32,7 +32,8 @@ internal sealed class CreateOrderPaymentCommandHandler(
 
         if (!order.CanTransitionTo(OrderStatus.PaymentConfirmed))
         {
-            return Result.Failure<string>(OrderErrors.PaymentCreationFailed(command.Id));
+            return Result.Failure<string>(
+                OrderErrors.InvalidStatusTransition(order.Status, OrderStatus.PaymentConfirmed));
         }
 
         var store = await db.Stores
