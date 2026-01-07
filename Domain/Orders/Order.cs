@@ -60,8 +60,8 @@ public sealed class Order : Entity
             return true;
         }
 
-        bool isBasicTransitionValid = AllowedTransitions.ContainsKey(Status) &&
-                                      AllowedTransitions[Status].Contains(nextState);
+        bool isBasicTransitionValid = AllowedTransitions.TryGetValue(Status, out var allowedStatuses) &&
+                                      allowedStatuses.Contains(nextState);
 
         return isBasicTransitionValid;
     }
