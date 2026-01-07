@@ -30,7 +30,7 @@ internal sealed class CreateOrderPaymentCommandHandler(
             return Result.Failure<string>(OrderErrors.NotFound(command.Id));
         }
 
-        if (order.Status is OrderStatus.Canceled or OrderStatus.PaymentConfirmed)
+        if (!order.CanTransitionTo(OrderStatus.PaymentConfirmed))
         {
             return Result.Failure<string>(OrderErrors.PaymentCreationFailed(command.Id));
         }
