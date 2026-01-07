@@ -32,8 +32,7 @@ internal sealed class CreateOrderPaymentCommandHandler(
 
         if (order.Status is OrderStatus.Canceled or OrderStatus.PaymentConfirmed)
         {
-            return Result.Failure<string>(
-                OrderErrors.InvalidStatusTransition(OrderStatus.Canceled, OrderStatus.PendingPayment));
+            return Result.Failure<string>(OrderErrors.PaymentCreationFailed(command.Id));
         }
 
         var store = await db.Stores
