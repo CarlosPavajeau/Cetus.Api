@@ -14,6 +14,7 @@ internal sealed class SearchOrderTimelineQueryHandler(IApplicationDbContext db)
         var timelines = await db.OrderTimeline
             .AsNoTracking()
             .Where(ot => ot.OrderId == query.OrderId)
+            .OrderBy(ot => ot.CreatedAt)
             .Select(OrderTimelineResponse.Map)
             .ToListAsync(cancellationToken);
 
