@@ -2,14 +2,14 @@ namespace Domain.Orders;
 
 public class OrderTimeline
 {
-    public Guid Id { get; set; }
-    public Guid OrderId { get; set; }
+    public Guid Id { get; init; }
+    public Guid OrderId { get; init; }
 
-    public OrderStatus? FromStatus { get; set; }
-    public OrderStatus ToStatus { get; set; }
+    public OrderStatus? FromStatus { get; init; }
+    public OrderStatus ToStatus { get; init; }
 
-    public string? ChangedById { get; set; }
-    public string? Notes { get; set; }
+    public string? ChangedById { get; init; }
+    public string? Notes { get; init; }
 
-    public DateTime CreatedAt { get; set; }
+    public DateTime CreatedAt { get; init; }
 }
