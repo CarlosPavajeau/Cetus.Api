@@ -4,6 +4,7 @@ using System.Net.Http.Json;
 using Application.Abstractions.Data;
 using Application.Orders.CalculateInsights;
 using Application.Orders.Cancel;
+using Application.Orders.ChangeStatus;
 using Application.Orders.Create;
 using Application.Orders.DeliveryFees.Create;
 using Application.Orders.DeliveryFees.Find;
@@ -409,5 +410,83 @@ public class OrdersSpec(ApplicationTestCase factory) : ApplicationContextTestCas
 
         deliveryFee.ShouldNotBeNull();
         deliveryFee.Fee.ShouldBe(DeliveryFee);
+    }
+
+    [Fact(DisplayName = "Should change order status")]
+    public async Task ShouldChangeOrderStatus()
+    {
+        // Arrange
+        var db = Services.GetRequiredService<IApplicationDbContext>();
+        await CityHelper.CreateIfNotExists(cityId, db);
+
+        var product = await ProductHelper.CreateProductWithVariant(Client);
+
+        var newCustomer = _orderCustomerFaker.Generate();
+        var newOrderItems = new List<CreateOrderItem>
+        {
+            new(product.Name, product.ImageUrl, 1, product.Price, product.VariantId)
+        };
+
+        var newOrder =
+            new CreateOrderCommand(_faker.Address.FullAddress(), cityId, product.Price, newOrderItems, newCustomer);
+
+        var response = await Client.PostAsJsonAsync("api/orders", newOrder);
+
+        response.EnsureSuccessStatusCode();
+
+        var orderId = await response.DeserializeAsync<OrderResponse>();
+        orderId.ShouldNotBeNull();
+
+        // Act
+        var changeStatusCommand = new ChangeOrderStatusCommand(orderId.Id, OrderStatus.Delivered, "system", "Notes");
+        var changeStatusResponse =
+            await Client.PutAsJsonAsync($"api/orders/{orderId.Id}/status", changeStatusCommand);
+
+        // Assert
+        changeStatusResponse.EnsureSuccessStatusCode();
+
+        var getOrderResponse = await Client.GetAsync($"api/orders/{orderId.Id}");
+
+        getOrderResponse.EnsureSuccessStatusCode();
+
+        var orderResponse = await getOrderResponse.DeserializeAsync<OrderResponse>();
+
+        orderResponse.ShouldNotBeNull();
+        orderResponse.Id.ShouldBe(orderId.Id);
+        orderResponse.Status.ShouldBe(OrderStatus.Delivered);
+    }
+
+    [Fact(DisplayName = "Should not change order status with invalid transition")]
+    public async Task ShouldNotChangeOrderStatusWithInvalidTransition()
+    {
+        // Arrange
+        var db = Services.GetRequiredService<IApplicationDbContext>();
+        await CityHelper.CreateIfNotExists(cityId, db);
+
+        var product = await ProductHelper.CreateProductWithVariant(Client);
+
+        var newCustomer = _orderCustomerFaker.Generate();
+        var newOrderItems = new List<CreateOrderItem>
+        {
+            new(product.Name, product.ImageUrl, 1, product.Price, product.VariantId)
+        };
+
+        var newOrder =
+            new CreateOrderCommand(_faker.Address.FullAddress(), cityId, product.Price, newOrderItems, newCustomer);
+
+        var response = await Client.PostAsJsonAsync("api/orders", newOrder);
+
+        response.EnsureSuccessStatusCode();
+
+        var orderId = await response.DeserializeAsync<OrderResponse>();
+        orderId.ShouldNotBeNull();
+
+        // Act
+        var changeStatusCommand = new ChangeOrderStatusCommand(orderId.Id, OrderStatus.Shipped, "system", "Notes");
+        var changeStatusResponse =
+            await Client.PutAsJsonAsync($"api/orders/{orderId.Id}/status", changeStatusCommand);
+
+        // Assert
+        changeStatusResponse.StatusCode.ShouldBe(HttpStatusCode.BadRequest);
     }
 }
