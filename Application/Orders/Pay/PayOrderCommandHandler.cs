@@ -24,10 +24,10 @@ internal sealed class PayOrderCommandHandler(IApplicationDbContext db)
         if (order.Status == OrderStatus.Canceled) // Can't update a canceled order
         {
             return Result.Failure<SimpleOrderResponse>(
-                OrderErrors.InvalidStatusTransition(order.Status, OrderStatus.Paid));
+                OrderErrors.InvalidStatusTransition(order.Status, OrderStatus.PaymentConfirmed));
         }
 
-        order.Status = OrderStatus.Paid;
+        order.Status = OrderStatus.PaymentConfirmed;
         order.TransactionId = command.TransactionId;
         order.PaymentProvider = command.PaymentProvider;
 

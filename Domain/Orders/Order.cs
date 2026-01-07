@@ -7,7 +7,7 @@ public sealed class Order : Entity
 {
     public Guid Id { get; set; }
     public long OrderNumber { get; set; }
-    public OrderStatus Status { get; set; } = OrderStatus.Pending;
+    public OrderStatus Status { get; set; } = OrderStatus.PendingPayment;
 
     public string Address { get; set; } = string.Empty;
     public Guid CityId { get; set; }

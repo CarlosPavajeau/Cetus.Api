@@ -2,8 +2,13 @@ namespace Domain.Orders;
 
 public enum OrderStatus
 {
-    Pending,
-    Paid,
+    PendingPayment,
+    PaymentConfirmed,
+    Processing,
+    ReadyForPickup,
+    Shipped,
     Delivered,
+    FailedDelivery,
     Canceled,
+    Returned
 }

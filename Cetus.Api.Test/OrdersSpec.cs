@@ -111,7 +111,7 @@ public class OrdersSpec(ApplicationTestCase factory) : ApplicationContextTestCas
 
         orderResponse.ShouldNotBeNull();
         orderResponse.Id.ShouldBe(orderId.Id);
-        orderResponse.Status.ShouldBe(OrderStatus.Pending);
+        orderResponse.Status.ShouldBe(OrderStatus.PendingPayment);
     }
 
     [Fact(DisplayName = "Should get all orders")]
