@@ -21,7 +21,7 @@ internal sealed class PayOrderCommandHandler(IApplicationDbContext db)
             return Result.Failure<SimpleOrderResponse>(OrderErrors.NotFound(command.Id));
         }
 
-        if (order.CanTransitionTo(OrderStatus.PaymentConfirmed))
+        if (!order.CanTransitionTo(OrderStatus.PaymentConfirmed))
         {
             return Result.Failure<SimpleOrderResponse>(
                 OrderErrors.InvalidStatusTransition(order.Status, OrderStatus.PaymentConfirmed));
