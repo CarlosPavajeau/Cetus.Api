@@ -36,6 +36,7 @@ public sealed class ApplicationDbContext(
     public DbSet<Order> Orders { get; set; }
     public DbSet<OrderItem> OrderItems { get; set; }
     public DbSet<DeliveryFee> DeliveryFees { get; set; }
+    public DbSet<OrderTimeline> OrderTimeline { get; set; }
 
     public DbSet<State> States { get; set; }
     public DbSet<City> Cities { get; set; }

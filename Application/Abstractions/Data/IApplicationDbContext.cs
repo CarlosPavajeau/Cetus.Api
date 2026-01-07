@@ -28,6 +28,7 @@ public interface IApplicationDbContext
     DbSet<Order> Orders { get; }
     DbSet<OrderItem> OrderItems { get; }
     DbSet<DeliveryFee> DeliveryFees { get; }
+    DbSet<OrderTimeline> OrderTimeline { get; }
 
     DbSet<State> States { get; }
     DbSet<City> Cities { get; }
