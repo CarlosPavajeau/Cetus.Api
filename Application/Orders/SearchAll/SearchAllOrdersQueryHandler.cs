@@ -23,7 +23,9 @@ internal sealed class SearchAllOrdersQueryHandler(IApplicationDbContext db, ITen
         if (request.Statuses is not null && request.Statuses.Length > 0)
         {
             var statuses = request.Statuses
-                .Select(s => Enum.Parse<OrderStatus>(s, ignoreCase: true))
+                .Select(ParseOrderStatus)
+                .Where(status => status.HasValue)
+                .Select(status => status!.Value)
                 .ToArray();
 
             query = query.Where(o => statuses.Contains(o.Status));
@@ -55,5 +57,13 @@ internal sealed class SearchAllOrdersQueryHandler(IApplicationDbContext db, ITen
         var payload = PagedResult<OrderResponse>.Create(items, page, size, total);
 
         return payload;
+    }
+
+    private static OrderStatus? ParseOrderStatus(string value)
+    {
+        string normalized = value.Replace("_", "");
+        return Enum.TryParse<OrderStatus>(normalized, ignoreCase: true, out var result)
+            ? result
+            : null;
     }
 }
