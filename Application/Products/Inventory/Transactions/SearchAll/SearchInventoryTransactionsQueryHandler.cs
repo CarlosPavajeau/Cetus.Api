@@ -1,5 +1,6 @@
 using Application.Abstractions.Data;
 using Application.Abstractions.Messaging;
+using Domain.Products;
 using Microsoft.EntityFrameworkCore;
 using SharedKernel;
 
@@ -23,9 +24,15 @@ internal sealed class SearchInventoryTransactionsQueryHandler(IApplicationDbCont
             transactionsQuery = transactionsQuery.Where(t => t.VariantId == query.VariantId.Value);
         }
 
-        if (query.Type.HasValue)
+        if (query.Types is not null && query.Types.Length > 0)
         {
-            transactionsQuery = transactionsQuery.Where(t => t.Type == query.Type.Value);
+            var types = query.Types
+                .Select(ParseTransactionType)
+                .Where(type => type.HasValue)
+                .Select(type => type!.Value)
+                .ToList();
+
+            transactionsQuery = transactionsQuery.Where(t => types.Contains(t.Type));
         }
 
         if (query.From.HasValue)
@@ -51,5 +58,12 @@ internal sealed class SearchInventoryTransactionsQueryHandler(IApplicationDbCont
             .ToListAsync(cancellationToken);
 
         return PagedResult<InventoryTransactionResponse>.Create(items, page, size, total);
+    }
+
+    private static InventoryTransactionType? ParseTransactionType(string type)
+    {
+        return Enum.TryParse<InventoryTransactionType>(type, ignoreCase: true, out var result)
+            ? result
+            : null;
     }
 }
