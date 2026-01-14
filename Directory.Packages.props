@@ -43,7 +43,7 @@
         <PackageVersion Include="Swashbuckle.AspNetCore" Version="10.1.0"/>
         <PackageVersion Include="AWSSDK.S3" Version="4.0.16.3"/>
         <PackageVersion Include="Microsoft.ApplicationInsights.AspNetCore" Version="2.23.0"/>
-        <PackageVersion Include="Serilog.Sinks.ApplicationInsights" Version="4.1.0"/>
+        <PackageVersion Include="Serilog.Sinks.ApplicationInsights" Version="5.0.0"/>
         <PackageVersion Include="Serilog.Sinks.OpenTelemetry" Version="4.2.0"/>
         <!-- Tests -->
         <PackageVersion Include="Shouldly" Version="4.3.0"/>
