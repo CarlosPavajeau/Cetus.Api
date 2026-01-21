@@ -48,7 +48,7 @@ internal sealed class SearchAllOrdersQueryHandler(IApplicationDbContext db, ITen
 
         var items = await query
             .OrderBy(o => o.Status)
-            .ThenBy(o => o.CreatedAt)
+            .ThenByDescending(o => o.CreatedAt)
             .Skip((page - 1) * size)
             .Take(size)
             .Select(OrderResponse.Map)
