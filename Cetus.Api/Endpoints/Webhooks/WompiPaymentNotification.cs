@@ -72,7 +72,9 @@ internal sealed class WompiPaymentNotification : IEndpoint
             }
 
             string paymentId = payment.TransactionId;
-            var payOrderCommand = new PayOrderCommand(orderId, paymentId, PaymentProvider.Wompi);
+            var paymentMethod = payment.PaymentMethod;
+
+            var payOrderCommand = new PayOrderCommand(orderId, paymentId, PaymentProvider.Wompi, paymentMethod);
 
             var updateResult = await handler.Handle(payOrderCommand, cancellationToken);
 

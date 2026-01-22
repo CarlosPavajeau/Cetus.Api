@@ -63,7 +63,10 @@ internal sealed class MercadoPagoPaymentNotification : IEndpoint
             }
 
             long paymentId = payment.Id.Value;
-            var payOrderCommand = new PayOrderCommand(orderId, paymentId.ToString(CultureInfo.InvariantCulture), PaymentProvider.MercadoPago);
+            var paymentMethod = mercadoPagoClient.GetPaymentMethodFromMercadoPago(payment.PaymentMethodId);
+
+            var payOrderCommand = new PayOrderCommand(orderId, paymentId.ToString(CultureInfo.InvariantCulture),
+                PaymentProvider.MercadoPago, paymentMethod);
 
             var updateResult = await handler.Handle(payOrderCommand, cancellationToken);
 

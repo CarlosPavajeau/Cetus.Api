@@ -7,11 +7,23 @@ using MercadoPago.Resource.Payment;
 using MercadoPago.Resource.Preference;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
+using PaymentMethod = Domain.Orders.PaymentMethod;
 
 namespace Infrastructure.MercadoPago;
 
 public class MercadoPagoClient(IConfiguration configuration, ILogger<MercadoPagoClient> logger) : IMercadoPagoClient
 {
+    private static readonly Dictionary<string, PaymentMethod> PaymentMethods = new()
+    {
+        { "ticket", PaymentMethod.CashReference },
+        { "cash", PaymentMethod.Cash },
+        { "bank_transfer", PaymentMethod.BankTransfer },
+        { "credit_card", PaymentMethod.CreditCard },
+        { "debit_card", PaymentMethod.CreditCard },
+        { "digital_wallet", PaymentMethod.BankTransfer },
+        { "account_money", PaymentMethod.BankTransfer }
+    };
+
     public async Task<string?> GenerateAuthorizationUrl(CancellationToken cancellationToken = default)
     {
         string? clientId = configuration["MercadoPago:ClientId"];
@@ -112,5 +124,12 @@ public class MercadoPagoClient(IConfiguration configuration, ILogger<MercadoPago
             logger.LogError(e, "Error refunding MercadoPago payment for paymentId {PaymentId}", paymentId);
             return null;
         }
+    }
+
+    public PaymentMethod GetPaymentMethodFromMercadoPago(string mercadoPagoPaymentMethod)
+    {
+        return PaymentMethods.TryGetValue(mercadoPagoPaymentMethod, out var paymentMethod)
+            ? paymentMethod
+            : PaymentMethod.Cash;
     }
 }

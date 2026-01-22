@@ -1,6 +1,7 @@
 using MercadoPago.Client.Preference;
 using MercadoPago.Resource.Payment;
 using MercadoPago.Resource.Preference;
+using PaymentMethod = Domain.Orders.PaymentMethod;
 
 namespace Application.Abstractions.MercadoPago;
 
@@ -16,4 +17,6 @@ public interface IMercadoPagoClient
 
     Task<PaymentRefund?> RefundPayment(long paymentId, string accessToken,
         CancellationToken cancellationToken = default);
+
+    PaymentMethod GetPaymentMethodFromMercadoPago(string mercadoPagoPaymentMethod);
 }
