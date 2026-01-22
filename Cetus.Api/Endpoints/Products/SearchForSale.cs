@@ -5,6 +5,7 @@ using Application.Products.SearchForSale;
 using Cetus.Api.Extensions;
 using Cetus.Api.Infrastructure;
 using Microsoft.Extensions.Caching.Hybrid;
+using SharedKernel;
 
 namespace Cetus.Api.Endpoints.Products;
 
@@ -13,13 +14,12 @@ internal sealed class SearchForSale : IEndpoint
     public void MapEndpoint(IEndpointRouteBuilder app)
     {
         app.MapGet("products/for-sale", async (
-            IQueryHandler<SearchAllProductsForSaleQuery, IEnumerable<SimpleProductForSaleResponse>> handler,
+            [AsParameters] SearchAllProductsForSaleQuery query,
+            IQueryHandler<SearchAllProductsForSaleQuery, PagedResult<SimpleProductForSaleResponse>> handler,
             HybridCache cache,
             ITenantContext tenant,
             CancellationToken cancellationToken) =>
         {
-            var query = new SearchAllProductsForSaleQuery();
-
             var result = await cache.GetOrCreateAsync(
                 $"products-for-sale-${tenant.Id}",
                 async token => await handler.Handle(query, token),

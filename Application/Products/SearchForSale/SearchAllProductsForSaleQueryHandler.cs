@@ -6,9 +6,9 @@ using SharedKernel;
 namespace Application.Products.SearchForSale;
 
 internal sealed class SearchAllProductsForSaleQueryHandler(IApplicationDbContext context, ITenantContext tenant)
-    : IQueryHandler<SearchAllProductsForSaleQuery, IEnumerable<SimpleProductForSaleResponse>>
+    : IQueryHandler<SearchAllProductsForSaleQuery, PagedResult<SimpleProductForSaleResponse>>
 {
-    public async Task<Result<IEnumerable<SimpleProductForSaleResponse>>> Handle(SearchAllProductsForSaleQuery query,
+    public async Task<Result<PagedResult<SimpleProductForSaleResponse>>> Handle(SearchAllProductsForSaleQuery query,
         CancellationToken cancellationToken)
     {
         int page = query.Page <= 0 ? 1 : query.Page;
@@ -35,6 +35,8 @@ internal sealed class SearchAllProductsForSaleQueryHandler(IApplicationDbContext
                 p.Product!.SearchVector!.Matches(EF.Functions.PlainToTsQuery("spanish", query.SearchTerm)));
         }
 
+        int total = await productsQuery.CountAsync(cancellationToken);
+
         var products = await productsQuery
             .OrderByDescending(p => p.CreatedAt)
             .Skip((page - 1) * size)
@@ -46,6 +48,9 @@ internal sealed class SearchAllProductsForSaleQueryHandler(IApplicationDbContext
             .DistinctBy(p => p.Id)
             .ToList();
 
-        return response;
+        var payload = PagedResult<SimpleProductForSaleResponse>
+            .Create(response, page, total, size);
+
+        return payload;
     }
 }

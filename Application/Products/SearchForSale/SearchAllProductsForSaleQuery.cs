@@ -1,4 +1,5 @@
 using Application.Abstractions.Messaging;
+using SharedKernel;
 
 namespace Application.Products.SearchForSale;
 
@@ -7,4 +8,4 @@ public sealed record SearchAllProductsForSaleQuery(
     int PageSize = 20,
     IReadOnlyList<Guid>? CategoryIds = null,
     string? SearchTerm = null
-) : IQuery<IEnumerable<SimpleProductForSaleResponse>>;
+) : IQuery<PagedResult<SimpleProductForSaleResponse>>;
