@@ -6,12 +6,15 @@ using SharedKernel;
 namespace Application.Products.SearchForSale;
 
 internal sealed class SearchAllProductsForSaleQueryHandler(IApplicationDbContext context, ITenantContext tenant)
-    : IQueryHandler<SearchAllProductsForSaleQuery, IEnumerable<SimpleProductForSaleResponse>>
+    : IQueryHandler<SearchAllProductsForSaleQuery, PagedResult<SimpleProductForSaleResponse>>
 {
-    public async Task<Result<IEnumerable<SimpleProductForSaleResponse>>> Handle(SearchAllProductsForSaleQuery request,
+    public async Task<Result<PagedResult<SimpleProductForSaleResponse>>> Handle(SearchAllProductsForSaleQuery query,
         CancellationToken cancellationToken)
     {
-        var products = await context.ProductVariants
+        int page = query.Page <= 0 ? 1 : query.Page;
+        int size = query.PageSize <= 0 ? 20 : Math.Min(query.PageSize, 100);
+
+        var productsQuery = context.ProductVariants
             .AsNoTracking()
             .Include(p => p.Product)
             .Where(p => p.DeletedAt == null
@@ -19,8 +22,23 @@ internal sealed class SearchAllProductsForSaleQueryHandler(IApplicationDbContext
                         && p.Product!.Enabled
                         && p.Product!.DeletedAt == null
                         && p.Product!.StoreId == tenant.Id
-            )
+            );
+
+        if (query.CategoryIds != null && query.CategoryIds.Any())
+        {
+            productsQuery = productsQuery.Where(p => query.CategoryIds.Contains(p.Product!.CategoryId));
+        }
+
+        if (!string.IsNullOrWhiteSpace(query.SearchTerm))
+        {
+            productsQuery = productsQuery.Where(p =>
+                p.Product!.SearchVector!.Matches(EF.Functions.PlainToTsQuery("spanish", query.SearchTerm)));
+        }
+
+        var products = await productsQuery
             .OrderByDescending(p => p.CreatedAt)
+            .Skip((page - 1) * size)
+            .Take(size)
             .Select(SimpleProductForSaleResponse.Map)
             .ToListAsync(cancellationToken);
 
@@ -28,6 +46,11 @@ internal sealed class SearchAllProductsForSaleQueryHandler(IApplicationDbContext
             .DistinctBy(p => p.Id)
             .ToList();
 
-        return response;
+        int total = response.Count;
+
+        var payload = PagedResult<SimpleProductForSaleResponse>
+            .Create(response, page, total, size);
+
+        return payload;
     }
 }

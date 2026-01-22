@@ -152,9 +152,10 @@ public class ProductsSpec(ApplicationTestCase factory) : ApplicationContextTestC
         // Assert
         response.EnsureSuccessStatusCode();
 
-        var productsResponse = await response.DeserializeAsync<IEnumerable<SimpleProductForSaleResponse>>();
+        var productsResponse = await response.DeserializeAsync<PagedResult<SimpleProductForSaleResponse>>();
 
-        productsResponse.ShouldNotBeEmpty();
+        productsResponse.ShouldNotBeNull();
+        productsResponse.Items.ShouldNotBeEmpty();
     }
 
     [Fact(DisplayName = "Should return a product by id")]
