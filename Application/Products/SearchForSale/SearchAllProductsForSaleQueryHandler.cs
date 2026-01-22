@@ -35,18 +35,20 @@ internal sealed class SearchAllProductsForSaleQueryHandler(IApplicationDbContext
                 p.Product!.SearchVector!.Matches(EF.Functions.PlainToTsQuery("spanish", query.SearchTerm)));
         }
 
-        int total = await productsQuery.CountAsync(cancellationToken);
+        var distinctProductsQuery = productsQuery
+            .GroupBy(p => p.ProductId)
+            .Select(g => g
+                .OrderByDescending(v => v.CreatedAt)
+                .First());
 
-        var products = await productsQuery
+        int total = await distinctProductsQuery.CountAsync(cancellationToken);
+
+        var response = await distinctProductsQuery
             .OrderByDescending(p => p.CreatedAt)
             .Skip((page - 1) * size)
             .Take(size)
             .Select(SimpleProductForSaleResponse.Map)
             .ToListAsync(cancellationToken);
-
-        var response = products
-            .DistinctBy(p => p.Id)
-            .ToList();
 
         var payload = PagedResult<SimpleProductForSaleResponse>
             .Create(response, page, total, size);
