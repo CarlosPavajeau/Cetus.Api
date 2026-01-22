@@ -6,6 +6,6 @@ namespace Application.Products.SearchForSale;
 public sealed record SearchAllProductsForSaleQuery(
     int Page = 1,
     int PageSize = 20,
-    IReadOnlyList<Guid>? CategoryIds = null,
+    Guid[]? CategoryIds = null,
     string? SearchTerm = null
 ) : IQuery<PagedResult<SimpleProductForSaleResponse>>;

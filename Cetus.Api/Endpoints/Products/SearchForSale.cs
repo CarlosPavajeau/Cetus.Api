@@ -4,6 +4,7 @@ using Application.Products;
 using Application.Products.SearchForSale;
 using Cetus.Api.Extensions;
 using Cetus.Api.Infrastructure;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Caching.Hybrid;
 using SharedKernel;
 
@@ -15,6 +16,7 @@ internal sealed class SearchForSale : IEndpoint
     {
         app.MapGet("products/for-sale", async (
             [AsParameters] SearchAllProductsForSaleQuery query,
+            [FromServices]
             IQueryHandler<SearchAllProductsForSaleQuery, PagedResult<SimpleProductForSaleResponse>> handler,
             HybridCache cache,
             ITenantContext tenant,
