@@ -23,7 +23,7 @@ internal sealed class SearchForSale : IEndpoint
             CancellationToken cancellationToken) =>
         {
             var result = await cache.GetOrCreateAsync(
-                $"products-for-sale-${tenant.Id}",
+                $"products-for-sale-${tenant.Id}-{query.Page}-{query.PageSize}-{string.Join(",", query.CategoryIds ?? [])}-{query.SearchTerm}",
                 async token => await handler.Handle(query, token),
                 cancellationToken: cancellationToken
             );

@@ -35,6 +35,11 @@ internal sealed class SearchAllProductsForSaleQueryHandler(IApplicationDbContext
                 p.Product!.SearchVector!.Matches(EF.Functions.PlainToTsQuery("spanish", query.SearchTerm)));
         }
 
+        int total = await productsQuery
+            .GroupBy(x => x.ProductId)
+            .Select(x => x.FirstOrDefault())
+            .CountAsync(cancellationToken);
+
         var products = await productsQuery
             .OrderByDescending(p => p.CreatedAt)
             .Skip((page - 1) * size)
@@ -46,10 +51,9 @@ internal sealed class SearchAllProductsForSaleQueryHandler(IApplicationDbContext
             .DistinctBy(p => p.Id)
             .ToList();
 
-        int total = response.Count;
 
         var payload = PagedResult<SimpleProductForSaleResponse>
-            .Create(response, page, total, size);
+            .Create(response, page, size, total);
 
         return payload;
     }
