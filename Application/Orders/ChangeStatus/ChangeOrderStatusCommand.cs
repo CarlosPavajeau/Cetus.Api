@@ -3,5 +3,10 @@ using Domain.Orders;
 
 namespace Application.Orders.ChangeStatus;
 
-public sealed record ChangeOrderStatusCommand(Guid OrderId, OrderStatus NewStatus, string? UserId, string? Notes)
-    : ICommand;
+public sealed record ChangeOrderStatusCommand(
+    Guid OrderId,
+    OrderStatus NewStatus,
+    PaymentMethod? PaymentMethod,
+    string? UserId,
+    string? Notes
+) : ICommand;

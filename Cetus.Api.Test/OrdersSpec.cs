@@ -440,7 +440,9 @@ public class OrdersSpec(ApplicationTestCase factory) : ApplicationContextTestCas
         orderId.ShouldNotBeNull();
 
         // Act
-        var changeStatusCommand = new ChangeOrderStatusCommand(orderId.Id, OrderStatus.Delivered, "system", "Notes");
+        var changeStatusCommand =
+            new ChangeOrderStatusCommand(orderId.Id, OrderStatus.Delivered, PaymentMethod.CashOnDelivery, "system",
+                "Notes");
         var changeStatusResponse =
             await Client.PutAsJsonAsync($"api/orders/{orderId.Id}/status", changeStatusCommand);
 
@@ -484,7 +486,8 @@ public class OrdersSpec(ApplicationTestCase factory) : ApplicationContextTestCas
         orderId.ShouldNotBeNull();
 
         // Act
-        var changeStatusCommand = new ChangeOrderStatusCommand(orderId.Id, OrderStatus.Shipped, "system", "Notes");
+        var changeStatusCommand =
+            new ChangeOrderStatusCommand(orderId.Id, OrderStatus.Shipped, null, "system", "Notes");
         var changeStatusResponse =
             await Client.PutAsJsonAsync($"api/orders/{orderId.Id}/status", changeStatusCommand);
 
@@ -517,7 +520,8 @@ public class OrdersSpec(ApplicationTestCase factory) : ApplicationContextTestCas
         var orderId = await response.DeserializeAsync<OrderResponse>();
         orderId.ShouldNotBeNull();
 
-        var changeStatusCommand = new ChangeOrderStatusCommand(orderId.Id, OrderStatus.Delivered, "system", "Notes");
+        var changeStatusCommand = new ChangeOrderStatusCommand(orderId.Id, OrderStatus.Delivered,
+            PaymentMethod.CashOnDelivery, "system", "Notes");
         var changeStatusResponse =
             await Client.PutAsJsonAsync($"api/orders/{orderId.Id}/status", changeStatusCommand);
         changeStatusResponse.EnsureSuccessStatusCode();

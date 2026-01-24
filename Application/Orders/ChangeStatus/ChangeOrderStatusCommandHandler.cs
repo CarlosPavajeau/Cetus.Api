@@ -24,6 +24,12 @@ internal sealed class ChangeOrderStatusCommandHandler(
 
         var oldStatus = order.Status;
 
+        if (command.PaymentMethod.HasValue)
+        {
+            order.PaymentMethod = command.PaymentMethod.Value;
+            order.PaymentProvider = PaymentProvider.Manual;
+        }
+
         if (!order.CanTransitionTo(command.NewStatus))
         {
             return Result.Failure(OrderErrors.InvalidStatusTransition(oldStatus, command.NewStatus));
