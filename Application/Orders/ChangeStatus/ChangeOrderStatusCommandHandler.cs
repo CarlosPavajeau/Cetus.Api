@@ -24,7 +24,7 @@ internal sealed class ChangeOrderStatusCommandHandler(
 
         var oldStatus = order.Status;
 
-        if (command.PaymentMethod.HasValue)
+        if (command is { PaymentMethod: not null, NewStatus: OrderStatus.PaymentConfirmed })
         {
             order.PaymentMethod = command.PaymentMethod.Value;
             order.PaymentProvider = PaymentProvider.Manual;
