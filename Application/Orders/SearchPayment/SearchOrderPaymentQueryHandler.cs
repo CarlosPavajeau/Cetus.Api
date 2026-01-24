@@ -31,9 +31,21 @@ internal sealed class SearchOrderPaymentQueryHandler(
             return Result.Failure<OrderPaymentResponse>(OrderErrors.NotFound(query.Id));
         }
 
-        if (order.PaymentProvider is null || order.TransactionId is null)
+        if (order.PaymentProvider is null)
         {
             return Result.Failure<OrderPaymentResponse>(OrderErrors.NotPaid(query.Id));
+        }
+
+        if (order.PaymentProvider == PaymentProvider.Manual)
+        {
+            return new OrderPaymentResponse(
+                PaymentProvider.Manual,
+                order.Id.ToString(),
+                "approved",
+                order.PaymentMethod,
+                order.CreatedAt,
+                order.CreatedAt
+            );
         }
 
         return order.PaymentProvider switch
