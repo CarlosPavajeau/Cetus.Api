@@ -20,8 +20,16 @@ internal sealed class SendNotificationEmailWhenPaidOrder(
             domainEvent.Order.Customer, domainEvent.Order.OrderNumber, domainEvent.Order.Total);
 
         string messageBody = BuildEmailBody(domainEvent.Order);
+        string? customerEmail = domainEvent.Order.CustomerEmail;
 
-        await emailSender.SendEmail(EmailSubject, messageBody, domainEvent.Order.CustomerEmail, cancellationToken);
+        if (string.IsNullOrWhiteSpace(customerEmail))
+        {
+            logger.LogWarning("Customer email is null for order {OrderNumber}. Email not sent.",
+                domainEvent.Order.OrderNumber);
+            return;
+        }
+
+        await emailSender.SendEmail(EmailSubject, messageBody, customerEmail, cancellationToken);
     }
 
     private static string BuildEmailBody(PaidOrder order)
