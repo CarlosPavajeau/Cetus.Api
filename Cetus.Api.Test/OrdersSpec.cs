@@ -2,16 +2,19 @@ using System.Globalization;
 using System.Net;
 using System.Net.Http.Json;
 using Application.Abstractions.Data;
+using Application.Orders;
 using Application.Orders.CalculateInsights;
 using Application.Orders.Cancel;
 using Application.Orders.ChangeStatus;
 using Application.Orders.Create;
+using Application.Orders.CreateSale;
 using Application.Orders.DeliveryFees.Create;
 using Application.Orders.DeliveryFees.Find;
 using Application.Orders.Find;
 using Application.Orders.SearchTimeline;
 using Application.Orders.Summary;
 using Bogus;
+using Bogus.Extensions.Belgium;
 using Cetus.Api.Test.Shared;
 using Cetus.Api.Test.Shared.Fakers;
 using Cetus.Api.Test.Shared.Helpers;
@@ -535,5 +538,42 @@ public class OrdersSpec(ApplicationTestCase factory) : ApplicationContextTestCas
         var orderTimeline = await getOrderTimelineResponse.DeserializeAsync<IEnumerable<OrderTimelineResponse>>();
 
         orderTimeline.ShouldNotBeNull().ShouldNotBeEmpty();
+    }
+
+    [Fact(DisplayName = "Should create a new sale")]
+    public async Task ShouldCreateANewSale()
+    {
+        // Arrange 
+        var product = await ProductHelper.CreateProductWithVariant(Client);
+
+        var newCustomer = new CreateSaleCustomer(
+            _faker.Phone.PhoneNumber("##########"),
+            _faker.Name.FullName(),
+            _faker.Internet.Email(),
+            DocumentType.CC,
+            _faker.Person.NationalNumber()
+        );
+
+        var newSaleItems = new List<CreateSaleItem>
+        {
+            new(product.VariantId, 1)
+        };
+
+        var newSale = new CreateSaleCommand(
+            newSaleItems,
+            newCustomer,
+            OrderChannel.InStore,
+            PaymentMethod.Nequi
+        );
+
+        // Act
+        var response = await Client.PostAsJsonAsync("api/sales", newSale);
+
+        // Assert
+        response.EnsureSuccessStatusCode();
+
+        var sale = await response.DeserializeAsync<SimpleOrderResponse>();
+
+        sale.ShouldNotBeNull();
     }
 }
