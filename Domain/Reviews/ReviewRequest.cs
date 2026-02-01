@@ -11,7 +11,7 @@ public sealed class ReviewRequest
     public Guid OrderItemId { get; set; }
     public OrderItem? OrderItem { get; set; }
 
-    public string CustomerId { get; set; } = string.Empty;
+    public Guid CustomerId { get; set; }
     public Customer? Customer { get; set; }
 
     public DateTime SendAt { get; set; }

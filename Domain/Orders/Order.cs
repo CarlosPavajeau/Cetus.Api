@@ -33,7 +33,7 @@ public sealed class Order : Entity
 
     public ICollection<OrderItem> Items { get; set; } = new HashSet<OrderItem>();
 
-    public string CustomerId { get; set; } = string.Empty;
+    public Guid CustomerId { get; set; }
     public Customer? Customer { get; set; }
 
     public OrderChannel Channel { get; set; }

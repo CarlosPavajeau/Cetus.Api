@@ -1,8 +1,8 @@
 using System.Net;
 using System.Net.Http.Json;
 using Application.Abstractions.Data;
+using Application.Orders;
 using Application.Orders.Create;
-using Application.Orders.Find;
 using Application.Products;
 using Application.Reviews.ProductReviews.Create;
 using Application.Reviews.ProductReviews.Reject;
@@ -26,7 +26,7 @@ public class ReviewsSpec(ApplicationTestCase factory) : ApplicationContextTestCa
     private readonly CreateProductCommandFaker _productCommandFaker = new();
     private readonly Guid cityId = Guid.Parse("f97957e9-d820-4858-ac26-b5d03d658370");
 
-    private async Task WaitForCustomerRequests(string customerId)
+    private async Task WaitForCustomerRequests(Guid customerId)
     {
         var db = Services.GetRequiredService<IApplicationDbContext>();
 
@@ -52,21 +52,21 @@ public class ReviewsSpec(ApplicationTestCase factory) : ApplicationContextTestCa
             newCustomer);
         var createOrderResponse = await Client.PostAsJsonAsync("api/orders", newOrder);
         createOrderResponse.EnsureSuccessStatusCode();
-        var order = await createOrderResponse.DeserializeAsync<OrderResponse>();
+        var order = await createOrderResponse.DeserializeAsync<SimpleOrderResponse>();
         order.ShouldNotBeNull();
 
         // Arrange - Deliver the order to generate review request
         var deliverOrderResponse = await Client.PostAsync($"api/orders/{order.Id}/deliver", null);
         deliverOrderResponse.EnsureSuccessStatusCode();
 
-        await WaitForCustomerRequests(newCustomer.Id);
+        await WaitForCustomerRequests(order.CustomerId);
 
         // Get the review request token from the database
         var db = Services.GetRequiredService<IApplicationDbContext>();
         var reviewRequest = await db.ReviewRequests
             .Include(r => r.Customer)
             .Include(r => r.OrderItem)
-            .FirstOrDefaultAsync(r => r.CustomerId == newCustomer.Id);
+            .FirstOrDefaultAsync(r => r.CustomerId == order.CustomerId);
         reviewRequest.ShouldNotBeNull();
 
         // Act
@@ -114,21 +114,21 @@ public class ReviewsSpec(ApplicationTestCase factory) : ApplicationContextTestCa
             newCustomer);
         var createOrderResponse = await Client.PostAsJsonAsync("api/orders", newOrder);
         createOrderResponse.EnsureSuccessStatusCode();
-        var order = await createOrderResponse.DeserializeAsync<OrderResponse>();
+        var order = await createOrderResponse.DeserializeAsync<SimpleOrderResponse>();
         order.ShouldNotBeNull();
 
         // Arrange - Deliver the order to generate review request
         var deliverOrderResponse = await Client.PostAsync($"api/orders/{order.Id}/deliver", null);
         deliverOrderResponse.EnsureSuccessStatusCode();
 
-        await WaitForCustomerRequests(newCustomer.Id);
+        await WaitForCustomerRequests(order.CustomerId);
 
         // Get the review request token from the database
         var db = Services.GetRequiredService<IApplicationDbContext>();
         var reviewRequest = await db.ReviewRequests
             .Include(r => r.Customer)
             .Include(r => r.OrderItem)
-            .FirstOrDefaultAsync(r => r.CustomerId == newCustomer.Id);
+            .FirstOrDefaultAsync(r => r.CustomerId == order.CustomerId);
         reviewRequest.ShouldNotBeNull();
 
         // Arrange - Create review command
@@ -176,20 +176,20 @@ public class ReviewsSpec(ApplicationTestCase factory) : ApplicationContextTestCa
                 newCustomer);
             var createOrderResponse = await Client.PostAsJsonAsync("api/orders", newOrder);
             createOrderResponse.EnsureSuccessStatusCode();
-            var order = await createOrderResponse.DeserializeAsync<OrderResponse>();
+            var order = await createOrderResponse.DeserializeAsync<SimpleOrderResponse>();
             order.ShouldNotBeNull();
 
             // Deliver order
             var deliverOrderResponse = await Client.PostAsync($"api/orders/{order.Id}/deliver", null);
             deliverOrderResponse.EnsureSuccessStatusCode();
 
-            await WaitForCustomerRequests(newCustomer.Id);
+            await WaitForCustomerRequests(order.CustomerId);
 
             // Get review request
             var reviewRequest = await db.ReviewRequests
                 .Include(r => r.Customer)
                 .Include(r => r.OrderItem)
-                .FirstOrDefaultAsync(r => r.CustomerId == newCustomer.Id);
+                .FirstOrDefaultAsync(r => r.CustomerId == order.CustomerId);
             reviewRequest.ShouldNotBeNull();
 
             // Create review
@@ -281,19 +281,19 @@ public class ReviewsSpec(ApplicationTestCase factory) : ApplicationContextTestCa
                 newCustomer);
             var createOrderResponse = await Client.PostAsJsonAsync("api/orders", newOrder);
             createOrderResponse.EnsureSuccessStatusCode();
-            var order = await createOrderResponse.DeserializeAsync<OrderResponse>();
+            var order = await createOrderResponse.DeserializeAsync<SimpleOrderResponse>();
             order.ShouldNotBeNull();
 
             // Deliver order
             var deliverOrderResponse = await Client.PostAsync($"api/orders/{order.Id}/deliver", null);
             deliverOrderResponse.EnsureSuccessStatusCode();
 
-            await WaitForCustomerRequests(newCustomer.Id);
+            await WaitForCustomerRequests(order.CustomerId);
 
             // Get review request
             var reviewRequest = await db.ReviewRequests
                 .AsNoTracking()
-                .FirstOrDefaultAsync(r => r.CustomerId == newCustomer.Id);
+                .FirstOrDefaultAsync(r => r.CustomerId == order.CustomerId);
             reviewRequest.ShouldNotBeNull();
 
             // Create review
@@ -338,20 +338,20 @@ public class ReviewsSpec(ApplicationTestCase factory) : ApplicationContextTestCa
             newCustomer);
         var createOrderResponse = await Client.PostAsJsonAsync("api/orders", newOrder);
         createOrderResponse.EnsureSuccessStatusCode();
-        var order = await createOrderResponse.DeserializeAsync<OrderResponse>();
+        var order = await createOrderResponse.DeserializeAsync<SimpleOrderResponse>();
         order.ShouldNotBeNull();
 
         // Deliver order
         var deliverOrderResponse = await Client.PostAsync($"api/orders/{order.Id}/deliver", null);
         deliverOrderResponse.EnsureSuccessStatusCode();
 
-        await WaitForCustomerRequests(newCustomer.Id);
+        await WaitForCustomerRequests(order.CustomerId);
 
         // Get review request
         var db = Services.GetRequiredService<IApplicationDbContext>();
         var reviewRequest = await db.ReviewRequests
             .AsNoTracking()
-            .FirstOrDefaultAsync(r => r.CustomerId == newCustomer.Id);
+            .FirstOrDefaultAsync(r => r.CustomerId == order.CustomerId);
         reviewRequest.ShouldNotBeNull();
 
         // Create review
@@ -397,20 +397,20 @@ public class ReviewsSpec(ApplicationTestCase factory) : ApplicationContextTestCa
             newCustomer);
         var createOrderResponse = await Client.PostAsJsonAsync("api/orders", newOrder);
         createOrderResponse.EnsureSuccessStatusCode();
-        var order = await createOrderResponse.DeserializeAsync<OrderResponse>();
+        var order = await createOrderResponse.DeserializeAsync<SimpleOrderResponse>();
         order.ShouldNotBeNull();
 
         // Deliver order
         var deliverOrderResponse = await Client.PostAsync($"api/orders/{order.Id}/deliver", null);
         deliverOrderResponse.EnsureSuccessStatusCode();
 
-        await WaitForCustomerRequests(newCustomer.Id);
+        await WaitForCustomerRequests(order.CustomerId);
 
         // Get review request
         var db = Services.GetRequiredService<IApplicationDbContext>();
         var reviewRequest = await db.ReviewRequests
             .AsNoTracking()
-            .FirstOrDefaultAsync(r => r.CustomerId == newCustomer.Id);
+            .FirstOrDefaultAsync(r => r.CustomerId == order.CustomerId);
         reviewRequest.ShouldNotBeNull();
 
         // Create review

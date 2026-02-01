@@ -27,7 +27,6 @@ internal sealed class ProductReviewConfiguration : IEntityTypeConfiguration<Prod
             .IsRequired();
 
         builder.Property(pr => pr.CustomerId)
-            .IsRequired()
-            .HasMaxLength(50);
+            .IsRequired();
     }
 }

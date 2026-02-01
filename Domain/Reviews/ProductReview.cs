@@ -18,7 +18,7 @@ public sealed class ProductReview
     public Guid ProductId { get; set; }
     public Product? Product { get; set; }
 
-    public string CustomerId { get; set; } = string.Empty;
+    public Guid CustomerId { get; set; }
     public Customer? Customer { get; set; }
 
     public DateTime CreatedAt { get; set; }

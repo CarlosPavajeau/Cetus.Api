@@ -20,8 +20,7 @@ internal sealed class OrderConfiguration : IEntityTypeConfiguration<Order>
             .HasMaxLength(256);
 
         builder.Property(o => o.CustomerId)
-            .IsRequired()
-            .HasMaxLength(50);
+            .IsRequired();
 
         builder.Property(o => o.TransactionId)
             .HasMaxLength(256);

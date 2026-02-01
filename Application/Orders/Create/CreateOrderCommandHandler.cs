@@ -40,7 +40,7 @@ internal sealed class CreateOrderCommandHandler(
                 return Result.Failure<SimpleOrderResponse>(productsResult.Error);
             }
 
-            var order = await CreateOrderEntity(request, customer.DocumentNumber ?? string.Empty, productsResult.Value,
+            var order = await CreateOrderEntity(request, customer.Id, productsResult.Value,
                 cancellationToken);
 
             order.Raise(new OrderCreatedDomainEvent(order.Id, order.OrderNumber, order.StoreId));
@@ -169,7 +169,7 @@ internal sealed class CreateOrderCommandHandler(
         return variants;
     }
 
-    private async Task<Order> CreateOrderEntity(CreateOrderCommand request, string customerId,
+    private async Task<Order> CreateOrderEntity(CreateOrderCommand request, Guid customerId,
         IReadOnlyList<VariantInfo> variants, CancellationToken cancellationToken)
     {
         decimal deliveryFee = await CalculateDeliveryFee(request.CityId, tenant.Id, cancellationToken);

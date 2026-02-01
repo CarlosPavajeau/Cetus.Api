@@ -10,6 +10,7 @@ public sealed record SimpleOrderResponse(
     decimal Subtotal,
     decimal Discount,
     decimal Total,
+    Guid CustomerId,
     DateTime CreatedAt
 )
 {
@@ -21,6 +22,7 @@ public sealed record SimpleOrderResponse(
         order.Subtotal,
         order.Discount,
         order.Total,
+        order.CustomerId,
         order.CreatedAt
     );
 }
