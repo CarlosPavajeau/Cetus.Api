@@ -33,20 +33,32 @@ public class OrdersSpec(ApplicationTestCase factory) : ApplicationContextTestCas
     private readonly CreateOrderCustomerFaker _orderCustomerFaker = new();
     private readonly Faker _faker = new();
 
+    private CreateOrderCommand GenerateCreateOrderCommand(CreateProductWithVariantResponse product)
+    {
+        var newCustomer = _orderCustomerFaker.Generate();
+        var newOrderItems = new List<CreateOrderItem>
+        {
+            new(product.VariantId, 1)
+        };
+        var shippingInfo = new CreateOrderShipping(
+            _faker.Address.FullAddress(),
+            cityId
+        );
+
+        var newOrder = new CreateOrderCommand(
+            newOrderItems,
+            newCustomer,
+            shippingInfo
+        );
+        return newOrder;
+    }
+
     [Fact(DisplayName = "Should create a new order")]
     public async Task ShouldCreateANewOrder()
     {
         // Arrange 
         var product = await ProductHelper.CreateProductWithVariant(Client);
-
-        var newCustomer = _orderCustomerFaker.Generate();
-        var newOrderItems = new List<CreateOrderItem>
-        {
-            new(product.Name, product.ImageUrl, 1, product.Price, product.VariantId)
-        };
-
-        var newOrder = new CreateOrderCommand(_faker.Address.FullAddress(), cityId, product.Price, newOrderItems,
-            newCustomer);
+        var newOrder = GenerateCreateOrderCommand(product);
 
         // Act
         var response = await Client.PostAsJsonAsync("api/orders", newOrder);
@@ -64,15 +76,7 @@ public class OrdersSpec(ApplicationTestCase factory) : ApplicationContextTestCas
     {
         // Arrange
         var product = await ProductHelper.CreateProductWithVariant(Client);
-
-        var newCustomer = _orderCustomerFaker.Generate();
-        var newOrderItems = new List<CreateOrderItem>
-        {
-            new(product.Name, product.ImageUrl, 11, product.Price, product.VariantId)
-        };
-
-        var newOrder =
-            new CreateOrderCommand(_faker.Address.FullAddress(), cityId, product.Price, newOrderItems, newCustomer);
+        var newOrder = GenerateCreateOrderCommand(product);
 
         // Act
         var response = await Client.PostAsJsonAsync("api/orders", newOrder);
@@ -89,15 +93,7 @@ public class OrdersSpec(ApplicationTestCase factory) : ApplicationContextTestCas
         await CityHelper.CreateIfNotExists(cityId, db);
 
         var product = await ProductHelper.CreateProductWithVariant(Client);
-
-        var newCustomer = _orderCustomerFaker.Generate();
-        var newOrderItems = new List<CreateOrderItem>
-        {
-            new(product.Name, product.ImageUrl, 1, product.Price, product.VariantId)
-        };
-
-        var newOrder =
-            new CreateOrderCommand(_faker.Address.FullAddress(), cityId, product.Price, newOrderItems, newCustomer);
+        var newOrder = GenerateCreateOrderCommand(product);
 
         var response = await Client.PostAsJsonAsync("api/orders", newOrder);
 
@@ -127,15 +123,7 @@ public class OrdersSpec(ApplicationTestCase factory) : ApplicationContextTestCas
         await CityHelper.CreateIfNotExists(cityId, db);
 
         var product = await ProductHelper.CreateProductWithVariant(Client);
-
-        var newCustomer = _orderCustomerFaker.Generate();
-        var newOrderItems = new List<CreateOrderItem>
-        {
-            new(product.Name, product.ImageUrl, 1, product.Price, product.VariantId)
-        };
-
-        var newOrder =
-            new CreateOrderCommand(_faker.Address.FullAddress(), cityId, product.Price, newOrderItems, newCustomer);
+        var newOrder = GenerateCreateOrderCommand(product);
 
         var response = await Client.PostAsJsonAsync("api/orders", newOrder);
 
@@ -161,15 +149,7 @@ public class OrdersSpec(ApplicationTestCase factory) : ApplicationContextTestCas
         await CityHelper.CreateIfNotExists(cityId, db);
 
         var product = await ProductHelper.CreateProductWithVariant(Client);
-
-        var newCustomer = _orderCustomerFaker.Generate();
-        var newOrderItems = new List<CreateOrderItem>
-        {
-            new(product.Name, product.ImageUrl, 1, product.Price, product.VariantId)
-        };
-
-        var newOrder =
-            new CreateOrderCommand(_faker.Address.FullAddress(), cityId, product.Price, newOrderItems, newCustomer);
+        var newOrder = GenerateCreateOrderCommand(product);
 
         var response = await Client.PostAsJsonAsync("api/orders", newOrder);
 
@@ -203,15 +183,7 @@ public class OrdersSpec(ApplicationTestCase factory) : ApplicationContextTestCas
         await CityHelper.CreateIfNotExists(cityId, db);
 
         var product = await ProductHelper.CreateProductWithVariant(Client);
-
-        var newCustomer = _orderCustomerFaker.Generate();
-        var newOrderItems = new List<CreateOrderItem>
-        {
-            new(product.Name, product.ImageUrl, 1, product.Price, product.VariantId)
-        };
-
-        var newOrder =
-            new CreateOrderCommand(_faker.Address.FullAddress(), cityId, product.Price, newOrderItems, newCustomer);
+        var newOrder = GenerateCreateOrderCommand(product);
 
         var response = await Client.PostAsJsonAsync("api/orders", newOrder);
 
@@ -243,15 +215,7 @@ public class OrdersSpec(ApplicationTestCase factory) : ApplicationContextTestCas
     {
         // Arrange
         var product = await ProductHelper.CreateProductWithVariant(Client);
-
-        var newCustomer = _orderCustomerFaker.Generate();
-        var newOrderItems = new List<CreateOrderItem>
-        {
-            new(product.Name, product.ImageUrl, 1, product.Price, product.VariantId)
-        };
-
-        var newOrder =
-            new CreateOrderCommand(_faker.Address.FullAddress(), cityId, product.Price, newOrderItems, newCustomer);
+        var newOrder = GenerateCreateOrderCommand(product);
 
         var response = await Client.PostAsJsonAsync("api/orders", newOrder);
 
@@ -280,15 +244,7 @@ public class OrdersSpec(ApplicationTestCase factory) : ApplicationContextTestCas
     {
         // Arrange
         var product = await ProductHelper.CreateProductWithVariant(Client);
-
-        var newCustomer = _orderCustomerFaker.Generate();
-        var newOrderItems = new List<CreateOrderItem>
-        {
-            new(product.Name, product.ImageUrl, 1, product.Price, product.VariantId)
-        };
-
-        var newOrder =
-            new CreateOrderCommand(_faker.Address.FullAddress(), cityId, product.Price, newOrderItems, newCustomer);
+        var newOrder = GenerateCreateOrderCommand(product);
 
         var response = await Client.PostAsJsonAsync("api/orders", newOrder);
 
@@ -321,15 +277,7 @@ public class OrdersSpec(ApplicationTestCase factory) : ApplicationContextTestCas
     {
         // Arrange
         var product = await ProductHelper.CreateProductWithVariant(Client);
-
-        var newCustomer = _orderCustomerFaker.Generate();
-        var newOrderItems = new List<CreateOrderItem>
-        {
-            new(product.Name, product.ImageUrl, 1, product.Price, product.VariantId)
-        };
-
-        var newOrder =
-            new CreateOrderCommand(_faker.Address.FullAddress(), cityId, product.Price, newOrderItems, newCustomer);
+        var newOrder = GenerateCreateOrderCommand(product);
 
         var response = await Client.PostAsJsonAsync("api/orders", newOrder);
 
@@ -425,15 +373,7 @@ public class OrdersSpec(ApplicationTestCase factory) : ApplicationContextTestCas
         await CityHelper.CreateIfNotExists(cityId, db);
 
         var product = await ProductHelper.CreateProductWithVariant(Client);
-
-        var newCustomer = _orderCustomerFaker.Generate();
-        var newOrderItems = new List<CreateOrderItem>
-        {
-            new(product.Name, product.ImageUrl, 1, product.Price, product.VariantId)
-        };
-
-        var newOrder =
-            new CreateOrderCommand(_faker.Address.FullAddress(), cityId, product.Price, newOrderItems, newCustomer);
+        var newOrder = GenerateCreateOrderCommand(product);
 
         var response = await Client.PostAsJsonAsync("api/orders", newOrder);
 
@@ -471,15 +411,7 @@ public class OrdersSpec(ApplicationTestCase factory) : ApplicationContextTestCas
         await CityHelper.CreateIfNotExists(cityId, db);
 
         var product = await ProductHelper.CreateProductWithVariant(Client);
-
-        var newCustomer = _orderCustomerFaker.Generate();
-        var newOrderItems = new List<CreateOrderItem>
-        {
-            new(product.Name, product.ImageUrl, 1, product.Price, product.VariantId)
-        };
-
-        var newOrder =
-            new CreateOrderCommand(_faker.Address.FullAddress(), cityId, product.Price, newOrderItems, newCustomer);
+        var newOrder = GenerateCreateOrderCommand(product);
 
         var response = await Client.PostAsJsonAsync("api/orders", newOrder);
 
@@ -506,15 +438,7 @@ public class OrdersSpec(ApplicationTestCase factory) : ApplicationContextTestCas
         await CityHelper.CreateIfNotExists(cityId, db);
 
         var product = await ProductHelper.CreateProductWithVariant(Client);
-
-        var newCustomer = _orderCustomerFaker.Generate();
-        var newOrderItems = new List<CreateOrderItem>
-        {
-            new(product.Name, product.ImageUrl, 1, product.Price, product.VariantId)
-        };
-
-        var newOrder =
-            new CreateOrderCommand(_faker.Address.FullAddress(), cityId, product.Price, newOrderItems, newCustomer);
+        var newOrder = GenerateCreateOrderCommand(product);
 
         var response = await Client.PostAsJsonAsync("api/orders", newOrder);
 

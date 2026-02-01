@@ -488,7 +488,7 @@ public class CouponsSpec(ApplicationTestCase factory) : ApplicationContextTestCa
         var coupon = await createResponse.DeserializeAsync<CouponResponse>();
         coupon.ShouldNotBeNull();
 
-        string customerId = _orderCustomerFaker.Generate().Id;
+        string customerId = _orderCustomerFaker.Generate().Phone;
         var order1 = await CreateTestOrder(customerId);
         var order2 = await CreateTestOrder(customerId);
 
@@ -506,7 +506,7 @@ public class CouponsSpec(ApplicationTestCase factory) : ApplicationContextTestCa
         response2.StatusCode.ShouldBe(HttpStatusCode.BadRequest);
     }
 
-    private async Task<OrderResponse> CreateTestOrder(string? customerId = null)
+    private async Task<OrderResponse> CreateTestOrder(string? phoneNumber = null)
     {
         // Create a test product first
         var db = Services.GetRequiredService<IApplicationDbContext>();
@@ -517,22 +517,22 @@ public class CouponsSpec(ApplicationTestCase factory) : ApplicationContextTestCa
         var newCustomer = _orderCustomerFaker
             .Generate();
 
-        if (customerId is not null)
+        if (phoneNumber is not null)
         {
-            newCustomer = newCustomer with { Id = customerId };
+            newCustomer = newCustomer with { Phone = phoneNumber };
         }
 
         var newOrderItems = new List<CreateOrderItem>
         {
-            new(product.Name, product.ImageUrl, 1, product.Price, product.VariantId)
+            new(product.VariantId, 1)
         };
 
+        var shippingInfo = new CreateOrderShipping("123 Test Street", _cityId);
+
         var newOrder = new CreateOrderCommand(
-            "123 Test Street",
-            _cityId,
-            product.Price,
             newOrderItems,
-            newCustomer
+            newCustomer,
+            shippingInfo
         );
 
         var createOrderResponse = await Client.PostAsJsonAsync("api/orders", newOrder);

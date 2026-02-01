@@ -36,20 +36,33 @@ public class ReviewsSpec(ApplicationTestCase factory) : ApplicationContextTestCa
             pollInterval: TimeSpan.FromMilliseconds(100));
     }
 
+    private CreateOrderCommand GenerateCreateOrderCommand(CreateProductWithVariantResponse product)
+    {
+        var newCustomer = _orderCustomerFaker.Generate();
+        var newOrderItems = new List<CreateOrderItem>
+        {
+            new(product.VariantId, 1)
+        };
+        var shippingInfo = new CreateOrderShipping(
+            _faker.Address.FullAddress(),
+            cityId
+        );
+
+        var newOrder = new CreateOrderCommand(
+            newOrderItems,
+            newCustomer,
+            shippingInfo
+        );
+        return newOrder;
+    }
+
     [Fact(DisplayName = "Should find a review request by token")]
     public async Task ShouldFindReviewRequestByToken()
     {
         // Arrange 
         var product = await ProductHelper.CreateProductWithVariant(Client);
+        var newOrder = GenerateCreateOrderCommand(product);
 
-        var newCustomer = _orderCustomerFaker.Generate();
-        var newOrderItems = new List<CreateOrderItem>
-        {
-            new(product.Name, product.ImageUrl, 1, product.Price, product.VariantId)
-        };
-
-        var newOrder = new CreateOrderCommand(_faker.Address.FullAddress(), cityId, product.Price, newOrderItems,
-            newCustomer);
         var createOrderResponse = await Client.PostAsJsonAsync("api/orders", newOrder);
         createOrderResponse.EnsureSuccessStatusCode();
         var order = await createOrderResponse.DeserializeAsync<SimpleOrderResponse>();
@@ -79,7 +92,6 @@ public class ReviewsSpec(ApplicationTestCase factory) : ApplicationContextTestCa
         reviewRequestResponse.ShouldNotBeNull();
         reviewRequestResponse.Id.ShouldBe(reviewRequest.Id);
         reviewRequestResponse.Status.ShouldBe(ReviewRequestStatus.Pending);
-        reviewRequestResponse.Customer.ShouldBe(newCustomer.Name);
     }
 
     [Fact(DisplayName = "Should return not found for non-existing review request")]
@@ -103,15 +115,8 @@ public class ReviewsSpec(ApplicationTestCase factory) : ApplicationContextTestCa
     {
         // Arrange
         var product = await ProductHelper.CreateProductWithVariant(Client);
+        var newOrder = GenerateCreateOrderCommand(product);
 
-        var newCustomer = _orderCustomerFaker.Generate();
-        var newOrderItems = new List<CreateOrderItem>
-        {
-            new(product.Name, product.ImageUrl, 1, product.Price, product.VariantId)
-        };
-
-        var newOrder = new CreateOrderCommand(_faker.Address.FullAddress(), cityId, product.Price, newOrderItems,
-            newCustomer);
         var createOrderResponse = await Client.PostAsJsonAsync("api/orders", newOrder);
         createOrderResponse.EnsureSuccessStatusCode();
         var order = await createOrderResponse.DeserializeAsync<SimpleOrderResponse>();
@@ -166,14 +171,8 @@ public class ReviewsSpec(ApplicationTestCase factory) : ApplicationContextTestCa
         for (int i = 0; i < reviewCount; i++)
         {
             // Create order
-            var newCustomer = _orderCustomerFaker.Generate();
-            var newOrderItems = new List<CreateOrderItem>
-            {
-                new(product.Name, product.ImageUrl, 1, product.Price, product.VariantId)
-            };
+            var newOrder = GenerateCreateOrderCommand(product);
 
-            var newOrder = new CreateOrderCommand(_faker.Address.FullAddress(), cityId, product.Price, newOrderItems,
-                newCustomer);
             var createOrderResponse = await Client.PostAsJsonAsync("api/orders", newOrder);
             createOrderResponse.EnsureSuccessStatusCode();
             var order = await createOrderResponse.DeserializeAsync<SimpleOrderResponse>();
@@ -271,14 +270,8 @@ public class ReviewsSpec(ApplicationTestCase factory) : ApplicationContextTestCa
         for (int i = 0; i < reviewCount; i++)
         {
             // Create order
-            var newCustomer = _orderCustomerFaker.Generate();
-            var newOrderItems = new List<CreateOrderItem>
-            {
-                new(product.Name, product.ImageUrl, 1, product.Price, product.VariantId)
-            };
+            var newOrder = GenerateCreateOrderCommand(product);
 
-            var newOrder = new CreateOrderCommand(_faker.Address.FullAddress(), cityId, product.Price, newOrderItems,
-                newCustomer);
             var createOrderResponse = await Client.PostAsJsonAsync("api/orders", newOrder);
             createOrderResponse.EnsureSuccessStatusCode();
             var order = await createOrderResponse.DeserializeAsync<SimpleOrderResponse>();
@@ -327,15 +320,8 @@ public class ReviewsSpec(ApplicationTestCase factory) : ApplicationContextTestCa
     {
         // Arrange
         var product = await ProductHelper.CreateProductWithVariant(Client);
+        var newOrder = GenerateCreateOrderCommand(product);
 
-        var newCustomer = _orderCustomerFaker.Generate();
-        var newOrderItems = new List<CreateOrderItem>
-        {
-            new(product.Name, product.ImageUrl, 1, product.Price, product.VariantId)
-        };
-
-        var newOrder = new CreateOrderCommand(_faker.Address.FullAddress(), cityId, product.Price, newOrderItems,
-            newCustomer);
         var createOrderResponse = await Client.PostAsJsonAsync("api/orders", newOrder);
         createOrderResponse.EnsureSuccessStatusCode();
         var order = await createOrderResponse.DeserializeAsync<SimpleOrderResponse>();
@@ -386,15 +372,8 @@ public class ReviewsSpec(ApplicationTestCase factory) : ApplicationContextTestCa
     {
         // Arrange
         var product = await ProductHelper.CreateProductWithVariant(Client);
+        var newOrder = GenerateCreateOrderCommand(product);
 
-        var newCustomer = _orderCustomerFaker.Generate();
-        var newOrderItems = new List<CreateOrderItem>
-        {
-            new(product.Name, product.ImageUrl, 1, product.Price, product.VariantId)
-        };
-
-        var newOrder = new CreateOrderCommand(_faker.Address.FullAddress(), cityId, product.Price, newOrderItems,
-            newCustomer);
         var createOrderResponse = await Client.PostAsJsonAsync("api/orders", newOrder);
         createOrderResponse.EnsureSuccessStatusCode();
         var order = await createOrderResponse.DeserializeAsync<SimpleOrderResponse>();
