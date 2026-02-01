@@ -16,7 +16,6 @@ internal sealed class OrderConfiguration : IEntityTypeConfiguration<Order>
             .Metadata.SetBeforeSaveBehavior(PropertySaveBehavior.Ignore);
 
         builder.Property(o => o.Address)
-            .IsRequired()
             .HasMaxLength(256);
 
         builder.Property(o => o.CustomerId)
