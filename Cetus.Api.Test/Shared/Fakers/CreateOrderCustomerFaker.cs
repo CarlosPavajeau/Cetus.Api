@@ -12,7 +12,7 @@ public sealed class CreateOrderCustomerFaker : Faker<CreateOrderCustomer>
             faker.Person.NationalNumber(),
             faker.Person.FullName,
             faker.Person.Email,
-            faker.Person.Phone,
+            faker.Phone.PhoneNumber("##########"),
             faker.Address.FullAddress()
         ));
     }
