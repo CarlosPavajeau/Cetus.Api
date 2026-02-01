@@ -198,6 +198,7 @@ internal sealed class CreateOrderCommandHandler(
             Id = Guid.NewGuid(),
             Address = request.Address,
             CityId = request.CityId,
+            Channel = OrderChannel.Ecommerce,
             Subtotal = subtotal,
             Discount = discount,
             DeliveryFee = deliveryFee,
