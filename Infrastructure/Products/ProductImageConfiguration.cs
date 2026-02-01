@@ -10,6 +10,9 @@ public class ProductImageConfiguration : IEntityTypeConfiguration<ProductImage>
     {
         builder.HasKey(p => p.Id);
 
+        builder.Property(p => p.Id)
+            .ValueGeneratedOnAdd();
+
         builder.HasOne(p => p.ProductVariant)
             .WithMany(p => p.Images)
             .HasForeignKey(p => p.VariantId);
