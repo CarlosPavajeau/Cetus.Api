@@ -13,7 +13,7 @@ internal sealed class FindCustomerQueryHandler(IApplicationDbContext context)
     {
         var customer = await context.Customers
             .AsNoTracking()
-            .Where(x => x.Id == query.Id)
+            .Where(x => x.DocumentNumber == query.Id)
             .Select(CustomerResponse.Map)
             .FirstOrDefaultAsync(cancellationToken);
 

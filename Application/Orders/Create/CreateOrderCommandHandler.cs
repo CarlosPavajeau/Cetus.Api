@@ -40,7 +40,8 @@ internal sealed class CreateOrderCommandHandler(
                 return Result.Failure<SimpleOrderResponse>(productsResult.Error);
             }
 
-            var order = await CreateOrderEntity(request, customer.Id, productsResult.Value, cancellationToken);
+            var order = await CreateOrderEntity(request, customer.DocumentNumber ?? string.Empty, productsResult.Value,
+                cancellationToken);
 
             order.Raise(new OrderCreatedDomainEvent(order.Id, order.OrderNumber, order.StoreId));
 
@@ -101,7 +102,7 @@ internal sealed class CreateOrderCommandHandler(
         CancellationToken cancellationToken)
     {
         var customer = await context.Customers
-            .FirstOrDefaultAsync(c => c.Id == orderCustomer.Id, cancellationToken);
+            .FirstOrDefaultAsync(c => c.DocumentNumber == orderCustomer.Id, cancellationToken);
 
         if (customer is not null)
         {
@@ -110,7 +111,9 @@ internal sealed class CreateOrderCommandHandler(
 
         customer = new Customer
         {
-            Id = orderCustomer.Id,
+            Id = Guid.CreateVersion7(),
+            DocumentType = DocumentType.CC,
+            DocumentNumber = orderCustomer.Id,
             Name = orderCustomer.Name,
             Email = orderCustomer.Email,
             Phone = orderCustomer.Phone,

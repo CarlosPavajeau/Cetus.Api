@@ -20,7 +20,9 @@ public class CustomersSpec(ApplicationTestCase factory) : ApplicationContextTest
         string customerId = _faker.Random.Guid().ToString();
         var customer = new Customer
         {
-            Id = customerId,
+            Id = Guid.CreateVersion7(),
+            DocumentType = DocumentType.CC,
+            DocumentNumber = customerId,
             Name = _faker.Person.FullName,
             Email = _faker.Internet.Email(),
             Phone = _faker.Phone.PhoneNumber()
