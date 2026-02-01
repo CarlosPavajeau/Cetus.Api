@@ -14,7 +14,7 @@ public sealed class Customer
     [EmailAddress] public string? Email { get; set; }
 
     public string Phone { get; set; } = string.Empty;
-    public string? Address { get; set; } = string.Empty;
+    public string? Address { get; set; }
 
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
     public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
