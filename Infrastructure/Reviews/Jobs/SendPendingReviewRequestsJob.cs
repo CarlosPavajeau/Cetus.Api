@@ -45,7 +45,7 @@ public class SendPendingReviewRequestsJob(
 
         foreach (var request in pendingRequests)
         {
-            if (request.Customer is null)
+            if (request.Customer?.Email is null)
             {
                 continue;
             }

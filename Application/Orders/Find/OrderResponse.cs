@@ -4,7 +4,7 @@ using Domain.Orders;
 
 namespace Application.Orders.Find;
 
-public sealed record CustomerResponse(string Name, string Email, string Phone);
+public sealed record CustomerResponse(string Name, string? Email, string Phone);
 
 public sealed record OrderItemResponse(
     Guid Id,
