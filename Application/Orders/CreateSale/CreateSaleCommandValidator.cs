@@ -20,7 +20,7 @@ public sealed class CreateSaleItemValidator : AbstractValidator<CreateSaleItem>
     public CreateSaleItemValidator()
     {
         RuleFor(x => x.Quantity)
-            .NotEmpty()
+            .GreaterThan(0)
             .WithMessage("La cantidad es requerida.");
 
         RuleFor(x => x.VariantId)
@@ -41,6 +41,7 @@ public sealed class CreateSaleCustomerValidator : AbstractValidator<CreateSaleCu
 
         RuleFor(x => x.Email)
             .EmailAddress()
+            .When(x => !string.IsNullOrWhiteSpace(x.Email))
             .WithMessage("El email del cliente no es válido.");
 
         RuleFor(x => x.Phone)
