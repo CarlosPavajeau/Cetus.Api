@@ -1,10 +1,12 @@
+using NpgsqlTypes;
+
 namespace Domain.Orders;
 
 public enum DocumentType
 {
-    CC,
-    CE,
-    NIT,
-    PP,
-    OTHER
+    [PgName("CC")] CC,
+    [PgName("CE")] CE,
+    [PgName("NIT")] NIT,
+    [PgName("PP")] PP,
+    [PgName("OTHER")] OTHER
 }
