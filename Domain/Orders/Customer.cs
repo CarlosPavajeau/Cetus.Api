@@ -6,7 +6,7 @@ public sealed class Customer
 {
     public Guid Id { get; set; }
 
-    public DocumentType DocumentType { get; set; }
+    public DocumentType? DocumentType { get; set; }
     public string? DocumentNumber { get; set; }
 
     public string Name { get; set; } = string.Empty;
