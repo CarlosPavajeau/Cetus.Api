@@ -1,5 +1,6 @@
 using Application.Abstractions.Data;
 using Application.Abstractions.Messaging;
+using Application.Orders.DeliveryFees.Find;
 using Domain.Orders;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Caching.Hybrid;
@@ -64,10 +65,10 @@ internal sealed class CreateOrderCommandHandler(
         }
         catch (Exception ex)
         {
-            logger.LogError(ex, "Error creating order for customer {CustomerId}", request.Customer.Id);
+            logger.LogError(ex, "Error creating order for customer {CustomerId}", request.Customer.Phone);
             await transaction.RollbackAsync(cancellationToken);
 
-            return Result.Failure<SimpleOrderResponse>(OrderErrors.CreationFailed(request.Customer.Id,
+            return Result.Failure<SimpleOrderResponse>(OrderErrors.CreationFailed(request.Customer.Phone,
                 "Unexpected error while creating order."));
         }
     }
@@ -76,7 +77,7 @@ internal sealed class CreateOrderCommandHandler(
         CancellationToken cancellationToken)
     {
         var customer = await context.Customers
-            .FirstOrDefaultAsync(c => c.DocumentNumber == orderCustomer.Id, cancellationToken);
+            .FirstOrDefaultAsync(c => c.Phone == orderCustomer.Phone, cancellationToken);
 
         if (customer is not null)
         {
@@ -86,12 +87,11 @@ internal sealed class CreateOrderCommandHandler(
         customer = new Customer
         {
             Id = Guid.CreateVersion7(),
-            DocumentType = DocumentType.CC,
-            DocumentNumber = orderCustomer.Id,
+            DocumentType = orderCustomer.DocumentType,
+            DocumentNumber = orderCustomer.DocumentNumber,
             Name = orderCustomer.Name,
             Email = orderCustomer.Email,
             Phone = orderCustomer.Phone,
-            Address = orderCustomer.Address
         };
 
         await context.Customers.AddAsync(customer, cancellationToken);
@@ -104,7 +104,7 @@ internal sealed class CreateOrderCommandHandler(
     private async Task<Order> CreateOrderEntity(CreateOrderCommand request, Guid customerId,
         IReadOnlyList<VariantInfo> variants, CancellationToken cancellationToken)
     {
-        decimal deliveryFee = await CalculateDeliveryFee(request.CityId, tenant.Id, cancellationToken);
+        decimal deliveryFee = await CalculateDeliveryFee(request.Shipping.CityId, tenant.Id, cancellationToken);
 
         var variantById = variants.ToDictionary(v => v.Id);
         var items = request.Items
@@ -114,7 +114,7 @@ internal sealed class CreateOrderCommandHandler(
                 return new OrderItem
                 {
                     ProductName = variant.ProductName,
-                    ImageUrl = i.ImageUrl,
+                    ImageUrl = variant.ImageUrl,
                     Quantity = i.Quantity,
                     Price = variant.Price,
                     VariantId = i.VariantId
@@ -128,8 +128,8 @@ internal sealed class CreateOrderCommandHandler(
         return new Order
         {
             Id = Guid.CreateVersion7(),
-            Address = request.Address,
-            CityId = request.CityId,
+            Address = request.Shipping.Address,
+            CityId = request.Shipping.CityId,
             Channel = OrderChannel.Ecommerce,
             Subtotal = subtotal,
             Discount = discount,
@@ -160,6 +160,6 @@ internal sealed class CreateOrderCommandHandler(
             cancellationToken: cancellationToken
         );
 
-        return deliveryFee?.Fee ?? DeliveryFees.Find.DeliveryFeeResponse.Empty.Fee;
+        return deliveryFee?.Fee ?? DeliveryFeeResponse.Empty.Fee;
     }
 }
