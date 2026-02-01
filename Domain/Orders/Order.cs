@@ -22,8 +22,8 @@ public sealed class Order : Entity
     public long OrderNumber { get; set; }
     public OrderStatus Status { get; set; } = OrderStatus.PendingPayment;
 
-    public string Address { get; set; } = string.Empty;
-    public Guid CityId { get; set; }
+    public string? Address { get; set; }
+    public Guid? CityId { get; set; }
     public City? City { get; set; }
 
     public decimal Subtotal { get; set; }
@@ -36,10 +36,14 @@ public sealed class Order : Entity
     public string CustomerId { get; set; } = string.Empty;
     public Customer? Customer { get; set; }
 
+    public OrderChannel Channel { get; set; }
+    public PaymentStatus PaymentStatus { get; set; }
     public PaymentProvider? PaymentProvider { get; set; }
     public PaymentMethod PaymentMethod { get; set; }
     public string? TransactionId { get; set; }
     public string? RefundId { get; set; }
+    public DateTime? PaymentVerifiedAt { get; set; }
+    public string? PaymentVerificationNotes { get; set; }
 
     public string? CancellationReason { get; set; }
     public DateTime? CancelledAt { get; set; }

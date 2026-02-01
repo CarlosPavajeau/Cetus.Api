@@ -96,6 +96,8 @@ public static class DependencyInjection
                         dbContextOptionsBuilder.MapEnum<PaymentMethod>("order_payment_method");
                         dbContextOptionsBuilder.MapEnum<InventoryTransactionType>("inventory_transaction_type");
                         dbContextOptionsBuilder.MapEnum<DocumentType>("document_type");
+                        dbContextOptionsBuilder.MapEnum<OrderChannel>("order_channel");
+                        dbContextOptionsBuilder.MapEnum<PaymentStatus>("payment_status");
                     })
                 .UseSnakeCaseNamingConvention();
         });

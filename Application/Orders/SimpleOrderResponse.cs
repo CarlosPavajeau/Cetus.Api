@@ -6,7 +6,7 @@ public sealed record SimpleOrderResponse(
     Guid Id,
     long OrderNumber,
     OrderStatus Status,
-    string Address,
+    string? Address,
     decimal Subtotal,
     decimal Discount,
     decimal Total,
