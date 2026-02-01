@@ -26,7 +26,7 @@ public class CustomersSpec(ApplicationTestCase factory) : ApplicationContextTest
             DocumentNumber = customerId,
             Name = _faker.Person.FullName,
             Email = _faker.Internet.Email(),
-            Phone = _faker.Phone.PhoneNumber()
+            Phone = _faker.Phone.PhoneNumber("##########")
         };
 
         var db = Services.GetRequiredService<IApplicationDbContext>();
