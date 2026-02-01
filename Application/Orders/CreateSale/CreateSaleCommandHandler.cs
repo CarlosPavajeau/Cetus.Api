@@ -1,7 +1,5 @@
-using System.Globalization;
 using Application.Abstractions.Data;
 using Application.Abstractions.Messaging;
-using Application.Abstractions.Services;
 using Domain.Orders;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
@@ -13,7 +11,7 @@ internal sealed class CreateSaleCommandHandler(
     IApplicationDbContext db,
     ITenantContext tenant,
     ILogger<CreateSaleCommandHandler> logger,
-    IStockReservationService stockReservationService
+    OrderCreationService orderCreationService
 ) : ICommandHandler<CreateSaleCommand, SimpleOrderResponse>
 {
     public async Task<Result<SimpleOrderResponse>> Handle(CreateSaleCommand command,
@@ -30,7 +28,9 @@ internal sealed class CreateSaleCommandHandler(
                 .GroupBy(i => i.VariantId)
                 .ToDictionary(g => g.Key, g => g.Sum(x => x.Quantity));
 
-            var productsResult = await ValidateAndGetProducts(items, quantitiesByVariant, cancellationToken);
+            var variantIds = quantitiesByVariant.Keys.ToList();
+            var productsResult = await orderCreationService.ValidateAndGetVariantsAsync(
+                variantIds, quantitiesByVariant, items.Count, cancellationToken);
 
             if (productsResult.IsFailure)
             {
@@ -43,37 +43,12 @@ internal sealed class CreateSaleCommandHandler(
 
             await db.Orders.AddAsync(order, cancellationToken);
 
-            var reserveResult =
-                await stockReservationService.TryReserveAsync(quantitiesByVariant, order.Id, tenant.Id,
-                    cancellationToken);
+            var reserveResult = await orderCreationService.ReserveStockOrFailAsync(
+                quantitiesByVariant, order.Id, productsResult.Value, transaction, cancellationToken);
 
-            if (!reserveResult.Success)
+            if (reserveResult.IsFailure)
             {
-                await transaction.RollbackAsync(cancellationToken);
-
-                var variantsById = productsResult.Value.ToDictionary(v => v.Id);
-                var outOfStockProducts = reserveResult.FailedVariantIds
-                    .Select(id =>
-                        variantsById.TryGetValue(id, out var variant)
-                            ? variant.ProductName
-                            : id.ToString(CultureInfo.InvariantCulture))
-                    .ToList();
-
-                var requestedProducts = reserveResult.FailedVariantIds
-                    .Select(id =>
-                    {
-                        string label = variantsById.TryGetValue(id, out var variant)
-                            ? variant.ProductName
-                            : id.ToString(CultureInfo.InvariantCulture);
-                        string quantity = quantitiesByVariant.TryGetValue(id, out int qty) ? $"{qty}" : "unknown";
-
-                        return $"{label} (requested: {quantity})";
-                    })
-                    .ToList();
-
-
-                return Result.Failure<SimpleOrderResponse>(
-                    OrderErrors.InsufficientStock(outOfStockProducts, requestedProducts));
+                return Result.Failure<SimpleOrderResponse>(reserveResult.Error);
             }
 
             await db.SaveChangesAsync(cancellationToken);
@@ -122,53 +97,6 @@ internal sealed class CreateSaleCommandHandler(
         return customer;
     }
 
-    private sealed record VariantInfo(long Id, decimal Price, string ProductName, string ImageUrl = "");
-
-    private async Task<Result<List<VariantInfo>>> ValidateAndGetProducts(
-        IReadOnlyList<CreateSaleItem> items,
-        Dictionary<long, int> quantitiesByVariant,
-        CancellationToken cancellationToken)
-    {
-        if (items.Count == 0)
-        {
-            return Result.Failure<List<VariantInfo>>(OrderErrors.EmptyOrder());
-        }
-
-        if (items.Any(i => i.Quantity <= 0))
-        {
-            return Result.Failure<List<VariantInfo>>(OrderErrors.InvalidItemQuantities());
-        }
-
-        var variantIds = quantitiesByVariant.Keys.ToList();
-
-        var variants = await db.ProductVariants
-            .AsNoTracking()
-            .Where(v =>
-                variantIds.Contains(v.Id) &&
-                v.DeletedAt == null &&
-                v.Product != null &&
-                v.Product.DeletedAt == null &&
-                v.Product.StoreId == tenant.Id)
-            .Select(v => new VariantInfo(
-                v.Id,
-                v.Price,
-                v.Product!.Name,
-                v.Images.FirstOrDefault()!.ImageUrl
-            ))
-            .ToListAsync(cancellationToken);
-
-        var foundVariantIds = variants.Select(p => p.Id).ToHashSet();
-        var missingProducts = variantIds.Except(foundVariantIds).ToList();
-
-        if (missingProducts.Count != 0)
-        {
-            var productCodes = missingProducts.Select(p => p.ToString(CultureInfo.InvariantCulture)).ToList();
-            return Result.Failure<List<VariantInfo>>(OrderErrors.ProductsNotFound(productCodes));
-        }
-
-        return variants;
-    }
-
     private Order CreateOrderEntity(CreateSaleCommand command, Guid customerId, IReadOnlyList<VariantInfo> variants)
     {
         var variantById = variants.ToDictionary(v => v.Id);
@@ -193,7 +121,7 @@ internal sealed class CreateSaleCommandHandler(
 
         return new Order
         {
-            Id = Guid.NewGuid(),
+            Id = Guid.CreateVersion7(),
             Address = command.Shipping?.Address,
             CityId = command.Shipping?.CityId,
             Channel = command.Channel,
