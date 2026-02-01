@@ -33,12 +33,12 @@ public class OrdersSpec(ApplicationTestCase factory) : ApplicationContextTestCas
     private readonly CreateOrderCustomerFaker _orderCustomerFaker = new();
     private readonly Faker _faker = new();
 
-    private CreateOrderCommand GenerateCreateOrderCommand(CreateProductWithVariantResponse product)
+    private CreateOrderCommand GenerateCreateOrderCommand(CreateProductWithVariantResponse product, int quantity = 1)
     {
         var newCustomer = _orderCustomerFaker.Generate();
         var newOrderItems = new List<CreateOrderItem>
         {
-            new(product.VariantId, 1)
+            new(product.VariantId, quantity)
         };
         var shippingInfo = new CreateOrderShipping(
             _faker.Address.FullAddress(),
@@ -76,7 +76,7 @@ public class OrdersSpec(ApplicationTestCase factory) : ApplicationContextTestCas
     {
         // Arrange
         var product = await ProductHelper.CreateProductWithVariant(Client);
-        var newOrder = GenerateCreateOrderCommand(product);
+        var newOrder = GenerateCreateOrderCommand(product, 50);
 
         // Act
         var response = await Client.PostAsJsonAsync("api/orders", newOrder);
