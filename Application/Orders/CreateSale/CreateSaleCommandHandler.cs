@@ -39,8 +39,12 @@ internal sealed class CreateSaleCommandHandler(
 
             var order = CreateOrderEntity(command, customer.Id, productsResult.Value);
 
-            order.Raise(new OrderCreatedDomainEvent(order.Id, order.OrderNumber, order.StoreId));
+            if (command.PaymentMethod == PaymentMethod.CashOnDelivery)
+            {
+                order.PaymentStatus = PaymentStatus.Verified;
+            }
 
+            order.Raise(new OrderCreatedDomainEvent(order.Id, order.OrderNumber, order.StoreId));
             await db.Orders.AddAsync(order, cancellationToken);
 
             var reserveResult = await orderCreationService.ReserveStockOrFailAsync(
@@ -125,6 +129,7 @@ internal sealed class CreateSaleCommandHandler(
             Address = command.Shipping?.Address,
             CityId = command.Shipping?.CityId,
             Channel = command.Channel,
+            PaymentProvider = PaymentProvider.Manual,
             PaymentMethod = command.PaymentMethod,
             PaymentStatus = command.PaymentStatus,
             Subtotal = subtotal,
