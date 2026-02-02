@@ -92,7 +92,7 @@ internal sealed class CreateOrderCommandHandler(
             DocumentNumber = orderCustomer.DocumentNumber,
             Name = orderCustomer.Name,
             Email = orderCustomer.Email,
-            Phone = orderCustomer.Phone,
+            Phone = normalizedPhone
         };
 
         await context.Customers.AddAsync(customer, cancellationToken);
