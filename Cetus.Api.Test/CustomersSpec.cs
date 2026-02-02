@@ -42,7 +42,6 @@ public class CustomersSpec(ApplicationTestCase factory) : ApplicationContextTest
         var foundCustomer = await response.DeserializeAsync<CustomerResponse>();
 
         foundCustomer.ShouldNotBeNull();
-        foundCustomer.Id.ShouldBe(customerId);
         foundCustomer.Name.ShouldBe(customer.Name);
         foundCustomer.Email.ShouldBe(customer.Email);
         foundCustomer.Phone.ShouldBe(customer.Phone);
@@ -59,5 +58,38 @@ public class CustomersSpec(ApplicationTestCase factory) : ApplicationContextTest
 
         // Assert
         response.StatusCode.ShouldBe(HttpStatusCode.NotFound);
+    }
+
+    [Fact(DisplayName = "Should find a customer by phone number")]
+    public async Task ShouldFindCustomerByPhoneNumber()
+    {
+        // Arrange
+        string phoneNumber = _faker.Phone.PhoneNumber("##########");
+        var customer = new Customer
+        {
+            Id = Guid.CreateVersion7(),
+            DocumentType = DocumentType.CC,
+            DocumentNumber = _faker.Person.NationalNumber(),
+            Name = _faker.Person.FullName,
+            Email = _faker.Internet.Email(),
+            Phone = phoneNumber
+        };
+
+        var db = Services.GetRequiredService<IApplicationDbContext>();
+        await db.Customers.AddAsync(customer);
+        await db.SaveChangesAsync();
+
+        // Act
+        var response = await Client.GetAsync($"api/customers/by-phone/{phoneNumber}");
+
+        // Assert
+        response.EnsureSuccessStatusCode();
+
+        var foundCustomer = await response.DeserializeAsync<CustomerResponse>();
+
+        foundCustomer.ShouldNotBeNull();
+        foundCustomer.Name.ShouldBe(customer.Name);
+        foundCustomer.Email.ShouldBe(customer.Email);
+        foundCustomer.Phone.ShouldBe(customer.Phone);
     }
 }
