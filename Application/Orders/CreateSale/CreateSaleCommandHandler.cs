@@ -10,6 +10,7 @@ namespace Application.Orders.CreateSale;
 internal sealed class CreateSaleCommandHandler(
     IApplicationDbContext db,
     ITenantContext tenant,
+    IDateTimeProvider dateTimeProvider,
     ILogger<CreateSaleCommandHandler> logger,
     OrderCreationService orderCreationService
 ) : ICommandHandler<CreateSaleCommand, SimpleOrderResponse>
@@ -41,7 +42,21 @@ internal sealed class CreateSaleCommandHandler(
 
             if (command.PaymentMethod == PaymentMethod.CashOnDelivery)
             {
+                logger.LogInformation("Order {OrderId} payment verified automatically for Cash on Delivery",
+                    order.Id);
+
                 order.PaymentStatus = PaymentStatus.Verified;
+                order.Status = OrderStatus.Processing;
+
+                var timelineEntry = new OrderTimeline
+                {
+                    Id = Guid.CreateVersion7(),
+                    OrderId = order.Id,
+                    ToStatus = order.Status,
+                    CreatedAt = dateTimeProvider.UtcNow
+                };
+
+                await db.OrderTimeline.AddAsync(timelineEntry, cancellationToken);
             }
 
             order.Raise(new OrderCreatedDomainEvent(order.Id, order.OrderNumber, order.StoreId));
