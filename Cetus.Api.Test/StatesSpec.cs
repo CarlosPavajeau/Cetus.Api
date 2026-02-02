@@ -69,4 +69,40 @@ public class StatesSpec(ApplicationTestCase factory) : ApplicationContextTestCas
 
         cities.ShouldNotBeEmpty();
     }
+
+    [Fact(DisplayName = "Should find a city by id")]
+    public async Task ShouldFindCityById()
+    {
+        // Arrange
+        var state = new State
+        {
+            Id = Guid.NewGuid(),
+            Name = "Test State"
+        };
+
+        var city = new City
+        {
+            Id = Guid.NewGuid(),
+            Name = "Test City",
+            StateId = state.Id
+        };
+
+        var context = Services.GetRequiredService<IApplicationDbContext>();
+
+        await context.States.AddAsync(state);
+        await context.Cities.AddAsync(city);
+        await context.SaveChangesAsync();
+
+        // Act
+        var response = await Client.GetAsync($"api/states/cities/{city.Id}");
+
+        // Assert
+        response.EnsureSuccessStatusCode();
+
+        var foundCity = await response.DeserializeAsync<CityResponse>();
+
+        foundCity.ShouldNotBeNull();
+        foundCity.Id.ShouldBe(city.Id);
+        foundCity.Name.ShouldBe(city.Name);
+    }
 }
