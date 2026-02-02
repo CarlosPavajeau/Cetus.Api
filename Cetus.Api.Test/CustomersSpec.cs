@@ -60,11 +60,14 @@ public class CustomersSpec(ApplicationTestCase factory) : ApplicationContextTest
         response.StatusCode.ShouldBe(HttpStatusCode.NotFound);
     }
 
-    [Fact(DisplayName = "Should find a customer by phone number")]
-    public async Task ShouldFindCustomerByPhoneNumber()
+    [Theory(DisplayName = "Should find a customer by phone number")]
+    [InlineData("+1#########")]
+    [InlineData("############")]
+    [InlineData("+57##########")]
+    public async Task ShouldFindCustomerByPhoneNumber(string format)
     {
         // Arrange
-        string phoneNumber = _faker.Phone.PhoneNumber("+1#########");
+        string phoneNumber = _faker.Phone.PhoneNumber(format);
         var customer = new Customer
         {
             Id = Guid.CreateVersion7(),
