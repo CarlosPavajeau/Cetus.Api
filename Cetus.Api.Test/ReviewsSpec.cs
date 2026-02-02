@@ -43,6 +43,7 @@ public class ReviewsSpec(ApplicationTestCase factory) : ApplicationContextTestCa
         {
             new(product.VariantId, 1)
         };
+
         var shippingInfo = new CreateOrderShipping(
             _faker.Address.FullAddress(),
             cityId
@@ -53,6 +54,7 @@ public class ReviewsSpec(ApplicationTestCase factory) : ApplicationContextTestCa
             newCustomer,
             shippingInfo
         );
+
         return newOrder;
     }
 
