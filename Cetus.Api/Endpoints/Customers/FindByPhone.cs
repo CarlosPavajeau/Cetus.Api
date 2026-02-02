@@ -19,21 +19,11 @@ public class FindByPhone : IEndpoint
         {
             string normalizedPhone = new([.. phone.Where(char.IsDigit)]);
             string cacheKey = $"customer-by-phone-{normalizedPhone}";
-            var query = new FindCustomerByPhoneQuery(phone);
+            var query = new FindCustomerByPhoneQuery(normalizedPhone);
 
             var result = await cache.GetOrCreateAsync(
                 cacheKey,
-                async token =>
-                {
-                    var result = await handler.Handle(query, token);
-                    if (result.IsFailure)
-                    {
-                        // Don't cache failures - remove entry if it was created
-                        await cache.RemoveAsync(cacheKey, token);
-                    }
-
-                    return result;
-                },
+                async token => await handler.Handle(query, token),
                 new HybridCacheEntryOptions
                 {
                     Expiration = TimeSpan.FromHours(2),
