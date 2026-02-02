@@ -76,8 +76,9 @@ internal sealed class CreateOrderCommandHandler(
     private async Task<Customer> UpsertCustomer(CreateOrderCustomer orderCustomer,
         CancellationToken cancellationToken)
     {
+        string normalizedPhone = new([.. orderCustomer.Phone.Where(char.IsDigit)]);
         var customer = await context.Customers
-            .FirstOrDefaultAsync(c => c.Phone == orderCustomer.Phone, cancellationToken);
+            .FirstOrDefaultAsync(c => c.Phone == normalizedPhone, cancellationToken);
 
         if (customer is not null)
         {
@@ -95,6 +96,7 @@ internal sealed class CreateOrderCommandHandler(
         };
 
         await context.Customers.AddAsync(customer, cancellationToken);
+        await cache.RemoveAsync($"customer-by-phone-{normalizedPhone}", cancellationToken);
 
         logger.LogInformation("New customer {CustomerId} created", customer.Id);
 

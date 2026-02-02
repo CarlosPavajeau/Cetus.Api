@@ -2,6 +2,7 @@ using Application.Abstractions.Data;
 using Application.Abstractions.Messaging;
 using Domain.Orders;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Caching.Hybrid;
 using Microsoft.Extensions.Logging;
 using SharedKernel;
 
@@ -11,6 +12,7 @@ internal sealed class CreateSaleCommandHandler(
     IApplicationDbContext db,
     ITenantContext tenant,
     IDateTimeProvider dateTimeProvider,
+    HybridCache cache,
     ILogger<CreateSaleCommandHandler> logger,
     OrderCreationService orderCreationService
 ) : ICommandHandler<CreateSaleCommand, SimpleOrderResponse>
@@ -91,8 +93,9 @@ internal sealed class CreateSaleCommandHandler(
     private async Task<Customer> UpsertCustomer(CreateSaleCustomer saleCustomer,
         CancellationToken cancellationToken)
     {
+        string normalizedPhone = new([.. saleCustomer.Phone.Where(char.IsDigit)]);
         var customer = await db.Customers
-            .FirstOrDefaultAsync(c => c.Phone == saleCustomer.Phone, cancellationToken);
+            .FirstOrDefaultAsync(c => c.Phone == normalizedPhone, cancellationToken);
 
         if (customer is not null)
         {
@@ -106,10 +109,11 @@ internal sealed class CreateSaleCommandHandler(
             DocumentNumber = saleCustomer.DocumentNumber,
             Name = saleCustomer.Name,
             Email = saleCustomer.Email,
-            Phone = saleCustomer.Phone
+            Phone = normalizedPhone
         };
 
         await db.Customers.AddAsync(customer, cancellationToken);
+        await cache.RemoveAsync($"customer-by-phone-{normalizedPhone}", cancellationToken);
 
         logger.LogInformation("New customer {CustomerId} created", customer.Id);
 
