@@ -41,8 +41,11 @@ internal sealed class SearchAllProductsForSaleQueryHandler(IApplicationDbContext
             .Select(x => x.FirstOrDefault())
             .CountAsync(cancellationToken);
 
-        var products = await productsQuery
-            .OrderByDescending(p => p.CreatedAt)
+        var products = await (string.IsNullOrWhiteSpace(query.SearchTerm)
+                ? productsQuery.OrderByDescending(p => p.CreatedAt)
+                : productsQuery.OrderByDescending(p =>
+                    p.Product!.SearchVector!.Rank(EF.Functions.PlainToTsQuery("spanish", query.SearchTerm)) +
+                    EF.Functions.TrigramsSimilarity(p.Product!.Name, query.SearchTerm)))
             .Skip((page - 1) * size)
             .Take(size)
             .Select(SimpleProductForSaleResponse.Map)
