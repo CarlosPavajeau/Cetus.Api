@@ -1,7 +1,5 @@
-using System.Globalization;
 using Application.Abstractions.Data;
 using Application.Abstractions.Messaging;
-using Application.Abstractions.Services;
 using Application.Orders.DeliveryFees.Find;
 using Domain.Orders;
 using Microsoft.EntityFrameworkCore;
@@ -15,7 +13,7 @@ internal sealed class CreateOrderCommandHandler(
     IApplicationDbContext context,
     ITenantContext tenant,
     ILogger<CreateOrderCommandHandler> logger,
-    IStockReservationService stockReservationService,
+    OrderCreationService orderCreationService,
     HybridCache cache
 ) : ICommandHandler<CreateOrderCommand, SimpleOrderResponse>
 {
@@ -33,50 +31,28 @@ internal sealed class CreateOrderCommandHandler(
                 .GroupBy(i => i.VariantId)
                 .ToDictionary(g => g.Key, g => g.Sum(x => x.Quantity));
 
-            var productsResult = await ValidateAndGetProducts(items, quantitiesByVariant, cancellationToken);
+            var variantIds = quantitiesByVariant.Keys.ToList();
+            var productsResult = await orderCreationService.ValidateAndGetVariantsAsync(
+                variantIds, quantitiesByVariant, items.Count, cancellationToken);
 
             if (productsResult.IsFailure)
             {
                 return Result.Failure<SimpleOrderResponse>(productsResult.Error);
             }
 
-            var order = await CreateOrderEntity(request, customer.Id, productsResult.Value, cancellationToken);
+            var order = await CreateOrderEntity(request, customer.Id, productsResult.Value,
+                cancellationToken);
 
             order.Raise(new OrderCreatedDomainEvent(order.Id, order.OrderNumber, order.StoreId));
 
             await context.Orders.AddAsync(order, cancellationToken);
 
-            var reserveResult =
-                await stockReservationService.TryReserveAsync(quantitiesByVariant, order.Id, tenant.Id,
-                    cancellationToken);
+            var reserveResult = await orderCreationService.ReserveStockOrFailAsync(
+                quantitiesByVariant, order.Id, productsResult.Value, transaction, cancellationToken);
 
-            if (!reserveResult.Success)
+            if (reserveResult.IsFailure)
             {
-                await transaction.RollbackAsync(cancellationToken);
-
-                var variantsById = productsResult.Value.ToDictionary(v => v.Id);
-                var outOfStockProducts = reserveResult.FailedVariantIds
-                    .Select(id =>
-                        variantsById.TryGetValue(id, out var variant)
-                            ? variant.ProductName
-                            : id.ToString(CultureInfo.InvariantCulture))
-                    .ToList();
-
-                var requestedProducts = reserveResult.FailedVariantIds
-                    .Select(id =>
-                    {
-                        string label = variantsById.TryGetValue(id, out var variant)
-                            ? variant.ProductName
-                            : id.ToString(CultureInfo.InvariantCulture);
-                        string quantity = quantitiesByVariant.TryGetValue(id, out int qty) ? $"{qty}" : "unknown";
-
-                        return $"{label} (requested: {quantity})";
-                    })
-                    .ToList();
-
-
-                return Result.Failure<SimpleOrderResponse>(
-                    OrderErrors.InsufficientStock(outOfStockProducts, requestedProducts));
+                return Result.Failure<SimpleOrderResponse>(reserveResult.Error);
             }
 
             await context.SaveChangesAsync(cancellationToken);
@@ -89,10 +65,10 @@ internal sealed class CreateOrderCommandHandler(
         }
         catch (Exception ex)
         {
-            logger.LogError(ex, "Error creating order for customer {CustomerId}", request.Customer.Id);
+            logger.LogError(ex, "Error creating order for customer {CustomerId}", request.Customer.Phone);
             await transaction.RollbackAsync(cancellationToken);
 
-            return Result.Failure<SimpleOrderResponse>(OrderErrors.CreationFailed(request.Customer.Id,
+            return Result.Failure<SimpleOrderResponse>(OrderErrors.CreationFailed(request.Customer.Phone,
                 "Unexpected error while creating order."));
         }
     }
@@ -101,7 +77,7 @@ internal sealed class CreateOrderCommandHandler(
         CancellationToken cancellationToken)
     {
         var customer = await context.Customers
-            .FirstOrDefaultAsync(c => c.Id == orderCustomer.Id, cancellationToken);
+            .FirstOrDefaultAsync(c => c.Phone == orderCustomer.Phone, cancellationToken);
 
         if (customer is not null)
         {
@@ -110,11 +86,12 @@ internal sealed class CreateOrderCommandHandler(
 
         customer = new Customer
         {
-            Id = orderCustomer.Id,
+            Id = Guid.CreateVersion7(),
+            DocumentType = orderCustomer.DocumentType,
+            DocumentNumber = orderCustomer.DocumentNumber,
             Name = orderCustomer.Name,
             Email = orderCustomer.Email,
             Phone = orderCustomer.Phone,
-            Address = orderCustomer.Address
         };
 
         await context.Customers.AddAsync(customer, cancellationToken);
@@ -124,52 +101,10 @@ internal sealed class CreateOrderCommandHandler(
         return customer;
     }
 
-    private sealed record VariantInfo(long Id, decimal Price, string ProductName);
-
-    private async Task<Result<List<VariantInfo>>> ValidateAndGetProducts(
-        IReadOnlyList<CreateOrderItem> items,
-        Dictionary<long, int> quantitiesByVariant,
-        CancellationToken cancellationToken)
-    {
-        if (items.Count == 0)
-        {
-            return Result.Failure<List<VariantInfo>>(OrderErrors.EmptyOrder());
-        }
-
-        if (items.Any(i => i.Quantity <= 0))
-        {
-            return Result.Failure<List<VariantInfo>>(OrderErrors.InvalidItemQuantities());
-        }
-
-        var variantIds = quantitiesByVariant.Keys.ToList();
-
-        var variants = await context.ProductVariants
-            .AsNoTracking()
-            .Where(v =>
-                variantIds.Contains(v.Id) &&
-                v.DeletedAt == null &&
-                v.Product != null &&
-                v.Product.DeletedAt == null &&
-                v.Product.StoreId == tenant.Id)
-            .Select(v => new VariantInfo(v.Id, v.Price, v.Product!.Name))
-            .ToListAsync(cancellationToken);
-
-        var foundVariantIds = variants.Select(p => p.Id).ToHashSet();
-        var missingProducts = variantIds.Except(foundVariantIds).ToList();
-
-        if (missingProducts.Count != 0)
-        {
-            var productCodes = missingProducts.Select(p => p.ToString(CultureInfo.InvariantCulture)).ToList();
-            return Result.Failure<List<VariantInfo>>(OrderErrors.ProductsNotFound(productCodes));
-        }
-
-        return variants;
-    }
-
-    private async Task<Order> CreateOrderEntity(CreateOrderCommand request, string customerId,
+    private async Task<Order> CreateOrderEntity(CreateOrderCommand request, Guid customerId,
         IReadOnlyList<VariantInfo> variants, CancellationToken cancellationToken)
     {
-        decimal deliveryFee = await CalculateDeliveryFee(request.CityId, tenant.Id, cancellationToken);
+        decimal deliveryFee = await CalculateDeliveryFee(request.Shipping.CityId, tenant.Id, cancellationToken);
 
         var variantById = variants.ToDictionary(v => v.Id);
         var items = request.Items
@@ -179,7 +114,7 @@ internal sealed class CreateOrderCommandHandler(
                 return new OrderItem
                 {
                     ProductName = variant.ProductName,
-                    ImageUrl = i.ImageUrl,
+                    ImageUrl = variant.ImageUrl,
                     Quantity = i.Quantity,
                     Price = variant.Price,
                     VariantId = i.VariantId
@@ -192,9 +127,10 @@ internal sealed class CreateOrderCommandHandler(
 
         return new Order
         {
-            Id = Guid.NewGuid(),
-            Address = request.Address,
-            CityId = request.CityId,
+            Id = Guid.CreateVersion7(),
+            Address = request.Shipping.Address,
+            CityId = request.Shipping.CityId,
+            Channel = OrderChannel.Ecommerce,
             Subtotal = subtotal,
             Discount = discount,
             DeliveryFee = deliveryFee,

@@ -15,7 +15,6 @@ internal sealed class CustomerConfiguration : IEntityTypeConfiguration<Customer>
             .HasMaxLength(256);
 
         builder.Property(c => c.Email)
-            .IsRequired()
             .HasMaxLength(256);
 
         builder.Property(c => c.Phone)
@@ -23,7 +22,6 @@ internal sealed class CustomerConfiguration : IEntityTypeConfiguration<Customer>
             .HasMaxLength(256);
 
         builder.Property(c => c.Address)
-            .IsRequired()
             .HasMaxLength(256);
     }
 }

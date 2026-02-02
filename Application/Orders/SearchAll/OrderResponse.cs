@@ -7,7 +7,7 @@ public sealed record OrderResponse(
     Guid Id,
     long OrderNumber,
     OrderStatus Status,
-    string Address,
+    string? Address,
     string City,
     string State,
     decimal Subtotal,

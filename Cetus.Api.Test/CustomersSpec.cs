@@ -2,6 +2,7 @@ using System.Net;
 using Application.Abstractions.Data;
 using Application.Customers.Find;
 using Bogus;
+using Bogus.Extensions.Belgium;
 using Cetus.Api.Test.Shared;
 using Domain.Orders;
 using Microsoft.Extensions.DependencyInjection;
@@ -17,13 +18,15 @@ public class CustomersSpec(ApplicationTestCase factory) : ApplicationContextTest
     public async Task ShouldFindCustomerById()
     {
         // Arrange
-        string customerId = _faker.Random.Guid().ToString();
+        string customerId = _faker.Person.NationalNumber();
         var customer = new Customer
         {
-            Id = customerId,
+            Id = Guid.CreateVersion7(),
+            DocumentType = DocumentType.CC,
+            DocumentNumber = customerId,
             Name = _faker.Person.FullName,
             Email = _faker.Internet.Email(),
-            Phone = _faker.Phone.PhoneNumber()
+            Phone = _faker.Phone.PhoneNumber("##########")
         };
 
         var db = Services.GetRequiredService<IApplicationDbContext>();

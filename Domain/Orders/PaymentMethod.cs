@@ -7,5 +7,6 @@ public enum PaymentMethod
     PSE,
     CashReference,
     CashOnDelivery,
-    BankTransfer
+    BankTransfer,
+    Nequi
 }

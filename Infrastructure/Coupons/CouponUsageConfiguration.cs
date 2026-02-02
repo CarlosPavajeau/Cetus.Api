@@ -14,8 +14,7 @@ internal sealed class CouponUsageConfiguration : IEntityTypeConfiguration<Coupon
             .IsRequired();
 
         builder.Property(u => u.CustomerId)
-            .IsRequired()
-            .HasMaxLength(50);
+            .IsRequired();
 
         builder.Property(u => u.OrderId)
             .IsRequired();

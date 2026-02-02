@@ -1,8 +1,8 @@
 using System.Net;
 using System.Net.Http.Json;
 using Application.Abstractions.Data;
+using Application.Orders;
 using Application.Orders.Create;
-using Application.Orders.Find;
 using Application.Products;
 using Application.Reviews.ProductReviews.Create;
 using Application.Reviews.ProductReviews.Reject;
@@ -26,7 +26,7 @@ public class ReviewsSpec(ApplicationTestCase factory) : ApplicationContextTestCa
     private readonly CreateProductCommandFaker _productCommandFaker = new();
     private readonly Guid cityId = Guid.Parse("f97957e9-d820-4858-ac26-b5d03d658370");
 
-    private async Task WaitForCustomerRequests(string customerId)
+    private async Task WaitForCustomerRequests(Guid customerId)
     {
         var db = Services.GetRequiredService<IApplicationDbContext>();
 
@@ -36,37 +36,50 @@ public class ReviewsSpec(ApplicationTestCase factory) : ApplicationContextTestCa
             pollInterval: TimeSpan.FromMilliseconds(100));
     }
 
+    private CreateOrderCommand GenerateCreateOrderCommand(CreateProductWithVariantResponse product)
+    {
+        var newCustomer = _orderCustomerFaker.Generate();
+        var newOrderItems = new List<CreateOrderItem>
+        {
+            new(product.VariantId, 1)
+        };
+        var shippingInfo = new CreateOrderShipping(
+            _faker.Address.FullAddress(),
+            cityId
+        );
+
+        var newOrder = new CreateOrderCommand(
+            newOrderItems,
+            newCustomer,
+            shippingInfo
+        );
+        return newOrder;
+    }
+
     [Fact(DisplayName = "Should find a review request by token")]
     public async Task ShouldFindReviewRequestByToken()
     {
         // Arrange 
         var product = await ProductHelper.CreateProductWithVariant(Client);
+        var newOrder = GenerateCreateOrderCommand(product);
 
-        var newCustomer = _orderCustomerFaker.Generate();
-        var newOrderItems = new List<CreateOrderItem>
-        {
-            new(product.Name, product.ImageUrl, 1, product.Price, product.VariantId)
-        };
-
-        var newOrder = new CreateOrderCommand(_faker.Address.FullAddress(), cityId, product.Price, newOrderItems,
-            newCustomer);
         var createOrderResponse = await Client.PostAsJsonAsync("api/orders", newOrder);
         createOrderResponse.EnsureSuccessStatusCode();
-        var order = await createOrderResponse.DeserializeAsync<OrderResponse>();
+        var order = await createOrderResponse.DeserializeAsync<SimpleOrderResponse>();
         order.ShouldNotBeNull();
 
         // Arrange - Deliver the order to generate review request
         var deliverOrderResponse = await Client.PostAsync($"api/orders/{order.Id}/deliver", null);
         deliverOrderResponse.EnsureSuccessStatusCode();
 
-        await WaitForCustomerRequests(newCustomer.Id);
+        await WaitForCustomerRequests(order.CustomerId);
 
         // Get the review request token from the database
         var db = Services.GetRequiredService<IApplicationDbContext>();
         var reviewRequest = await db.ReviewRequests
             .Include(r => r.Customer)
             .Include(r => r.OrderItem)
-            .FirstOrDefaultAsync(r => r.CustomerId == newCustomer.Id);
+            .FirstOrDefaultAsync(r => r.CustomerId == order.CustomerId);
         reviewRequest.ShouldNotBeNull();
 
         // Act
@@ -79,7 +92,6 @@ public class ReviewsSpec(ApplicationTestCase factory) : ApplicationContextTestCa
         reviewRequestResponse.ShouldNotBeNull();
         reviewRequestResponse.Id.ShouldBe(reviewRequest.Id);
         reviewRequestResponse.Status.ShouldBe(ReviewRequestStatus.Pending);
-        reviewRequestResponse.Customer.ShouldBe(newCustomer.Name);
     }
 
     [Fact(DisplayName = "Should return not found for non-existing review request")]
@@ -103,32 +115,25 @@ public class ReviewsSpec(ApplicationTestCase factory) : ApplicationContextTestCa
     {
         // Arrange
         var product = await ProductHelper.CreateProductWithVariant(Client);
+        var newOrder = GenerateCreateOrderCommand(product);
 
-        var newCustomer = _orderCustomerFaker.Generate();
-        var newOrderItems = new List<CreateOrderItem>
-        {
-            new(product.Name, product.ImageUrl, 1, product.Price, product.VariantId)
-        };
-
-        var newOrder = new CreateOrderCommand(_faker.Address.FullAddress(), cityId, product.Price, newOrderItems,
-            newCustomer);
         var createOrderResponse = await Client.PostAsJsonAsync("api/orders", newOrder);
         createOrderResponse.EnsureSuccessStatusCode();
-        var order = await createOrderResponse.DeserializeAsync<OrderResponse>();
+        var order = await createOrderResponse.DeserializeAsync<SimpleOrderResponse>();
         order.ShouldNotBeNull();
 
         // Arrange - Deliver the order to generate review request
         var deliverOrderResponse = await Client.PostAsync($"api/orders/{order.Id}/deliver", null);
         deliverOrderResponse.EnsureSuccessStatusCode();
 
-        await WaitForCustomerRequests(newCustomer.Id);
+        await WaitForCustomerRequests(order.CustomerId);
 
         // Get the review request token from the database
         var db = Services.GetRequiredService<IApplicationDbContext>();
         var reviewRequest = await db.ReviewRequests
             .Include(r => r.Customer)
             .Include(r => r.OrderItem)
-            .FirstOrDefaultAsync(r => r.CustomerId == newCustomer.Id);
+            .FirstOrDefaultAsync(r => r.CustomerId == order.CustomerId);
         reviewRequest.ShouldNotBeNull();
 
         // Arrange - Create review command
@@ -166,30 +171,24 @@ public class ReviewsSpec(ApplicationTestCase factory) : ApplicationContextTestCa
         for (int i = 0; i < reviewCount; i++)
         {
             // Create order
-            var newCustomer = _orderCustomerFaker.Generate();
-            var newOrderItems = new List<CreateOrderItem>
-            {
-                new(product.Name, product.ImageUrl, 1, product.Price, product.VariantId)
-            };
+            var newOrder = GenerateCreateOrderCommand(product);
 
-            var newOrder = new CreateOrderCommand(_faker.Address.FullAddress(), cityId, product.Price, newOrderItems,
-                newCustomer);
             var createOrderResponse = await Client.PostAsJsonAsync("api/orders", newOrder);
             createOrderResponse.EnsureSuccessStatusCode();
-            var order = await createOrderResponse.DeserializeAsync<OrderResponse>();
+            var order = await createOrderResponse.DeserializeAsync<SimpleOrderResponse>();
             order.ShouldNotBeNull();
 
             // Deliver order
             var deliverOrderResponse = await Client.PostAsync($"api/orders/{order.Id}/deliver", null);
             deliverOrderResponse.EnsureSuccessStatusCode();
 
-            await WaitForCustomerRequests(newCustomer.Id);
+            await WaitForCustomerRequests(order.CustomerId);
 
             // Get review request
             var reviewRequest = await db.ReviewRequests
                 .Include(r => r.Customer)
                 .Include(r => r.OrderItem)
-                .FirstOrDefaultAsync(r => r.CustomerId == newCustomer.Id);
+                .FirstOrDefaultAsync(r => r.CustomerId == order.CustomerId);
             reviewRequest.ShouldNotBeNull();
 
             // Create review
@@ -271,29 +270,23 @@ public class ReviewsSpec(ApplicationTestCase factory) : ApplicationContextTestCa
         for (int i = 0; i < reviewCount; i++)
         {
             // Create order
-            var newCustomer = _orderCustomerFaker.Generate();
-            var newOrderItems = new List<CreateOrderItem>
-            {
-                new(product.Name, product.ImageUrl, 1, product.Price, product.VariantId)
-            };
+            var newOrder = GenerateCreateOrderCommand(product);
 
-            var newOrder = new CreateOrderCommand(_faker.Address.FullAddress(), cityId, product.Price, newOrderItems,
-                newCustomer);
             var createOrderResponse = await Client.PostAsJsonAsync("api/orders", newOrder);
             createOrderResponse.EnsureSuccessStatusCode();
-            var order = await createOrderResponse.DeserializeAsync<OrderResponse>();
+            var order = await createOrderResponse.DeserializeAsync<SimpleOrderResponse>();
             order.ShouldNotBeNull();
 
             // Deliver order
             var deliverOrderResponse = await Client.PostAsync($"api/orders/{order.Id}/deliver", null);
             deliverOrderResponse.EnsureSuccessStatusCode();
 
-            await WaitForCustomerRequests(newCustomer.Id);
+            await WaitForCustomerRequests(order.CustomerId);
 
             // Get review request
             var reviewRequest = await db.ReviewRequests
                 .AsNoTracking()
-                .FirstOrDefaultAsync(r => r.CustomerId == newCustomer.Id);
+                .FirstOrDefaultAsync(r => r.CustomerId == order.CustomerId);
             reviewRequest.ShouldNotBeNull();
 
             // Create review
@@ -327,31 +320,24 @@ public class ReviewsSpec(ApplicationTestCase factory) : ApplicationContextTestCa
     {
         // Arrange
         var product = await ProductHelper.CreateProductWithVariant(Client);
+        var newOrder = GenerateCreateOrderCommand(product);
 
-        var newCustomer = _orderCustomerFaker.Generate();
-        var newOrderItems = new List<CreateOrderItem>
-        {
-            new(product.Name, product.ImageUrl, 1, product.Price, product.VariantId)
-        };
-
-        var newOrder = new CreateOrderCommand(_faker.Address.FullAddress(), cityId, product.Price, newOrderItems,
-            newCustomer);
         var createOrderResponse = await Client.PostAsJsonAsync("api/orders", newOrder);
         createOrderResponse.EnsureSuccessStatusCode();
-        var order = await createOrderResponse.DeserializeAsync<OrderResponse>();
+        var order = await createOrderResponse.DeserializeAsync<SimpleOrderResponse>();
         order.ShouldNotBeNull();
 
         // Deliver order
         var deliverOrderResponse = await Client.PostAsync($"api/orders/{order.Id}/deliver", null);
         deliverOrderResponse.EnsureSuccessStatusCode();
 
-        await WaitForCustomerRequests(newCustomer.Id);
+        await WaitForCustomerRequests(order.CustomerId);
 
         // Get review request
         var db = Services.GetRequiredService<IApplicationDbContext>();
         var reviewRequest = await db.ReviewRequests
             .AsNoTracking()
-            .FirstOrDefaultAsync(r => r.CustomerId == newCustomer.Id);
+            .FirstOrDefaultAsync(r => r.CustomerId == order.CustomerId);
         reviewRequest.ShouldNotBeNull();
 
         // Create review
@@ -386,31 +372,24 @@ public class ReviewsSpec(ApplicationTestCase factory) : ApplicationContextTestCa
     {
         // Arrange
         var product = await ProductHelper.CreateProductWithVariant(Client);
+        var newOrder = GenerateCreateOrderCommand(product);
 
-        var newCustomer = _orderCustomerFaker.Generate();
-        var newOrderItems = new List<CreateOrderItem>
-        {
-            new(product.Name, product.ImageUrl, 1, product.Price, product.VariantId)
-        };
-
-        var newOrder = new CreateOrderCommand(_faker.Address.FullAddress(), cityId, product.Price, newOrderItems,
-            newCustomer);
         var createOrderResponse = await Client.PostAsJsonAsync("api/orders", newOrder);
         createOrderResponse.EnsureSuccessStatusCode();
-        var order = await createOrderResponse.DeserializeAsync<OrderResponse>();
+        var order = await createOrderResponse.DeserializeAsync<SimpleOrderResponse>();
         order.ShouldNotBeNull();
 
         // Deliver order
         var deliverOrderResponse = await Client.PostAsync($"api/orders/{order.Id}/deliver", null);
         deliverOrderResponse.EnsureSuccessStatusCode();
 
-        await WaitForCustomerRequests(newCustomer.Id);
+        await WaitForCustomerRequests(order.CustomerId);
 
         // Get review request
         var db = Services.GetRequiredService<IApplicationDbContext>();
         var reviewRequest = await db.ReviewRequests
             .AsNoTracking()
-            .FirstOrDefaultAsync(r => r.CustomerId == newCustomer.Id);
+            .FirstOrDefaultAsync(r => r.CustomerId == order.CustomerId);
         reviewRequest.ShouldNotBeNull();
 
         // Create review

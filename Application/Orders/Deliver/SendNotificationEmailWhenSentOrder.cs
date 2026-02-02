@@ -18,8 +18,16 @@ internal sealed class SendNotificationEmailWhenSentOrder(
             domainEvent.Order.OrderNumber);
 
         string messageBody = BuildMessageBody(domainEvent.Order);
+        string? customerEmail = domainEvent.Order.CustomerEmail;
 
-        await emailSender.SendEmail(EmailSubject, messageBody, domainEvent.Order.CustomerEmail, cancellationToken);
+        if (string.IsNullOrWhiteSpace(customerEmail))
+        {
+            logger.LogWarning("Customer email is null for order {OrderNumber}. Email not sent.",
+                domainEvent.Order.OrderNumber);
+            return;
+        }
+
+        await emailSender.SendEmail(EmailSubject, messageBody, customerEmail, cancellationToken);
 
         logger.LogInformation("Email sent to {Customer} for order {OrderNumber}", domainEvent.Order.Customer,
             domainEvent.Order.OrderNumber);
