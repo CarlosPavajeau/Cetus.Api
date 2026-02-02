@@ -17,10 +17,23 @@ public class FindByPhone : IEndpoint
             HybridCache cache,
             CancellationToken cancellationToken) =>
         {
+            string normalizedPhone = new([.. phone.Where(char.IsDigit)]);
+            string cacheKey = $"customer-by-phone-{normalizedPhone}";
             var query = new FindCustomerByPhoneQuery(phone);
+
             var result = await cache.GetOrCreateAsync(
-                $"customer-by-phone-{phone}",
-                async token => await handler.Handle(query, token),
+                cacheKey,
+                async token =>
+                {
+                    var result = await handler.Handle(query, token);
+                    if (result.IsFailure)
+                    {
+                        // Don't cache failures - remove entry if it was created
+                        await cache.RemoveAsync(cacheKey, token);
+                    }
+
+                    return result;
+                },
                 new HybridCacheEntryOptions
                 {
                     Expiration = TimeSpan.FromHours(2),
