@@ -22,10 +22,12 @@ internal sealed class SearchProductsQueryHandler(IApplicationDbContext db, ITena
             .AsNoTracking()
             .Where(p =>
                 p.DeletedAt == null && p.StoreId == tenant.Id &&
-                p.SearchVector!.Matches(EF.Functions.PlainToTsQuery("spanish", query.SearchTerm))
+                (p.SearchVector!.Matches(EF.Functions.PlainToTsQuery("spanish", query.SearchTerm)) ||
+                 EF.Functions.TrigramsAreSimilar(p.Name, query.SearchTerm))
             )
             .OrderByDescending(p =>
-                p.SearchVector!.Rank(EF.Functions.PlainToTsQuery("spanish", query.SearchTerm))
+                p.SearchVector!.Rank(EF.Functions.PlainToTsQuery("spanish", query.SearchTerm)) +
+                EF.Functions.TrigramsSimilarity(p.Name, query.SearchTerm)
             )
             .Take(MaxResults)
             .Select(SearchProductResponse.Map)

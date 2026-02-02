@@ -35,6 +35,10 @@ internal sealed class ProductConfiguration : IEntityTypeConfiguration<Product>
             .HasIndex(p => p.SearchVector)
             .HasMethod("GIN");
 
+        builder.HasIndex(p => p.Name)
+            .HasMethod("GIN")
+            .HasOperators("gin_trgm_ops");
+
         builder.HasIndex(p => new { p.StoreId, p.DeletedAt });
     }
 }
