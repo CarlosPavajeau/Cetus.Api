@@ -74,6 +74,7 @@ public sealed class ApplicationDbContext(
     {
         base.OnModelCreating(modelBuilder);
 
+        modelBuilder.HasPostgresExtension("pg_trgm");
         modelBuilder.ApplyConfigurationsFromAssembly(GetType().Assembly);
     }
 

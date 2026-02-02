@@ -32,7 +32,8 @@ internal sealed class SearchAllProductsForSaleQueryHandler(IApplicationDbContext
         if (!string.IsNullOrWhiteSpace(query.SearchTerm))
         {
             productsQuery = productsQuery.Where(p =>
-                p.Product!.SearchVector!.Matches(EF.Functions.PlainToTsQuery("spanish", query.SearchTerm)));
+                p.Product!.SearchVector!.Matches(EF.Functions.PlainToTsQuery("spanish", query.SearchTerm)) ||
+                EF.Functions.TrigramsAreSimilar(p.Product!.Name, query.SearchTerm));
         }
 
         int total = await productsQuery
