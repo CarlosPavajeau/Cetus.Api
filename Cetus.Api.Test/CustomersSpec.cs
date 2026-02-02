@@ -64,7 +64,7 @@ public class CustomersSpec(ApplicationTestCase factory) : ApplicationContextTest
     public async Task ShouldFindCustomerByPhoneNumber()
     {
         // Arrange
-        string phoneNumber = _faker.Phone.PhoneNumber("##########");
+        string phoneNumber = _faker.Phone.PhoneNumber("+1#########");
         var customer = new Customer
         {
             Id = Guid.CreateVersion7(),
