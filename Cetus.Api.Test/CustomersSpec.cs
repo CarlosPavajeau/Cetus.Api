@@ -68,6 +68,7 @@ public class CustomersSpec(ApplicationTestCase factory) : ApplicationContextTest
     {
         // Arrange
         string phoneNumber = _faker.Phone.PhoneNumber(format);
+        string normalizedPhone = new([.. phoneNumber.Where(char.IsDigit)]);
         var customer = new Customer
         {
             Id = Guid.CreateVersion7(),
@@ -75,7 +76,7 @@ public class CustomersSpec(ApplicationTestCase factory) : ApplicationContextTest
             DocumentNumber = _faker.Person.NationalNumber(),
             Name = _faker.Person.FullName,
             Email = _faker.Internet.Email(),
-            Phone = phoneNumber
+            Phone = normalizedPhone
         };
 
         var db = Services.GetRequiredService<IApplicationDbContext>();
