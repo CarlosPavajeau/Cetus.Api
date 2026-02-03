@@ -13,7 +13,8 @@ public sealed record OrderItemResponse(
     int Quantity,
     decimal Price,
     long VariantId,
-    IReadOnlyList<VariantOptionValueResponse> OptionValues);
+    IReadOnlyList<VariantOptionValueResponse> OptionValues
+);
 
 public sealed record OrderResponse(
     Guid Id,
@@ -28,6 +29,10 @@ public sealed record OrderResponse(
     decimal Total,
     IReadOnlyList<OrderItemResponse> Items,
     CustomerResponse Customer,
+    OrderChannel Channel,
+    PaymentStatus PaymentStatus,
+    PaymentProvider? PaymentProvider,
+    PaymentMethod PaymentMethod,
     string? TransactionId,
     Guid StoreId,
     DateTime CreatedAt,
@@ -72,6 +77,10 @@ public sealed record OrderResponse(
                 order.Customer.Email,
                 order.Customer.Phone
             ),
+            order.Channel,
+            order.PaymentStatus,
+            order.PaymentProvider,
+            order.PaymentMethod,
             order.TransactionId,
             order.StoreId,
             order.CreatedAt,
