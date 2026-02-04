@@ -7,6 +7,7 @@ public sealed record ChangeOrderStatusCommand(
     Guid OrderId,
     OrderStatus NewStatus,
     PaymentMethod? PaymentMethod,
+    PaymentStatus? PaymentStatus,
     string? UserId,
     string? Notes
 ) : ICommand;

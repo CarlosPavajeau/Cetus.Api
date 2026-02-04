@@ -31,6 +31,11 @@ internal sealed class ChangeOrderStatusCommandHandler(
             order.PaymentStatus = PaymentStatus.Verified;
         }
 
+        if (command.PaymentStatus.HasValue)
+        {
+            order.PaymentStatus = command.PaymentStatus.Value;
+        }
+
         if (!order.CanTransitionTo(command.NewStatus))
         {
             return Result.Failure(OrderErrors.InvalidStatusTransition(oldStatus, command.NewStatus));
