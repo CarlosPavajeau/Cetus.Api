@@ -1,5 +1,6 @@
 using Application.Abstractions.Data;
 using Application.Abstractions.Messaging;
+using Application.Orders.Cancel;
 using Domain.Orders;
 using Microsoft.EntityFrameworkCore;
 using SharedKernel;
@@ -14,6 +15,7 @@ internal sealed class ChangeOrderStatusCommandHandler(
     public async Task<Result> Handle(ChangeOrderStatusCommand command, CancellationToken cancellationToken)
     {
         var order = await db.Orders
+            .Include(o => o.Customer)
             .Where(o => o.Id == command.OrderId)
             .FirstOrDefaultAsync(cancellationToken);
 
@@ -43,10 +45,26 @@ internal sealed class ChangeOrderStatusCommandHandler(
 
         order.Status = command.NewStatus;
 
-        if (order.Status == OrderStatus.Canceled)
+        switch (order.Status)
         {
-            order.CancellationReason = command.Notes;
-            order.CancelledAt = dateTimeProvider.UtcNow;
+            case OrderStatus.Canceled:
+                order.CancellationReason = command.Notes;
+                order.CancelledAt = dateTimeProvider.UtcNow;
+
+                order.Raise(new CanceledOrderDomainEvent(order.Id));
+                break;
+            case OrderStatus.Shipped:
+                order.Raise(new SentOrderDomainEvent(new SentOrder(
+                    order.Id,
+                    order.OrderNumber,
+                    order.Customer?.Name,
+                    order.Address,
+                    order.Customer?.Email
+                )));
+                break;
+            case OrderStatus.Delivered:
+                order.Raise(new DeliveredOrderDomainEvent(order.Id));
+                break;
         }
 
         var timelineEntry = new OrderTimeline
