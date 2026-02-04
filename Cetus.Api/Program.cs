@@ -49,12 +49,15 @@ builder.Services
     .AddPresentation()
     .AddInfrastructure(builder.Configuration);
 
-builder.Logging.AddOpenTelemetry(options =>
+if (builder.Environment.IsProduction())
 {
-    options.IncludeFormattedMessage = true;
-    options.ParseStateValues = true;
-    options.IncludeScopes = true;
-});
+    builder.Logging.AddOpenTelemetry(options =>
+    {
+        options.IncludeFormattedMessage = true;
+        options.ParseStateValues = true;
+        options.IncludeScopes = true;
+    });
+}
 
 builder.Services.AddEndpoints(Assembly.GetExecutingAssembly());
 
