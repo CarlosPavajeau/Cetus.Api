@@ -43,6 +43,12 @@ internal sealed class ChangeOrderStatusCommandHandler(
 
         order.Status = command.NewStatus;
 
+        if (order.Status == OrderStatus.Canceled)
+        {
+            order.CancellationReason = command.Notes;
+            order.CancelledAt = dateTimeProvider.UtcNow;
+        }
+
         var timelineEntry = new OrderTimeline
         {
             Id = Guid.CreateVersion7(),
