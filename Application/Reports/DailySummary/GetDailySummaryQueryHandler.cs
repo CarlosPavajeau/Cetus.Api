@@ -19,10 +19,13 @@ internal sealed class GetDailySummaryQueryHandler(
         var nextDate = date.AddDays(1);
         var storeId = tenant.Id;
 
+        var startOfDay = date.Date;
+        var endOfDay = nextDate.Date;
+
         var dailyOrdersQuery = db.Orders
             .AsNoTracking()
             .Where(o => o.StoreId == storeId)
-            .Where(o => o.CreatedAt.Date >= date.Date && o.CreatedAt.Date < nextDate.Date);
+            .Where(o => o.CreatedAt >= startOfDay && o.CreatedAt < endOfDay);
 
         var ordersMetrics = await GetOrdersMetricsAsync(dailyOrdersQuery, cancellationToken);
         var revenueMetrics = await GetRevenueMetricsAsync(dailyOrdersQuery, cancellationToken);
