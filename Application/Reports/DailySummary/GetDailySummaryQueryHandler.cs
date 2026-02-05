@@ -92,9 +92,10 @@ internal sealed class GetDailySummaryQueryHandler(
         IQueryable<Order> ordersQuery,
         CancellationToken cancellationToken)
     {
-        var orderIds = ordersQuery
+        var orderIds = await ordersQuery
             .Where(o => o.Status != OrderStatus.Canceled)
-            .Select(o => o.Id);
+            .Select(o => o.Id)
+            .ToListAsync(cancellationToken);
 
         var topProduct = await db.OrderItems
             .AsNoTracking()
