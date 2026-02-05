@@ -19,9 +19,12 @@ internal sealed class GetDailySummary : IEndpoint
             CancellationToken cancellationToken
         ) =>
         {
+            var effectiveDate = query.Date ?? DateTime.UtcNow;
+            var effectiveQuery = new GetDailySummaryQuery(Date: effectiveDate);
+
             var result = await cache.GetOrCreateAsync(
-                $"daily-summary-{query.Date:yyyyMMdd}-{tenant.Id}",
-                async token => await handler.Handle(query, token),
+                $"daily-summary-{effectiveDate:yyyyMMdd}-{tenant.Id}",
+                async token => await handler.Handle(effectiveQuery, token),
                 new HybridCacheEntryOptions
                 {
                     Expiration = TimeSpan.FromMinutes(10),
