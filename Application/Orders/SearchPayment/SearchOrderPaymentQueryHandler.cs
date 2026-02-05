@@ -41,7 +41,7 @@ internal sealed class SearchOrderPaymentQueryHandler(
             return new OrderPaymentResponse(
                 PaymentProvider.Manual,
                 order.Id.ToString(),
-                "approved",
+                order.PaymentStatus,
                 order.PaymentMethod,
                 order.CreatedAt,
                 order.CreatedAt
@@ -84,7 +84,7 @@ internal sealed class SearchOrderPaymentQueryHandler(
         return new OrderPaymentResponse(
             PaymentProvider.MercadoPago,
             order.TransactionId,
-            payment.Status,
+            order.PaymentStatus,
             order.PaymentMethod,
             payment.DateCreated,
             payment.DateApproved
@@ -119,7 +119,7 @@ internal sealed class SearchOrderPaymentQueryHandler(
         return new OrderPaymentResponse(
             PaymentProvider.Wompi,
             order.TransactionId,
-            payment.Status,
+            order.PaymentStatus,
             order.PaymentMethod,
             payment.CreatedAt,
             payment.ApprovedAt
