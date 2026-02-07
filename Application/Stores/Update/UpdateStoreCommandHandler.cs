@@ -21,11 +21,31 @@ internal sealed class UpdateStoreCommandHandler(IApplicationDbContext db)
         }
 
         store.Name = command.Name;
-        store.Description = command.Description;
-        store.Address = command.Address;
-        store.Phone = command.Phone;
-        store.Email = command.Email;
-        store.CustomDomain = command.CustomDomain;
+
+        if (!string.IsNullOrWhiteSpace(command.Description))
+        {
+            store.Description = command.Description;
+        }
+
+        if (!string.IsNullOrWhiteSpace(command.Address))
+        {
+            store.Address = command.Address;
+        }
+
+        if (!string.IsNullOrWhiteSpace(command.Phone))
+        {
+            store.Phone = command.Phone;
+        }
+
+        if (!string.IsNullOrWhiteSpace(command.Email))
+        {
+            store.Email = command.Email;
+        }
+
+        if (!string.IsNullOrWhiteSpace(command.CustomDomain))
+        {
+            store.CustomDomain = command.CustomDomain;
+        }
 
         await db.SaveChangesAsync(cancellationToken);
 
