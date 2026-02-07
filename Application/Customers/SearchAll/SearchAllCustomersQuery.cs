@@ -14,5 +14,5 @@ public sealed record SearchAllCustomersQuery(
     int Page = 1,
     int PageSize = 20,
     string? Search = null,
-    CustomerSortBy? SortBy = null
+    string? SortBy = null
 ) : IQuery<PagedResult<CustomerSummaryResponse>>;

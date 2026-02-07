@@ -47,15 +47,27 @@ internal sealed class SearchAllCustomersQueryHandler(IApplicationDbContext db, I
 
         int total = await query.CountAsync(cancellationToken);
 
-        var sorted = request.SortBy switch
+        if (request.SortBy is not null)
         {
-            CustomerSortBy.Name => query.OrderBy(x => x.Name),
-            CustomerSortBy.TotalSpent => query.OrderByDescending(x => x.TotalSpent),
-            CustomerSortBy.LastPurchase => query.OrderByDescending(x => x.LastPurchase),
-            _ => query.OrderByDescending(x => x.TotalSpent) // null / default
-        };
+            string normalized = request.SortBy.Replace("_", "");
 
-        var items = await sorted
+            if (Enum.TryParse<CustomerSortBy>(normalized, ignoreCase: true, out var sortBy))
+            {
+                query = sortBy switch
+                {
+                    CustomerSortBy.Name => query.OrderBy(x => x.Name),
+                    CustomerSortBy.TotalSpent => query.OrderByDescending(x => x.TotalSpent),
+                    CustomerSortBy.LastPurchase => query.OrderByDescending(x => x.LastPurchase),
+                    _ => query.OrderByDescending(x => x.TotalSpent) // null / default
+                };
+            }
+        }
+        else
+        {
+            query = query.OrderByDescending(x => x.TotalSpent);
+        }
+
+        var items = await query
             .Skip((page - 1) * size)
             .Take(size)
             .Select(x => new CustomerSummaryResponse(
