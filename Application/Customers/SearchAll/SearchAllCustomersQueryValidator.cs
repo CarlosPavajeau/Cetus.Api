@@ -11,10 +11,8 @@ public sealed class SearchAllCustomersQueryValidator : AbstractValidator<SearchA
             .WithMessage("La página debe ser mayor a cero.");
 
         RuleFor(q => q.PageSize)
-            .GreaterThan(0)
-            .WithMessage("El tamaño de página debe ser mayor a cero.")
-            .LessThan(100)
-            .WithMessage("El tamaño de página debe ser menor a 100.");
+            .LessThanOrEqualTo(100)
+            .WithMessage("El tamaño de página no puede ser mayor a 100.");
 
         RuleFor(q => q.SortBy)
             .IsInEnum()
