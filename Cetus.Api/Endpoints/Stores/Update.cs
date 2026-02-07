@@ -15,7 +15,7 @@ internal sealed class Update : IEndpoint
         app.MapPut("stores/{id:guid}", async (
             Guid id,
             [FromBody] UpdateStoreCommand command,
-            IQueryHandler<UpdateStoreCommand, StoreResponse> handler,
+            ICommandHandler<UpdateStoreCommand, StoreResponse> handler,
             HybridCache cache,
             CancellationToken cancellationToken) =>
         {
