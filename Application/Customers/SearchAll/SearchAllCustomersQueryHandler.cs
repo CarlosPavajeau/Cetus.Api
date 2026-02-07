@@ -48,8 +48,9 @@ internal sealed class SearchAllCustomersQueryHandler(IApplicationDbContext db, I
         var sorted = request.SortBy switch
         {
             CustomerSortBy.Name => query.OrderBy(x => x.Name),
+            CustomerSortBy.TotalSpent => query.OrderByDescending(x => x.TotalSpent),
             CustomerSortBy.LastPurchase => query.OrderByDescending(x => x.LastPurchase),
-            _ => query.OrderByDescending(x => x.TotalSpent)
+            _ => query.OrderByDescending(x => x.TotalSpent) // null / default
         };
 
         var items = await sorted
