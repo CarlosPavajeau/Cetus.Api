@@ -4,10 +4,16 @@ namespace Domain.Stores;
 
 public static class StoreErrors
 {
-    public static Error NotFound(string? CustomDomain, string? Slug) =>
+    public static Error NotFoundBySlug(string Slug) =>
         Error.NotFound(
             "Stores.NotFound",
-            $"Store with CustomDomain '{CustomDomain}' or Slug '{Slug}' was not found."
+            $"Store with Slug '{Slug}' was not found."
+        );
+
+    public static Error NotFoundByCustomDomain(string CustomDomain) =>
+        Error.NotFound(
+            "Stores.NotFound",
+            $"Store with CustomDomain '{CustomDomain}' was not found."
         );
 
     public static Error NotFoundById(Guid Id) =>

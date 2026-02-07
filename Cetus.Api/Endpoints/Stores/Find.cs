@@ -1,6 +1,7 @@
 using Application.Abstractions.Messaging;
 using Application.Stores;
-using Application.Stores.Find;
+using Application.Stores.FindByDomain;
+using Application.Stores.FindBySlug;
 using Cetus.Api.Extensions;
 using Cetus.Api.Infrastructure;
 using Microsoft.Extensions.Caching.Hybrid;
@@ -13,12 +14,12 @@ internal sealed class Find : IEndpoint
     {
         app.MapGet("stores/by-domain/{domain}", async (
             string domain,
-            IQueryHandler<FindStoreQuery, SimpleStoreResponse> handler,
+            IQueryHandler<FindStoreByDomainQuery, SimpleStoreResponse> handler,
             HybridCache cache,
             CancellationToken cancellationToken) =>
         {
-            var query = new FindStoreQuery(domain, null);
-            string cacheKey = $"store-${domain}";
+            var query = new FindStoreByDomainQuery(domain);
+            string cacheKey = $"store:by-domain:${domain}";
 
             var result = await cache.GetOrCreateAsync(
                 cacheKey,
@@ -31,12 +32,12 @@ internal sealed class Find : IEndpoint
 
         app.MapGet("stores/by-slug/{slug}", async (
             string slug,
-            IQueryHandler<FindStoreQuery, SimpleStoreResponse> handler,
+            IQueryHandler<FindStoreBySlugQuery, SimpleStoreResponse> handler,
             HybridCache cache,
             CancellationToken cancellationToken) =>
         {
-            var query = new FindStoreQuery(null, slug);
-            string cacheKey = $"store-${slug}";
+            var query = new FindStoreBySlugQuery(slug);
+            string cacheKey = $"store:by-slug:${slug}";
 
             var result = await cache.GetOrCreateAsync(
                 cacheKey,

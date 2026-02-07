@@ -2,15 +2,13 @@ using Application.Abstractions.Data;
 using Application.Abstractions.Messaging;
 using Domain.Stores;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Caching.Hybrid;
 using SharedKernel;
 
 namespace Application.Stores.ConfigureMercadoPago;
 
 internal sealed class ConfigureMercadoPagoCommandHandler(
     IApplicationDbContext db,
-    ITenantContext tenant,
-    HybridCache cache)
+    ITenantContext tenant)
     : ICommandHandler<ConfigureMercadoPagoCommand>
 {
     public async Task<Result> Handle(ConfigureMercadoPagoCommand command, CancellationToken cancellationToken)
@@ -21,7 +19,7 @@ internal sealed class ConfigureMercadoPagoCommandHandler(
 
         if (store is null)
         {
-            return Result.Failure(StoreErrors.NotFound(tenant.Id.ToString(), null));
+            return Result.Failure(StoreErrors.NotFoundById(tenant.Id));
         }
 
         store.MercadoPagoAccessToken = command.AccessToken;
@@ -29,10 +27,6 @@ internal sealed class ConfigureMercadoPagoCommandHandler(
         store.MercadoPagoExpiresAt = DateTime.Today.AddSeconds(command.ExpiresIn).ToUniversalTime();
 
         await db.SaveChangesAsync(cancellationToken);
-
-        // Clear the cache for the store
-        await cache.RemoveAsync($"store-${store.CustomDomain}", cancellationToken);
-        await cache.RemoveAsync($"store-${store.Slug}", cancellationToken);
 
         return Result.Success();
     }
