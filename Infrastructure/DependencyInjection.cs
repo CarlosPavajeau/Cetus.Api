@@ -25,6 +25,8 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.IdentityModel.Protocols;
+using Microsoft.IdentityModel.Protocols.OpenIdConnect;
 using Microsoft.IdentityModel.Tokens;
 using Npgsql;
 using OpenTelemetry;
@@ -160,48 +162,50 @@ public static class DependencyInjection
         services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
             .AddJwtBearer(options =>
             {
-                options.RequireHttpsMetadata = false;
-                options.Authority = configuration["Jwt:Authority"]!;
-                options.Audience = configuration["Jwt:Audience"]!;
+                string jwksUrl = $"{configuration["Jwt:Audience"]}/api/auth/jwks";
+                var configurationManager = new ConfigurationManager<OpenIdConnectConfiguration>(
+                    jwksUrl,
+                    new JwksRetriever(),
+                    new HttpDocumentRetriever { RequireHttps = false }
+                );
 
                 options.TokenValidationParameters = new TokenValidationParameters
                 {
-                    ValidateIssuerSigningKey = true,
                     ValidateIssuer = true,
-                    ValidateAudience = true,
-                    ValidateLifetime = true,
-                    ClockSkew = TimeSpan.FromMinutes(5),
-
                     ValidIssuer = configuration["Jwt:Issuer"]!,
+                    ValidateAudience = true,
                     ValidAudience = configuration["Jwt:Audience"]!,
-                    IssuerSigningKeyResolver = (_, _, kid, _) =>
+                    ValidateLifetime = true,
+                    IssuerSigningKeyResolver = (_, _, _, _) =>
                     {
-                        using var httpClient = new HttpClient();
-                        try
-                        {
-                            string jwksJson = httpClient
-                                .GetStringAsync($"{configuration["Jwt:Audience"]}/api/auth/jwks")
-                                .Result;
-                            var jwks = new JsonWebKeySet(jwksJson);
+                        var config = configurationManager
+                            .GetConfigurationAsync(CancellationToken.None)
+                            .GetAwaiter()
+                            .GetResult();
 
-                            // If kid is provided, filter by it
-                            if (!string.IsNullOrEmpty(kid))
-                            {
-                                return jwks.Keys.Where(x => x.KeyId == kid);
-                            }
-
-                            // Otherwise return all keys
-                            return jwks.Keys;
-                        }
-                        catch (Exception)
-                        {
-                            return [];
-                        }
+                        return config.JsonWebKeySet.GetSigningKeys();
                     }
                 };
             });
 
         return services;
+    }
+
+    public class JwksRetriever : IConfigurationRetriever<OpenIdConnectConfiguration>
+    {
+        public async Task<OpenIdConnectConfiguration> GetConfigurationAsync(
+            string address,
+            IDocumentRetriever retriever,
+            CancellationToken cancel)
+        {
+            string json = await retriever.GetDocumentAsync(address, cancel);
+            var jwks = new JsonWebKeySet(json);
+
+            return new OpenIdConnectConfiguration
+            {
+                JsonWebKeySet = jwks
+            };
+        }
     }
 
     private static IServiceCollection AddAuthorizationInternal(this IServiceCollection services)
