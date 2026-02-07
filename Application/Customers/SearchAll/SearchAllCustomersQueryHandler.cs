@@ -15,22 +15,19 @@ internal sealed class SearchAllCustomersQueryHandler(IApplicationDbContext db, I
         int page = request.Page <= 0 ? 1 : request.Page;
         int size = request.PageSize <= 0 ? 20 : Math.Min(request.PageSize, 100);
 
-        var storeOrders = db.Orders
+        var query = db.Orders
             .AsNoTracking()
-            .Where(o => o.StoreId == tenant.Id);
-
-        var query = db.Customers
-            .AsNoTracking()
-            .Where(c => storeOrders.Any(o => o.CustomerId == c.Id))
-            .Select(c => new
+            .Where(o => o.StoreId == tenant.Id)
+            .GroupBy(o => new { o.Customer!.Id, o.Customer.Name, o.Customer.Phone, o.Customer.Email })
+            .Select(g => new
             {
-                c.Id,
-                c.Name,
-                c.Phone,
-                c.Email,
-                TotalOrders = storeOrders.Count(o => o.CustomerId == c.Id),
-                TotalSpent = storeOrders.Where(o => o.CustomerId == c.Id).Sum(o => o.Total),
-                LastPurchase = storeOrders.Where(o => o.CustomerId == c.Id).Max(o => (DateTime?)o.CreatedAt)
+                g.Key.Id,
+                g.Key.Name,
+                g.Key.Phone,
+                g.Key.Email,
+                TotalOrders = g.Count(),
+                TotalSpent = g.Sum(o => o.Total),
+                LastPurchase = g.Max(o => (DateTime?)o.CreatedAt)
             });
 
         if (!string.IsNullOrWhiteSpace(request.Search))
