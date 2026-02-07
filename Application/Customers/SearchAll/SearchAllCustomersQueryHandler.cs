@@ -32,7 +32,12 @@ internal sealed class SearchAllCustomersQueryHandler(IApplicationDbContext db, I
 
         if (!string.IsNullOrWhiteSpace(request.Search))
         {
-            string search = $"%{request.Search}%";
+            string sanitized = request.Search
+                .Replace("\\", @"\\")
+                .Replace("%", "\\%")
+                .Replace("_", "\\_");
+
+            string search = $"%{sanitized}%";
             query = query.Where(x =>
                 EF.Functions.ILike(x.Name, search) ||
                 EF.Functions.ILike(x.Phone, search));
