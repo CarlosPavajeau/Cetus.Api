@@ -15,9 +15,24 @@ internal sealed class SearchAllCustomersQueryHandler(IApplicationDbContext db, I
         int page = request.Page <= 0 ? 1 : request.Page;
         int size = request.PageSize <= 0 ? 20 : Math.Min(request.PageSize, 100);
 
-        var query = db.Orders
+        var ordersQuery = db.Orders
             .AsNoTracking()
-            .Where(o => o.StoreId == tenant.Id)
+            .Where(o => o.StoreId == tenant.Id);
+
+        if (!string.IsNullOrWhiteSpace(request.Search))
+        {
+            string sanitized = request.Search
+                .Replace("\\", @"\\")
+                .Replace("%", "\\%")
+                .Replace("_", "\\_");
+
+            string search = $"%{sanitized}%";
+            ordersQuery = ordersQuery.Where(o =>
+                EF.Functions.ILike(o.Customer!.Name, search) ||
+                EF.Functions.ILike(o.Customer!.Phone, search));
+        }
+
+        var query = ordersQuery
             .GroupBy(o => new { o.Customer!.Id, o.Customer.Name, o.Customer.Phone, o.Customer.Email })
             .Select(g => new
             {
@@ -29,19 +44,6 @@ internal sealed class SearchAllCustomersQueryHandler(IApplicationDbContext db, I
                 TotalSpent = g.Sum(o => o.Total),
                 LastPurchase = g.Max(o => (DateTime?)o.CreatedAt)
             });
-
-        if (!string.IsNullOrWhiteSpace(request.Search))
-        {
-            string sanitized = request.Search
-                .Replace("\\", @"\\")
-                .Replace("%", "\\%")
-                .Replace("_", "\\_");
-
-            string search = $"%{sanitized}%";
-            query = query.Where(x =>
-                EF.Functions.ILike(x.Name, search) ||
-                EF.Functions.ILike(x.Phone, search));
-        }
 
         int total = await query.CountAsync(cancellationToken);
 
