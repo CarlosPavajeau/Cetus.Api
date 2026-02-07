@@ -20,7 +20,8 @@ internal sealed class SearchAll : IEndpoint
             ITenantContext context,
             CancellationToken cancellationToken) =>
         {
-            string cacheKey = $"customers-{context.Id}-{query.Page}-{query.PageSize}-{query.Search}-{query.SortBy}";
+            string cacheKey =
+                $"customers:t={context.Id}:p={query.Page}:ps={query.PageSize}:s={Uri.EscapeDataString(query.Search ?? "")}:sb={query.SortBy?.ToString() ?? ""}";
 
             var result = await cache.GetOrCreateAsync(
                 cacheKey,
