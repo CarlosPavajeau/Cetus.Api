@@ -27,6 +27,11 @@ internal sealed class SearchAllOrders : IEndpoint
             var result = await cache.GetOrCreateAsync(
                 cacheKey,
                 async token => await handler.Handle(query with { CustomerId = customerId }, token),
+                new HybridCacheEntryOptions
+                {
+                    Expiration = TimeSpan.FromMinutes(5),
+                    LocalCacheExpiration = TimeSpan.FromMinutes(5)
+                },
                 cancellationToken: cancellationToken
             );
 
