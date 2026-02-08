@@ -22,11 +22,37 @@ internal sealed class FindCustomerQueryHandler(IApplicationDbContext db, ITenant
             return Result.Failure<CustomerResponse>(CustomerErrors.NotFound(query.Id));
         }
 
-        var since = await db.Orders
+        var stats = await db.Orders
             .AsNoTracking()
-            .Where(o => o.CustomerId == query.Id && o.StoreId == tenant.Id)
-            .MinAsync(o => (DateTime?)o.CreatedAt, cancellationToken);
+            .Where(o => o.CustomerId == query.Id
+                        && o.StoreId == tenant.Id
+                        && o.Status != OrderStatus.Canceled
+                        && o.Status != OrderStatus.Returned)
+            .GroupBy(_ => 1)
+            .Select(g => new
+            {
+                TotalPurchases = g.Count(),
+                TotalSpent = g.Sum(o => o.Total),
+                MinDate = g.Min(o => (DateTime?)o.CreatedAt),
+                MaxDate = g.Max(o => (DateTime?)o.CreatedAt)
+            })
+            .FirstOrDefaultAsync(cancellationToken);
 
-        return customer with { Since = since };
+        if (stats is null || stats.TotalPurchases == 0)
+        {
+            return customer;
+        }
+
+        double? frequencyDays = stats.TotalPurchases > 1 && stats.MinDate.HasValue && stats.MaxDate.HasValue
+            ? (stats.MaxDate.Value - stats.MinDate.Value).TotalDays / (stats.TotalPurchases - 1)
+            : null;
+
+        return customer with
+        {
+            Since = stats.MinDate,
+            TotalPurchases = stats.TotalPurchases,
+            TotalSpent = stats.TotalSpent,
+            PurchaseFrequencyDays = frequencyDays.HasValue ? Math.Round(frequencyDays.Value, 1) : null
+        };
     }
 }

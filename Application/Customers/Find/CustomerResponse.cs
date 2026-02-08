@@ -10,7 +10,10 @@ public sealed record CustomerResponse(
     string Name,
     string? Email,
     string Phone,
-    DateTime? Since = null
+    DateTime? Since = null,
+    int TotalPurchases = 0,
+    decimal TotalSpent = 0,
+    double? PurchaseFrequencyDays = null
 )
 {
     public static Expression<Func<Customer, CustomerResponse>> Map => customer =>
