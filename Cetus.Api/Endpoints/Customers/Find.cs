@@ -18,6 +18,6 @@ internal sealed class Find : IEndpoint
             var result = await handler.Handle(query, cancellationToken);
 
             return result.Match(Results.Ok, CustomResults.Problem);
-        }).AllowAnonymous().WithTags(Tags.Customers);
+        }).WithTags(Tags.Customers);
     }
 }
