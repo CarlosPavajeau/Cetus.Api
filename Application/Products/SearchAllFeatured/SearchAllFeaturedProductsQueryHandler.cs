@@ -13,7 +13,6 @@ internal sealed class SearchAllFeaturedProductsQueryHandler(IApplicationDbContex
     {
         var products = await db.ProductVariants
             .AsNoTracking()
-            .Include(p => p.Product)
             .Where(p => p.DeletedAt == null
                         && p.Enabled
                         && p.Featured
@@ -21,6 +20,7 @@ internal sealed class SearchAllFeaturedProductsQueryHandler(IApplicationDbContex
                         && p.Product!.DeletedAt == null
                         && p.Product!.StoreId == tenant.Id
             )
+            .OrderBy(_ => EF.Functions.Random())
             .Take(10)
             .Select(SimpleProductForSaleResponse.Map)
             .ToListAsync(cancellationToken);
