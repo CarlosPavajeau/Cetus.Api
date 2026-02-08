@@ -21,12 +21,17 @@ internal sealed class SearchAllOrders : IEndpoint
             ITenantContext context,
             CancellationToken cancellationToken) =>
         {
+            if (customerId != query.CustomerId)
+            {
+                return Results.BadRequest("Mismatched customer ID in URL and body.");
+            }
+            
             string cacheKey =
                 $"customer:{customerId}:orders:t={context.Id}:p={query.Page}:ps={query.PageSize}";
 
             var result = await cache.GetOrCreateAsync(
                 cacheKey,
-                async token => await handler.Handle(query with { CustomerId = customerId }, token),
+                async token => await handler.Handle(query, token),
                 new HybridCacheEntryOptions
                 {
                     Expiration = TimeSpan.FromMinutes(5),
