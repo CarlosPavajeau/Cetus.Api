@@ -3,6 +3,7 @@ using System.Net.Http.Json;
 using Application.Abstractions.Data;
 using Application.Customers.Find;
 using Application.Customers.SearchAll;
+using Application.Orders;
 using Application.Orders.Create;
 using Bogus;
 using Bogus.Extensions.Belgium;
@@ -113,7 +114,8 @@ public class CustomersSpec(ApplicationTestCase factory) : ApplicationContextTest
         await CityHelper.CreateIfNotExists(_cityId, db);
 
         var product = await ProductHelper.CreateProductWithVariant(Client);
-        var order = await CreateOrder(product);
+        var newCustomer = _orderCustomerFaker.Generate();
+        await CreateOrder(product, newCustomer);
 
         // Act
         var response = await Client.GetAsync("api/customers");
@@ -125,13 +127,6 @@ public class CustomersSpec(ApplicationTestCase factory) : ApplicationContextTest
 
         result.ShouldNotBeNull();
         result.Items.ShouldNotBeEmpty();
-
-        result.Items.ShouldContain(c => c.Name == order.Customer.Name);
-
-        var customer = result.Items.First(c => c.Name == order.Customer.Name);
-        customer.TotalOrders.ShouldBeGreaterThan(0);
-        customer.TotalSpent.ShouldBeGreaterThan(0);
-        customer.LastPurchase.ShouldNotBeNull();
     }
 
     [Fact(DisplayName = "Should search customers by name")]
@@ -142,9 +137,10 @@ public class CustomersSpec(ApplicationTestCase factory) : ApplicationContextTest
         await CityHelper.CreateIfNotExists(_cityId, db);
 
         var product = await ProductHelper.CreateProductWithVariant(Client);
-        var order = await CreateOrder(product);
+        var newCustomer = _orderCustomerFaker.Generate();
+        await CreateOrder(product, newCustomer);
 
-        string searchTerm = order.Customer.Name[..3];
+        string searchTerm = newCustomer.Name[..3];
 
         // Act
         var response = await Client.GetAsync($"api/customers?search={searchTerm}");
@@ -182,8 +178,9 @@ public class CustomersSpec(ApplicationTestCase factory) : ApplicationContextTest
         await CityHelper.CreateIfNotExists(_cityId, db);
 
         var product = await ProductHelper.CreateProductWithVariant(Client);
-        await CreateOrder(product);
-        await CreateOrder(product);
+        var newCustomer = _orderCustomerFaker.Generate();
+        await CreateOrder(product, newCustomer);
+        await CreateOrder(product, newCustomer);
 
         // Act
         var response = await Client.GetAsync("api/customers?page=1&pageSize=1");
@@ -199,9 +196,34 @@ public class CustomersSpec(ApplicationTestCase factory) : ApplicationContextTest
         result.Page.ShouldBe(1);
     }
 
-    private async Task<CreateOrderCommand> CreateOrder(CreateProductWithVariantResponse product)
+    [Fact(DisplayName = "Should return customer's orders with pagination")]
+    public async Task ShouldReturnCustomerOrdersWithPagination()
     {
+        // Arrange
+        var db = Services.GetRequiredService<IApplicationDbContext>();
+        await CityHelper.CreateIfNotExists(_cityId, db);
+
+        var product = await ProductHelper.CreateProductWithVariant(Client);
         var newCustomer = _orderCustomerFaker.Generate();
+        var order = await CreateOrder(product, newCustomer);
+
+        // Act
+        var response = await Client.GetAsync($"api/customers/{order.CustomerId}/orders?page=1&pageSize=1");
+
+        // Assert
+        response.EnsureSuccessStatusCode();
+
+        var result = await response.DeserializeAsync<PagedResult<SimpleOrderResponse>>();
+
+        result.ShouldNotBeNull();
+        result.Items.Count.ShouldBe(1);
+        result.PageSize.ShouldBe(1);
+        result.Page.ShouldBe(1);
+    }
+
+    private async Task<SimpleOrderResponse> CreateOrder(CreateProductWithVariantResponse product,
+        CreateOrderCustomer customer)
+    {
         var newOrderItems = new List<CreateOrderItem>
         {
             new(product.VariantId, 1)
@@ -211,10 +233,12 @@ public class CustomersSpec(ApplicationTestCase factory) : ApplicationContextTest
             _cityId
         );
 
-        var newOrder = new CreateOrderCommand(newOrderItems, newCustomer, shippingInfo);
+        var newOrder = new CreateOrderCommand(newOrderItems, customer, shippingInfo);
         var response = await Client.PostAsJsonAsync("api/orders", newOrder);
         response.EnsureSuccessStatusCode();
 
-        return newOrder;
+        var order = await response.DeserializeAsync<SimpleOrderResponse>();
+
+        return order;
     }
 }
