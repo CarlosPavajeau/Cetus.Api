@@ -9,8 +9,8 @@ internal sealed class Find : IEndpoint
 {
     public void MapEndpoint(IEndpointRouteBuilder app)
     {
-        app.MapGet("customers/{id}", async (
-            string id,
+        app.MapGet("customers/{id:guid}", async (
+            Guid id,
             IQueryHandler<FindCustomerQuery, CustomerResponse> handler,
             CancellationToken cancellationToken) =>
         {

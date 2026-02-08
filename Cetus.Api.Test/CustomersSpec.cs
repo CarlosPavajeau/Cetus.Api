@@ -42,7 +42,7 @@ public class CustomersSpec(ApplicationTestCase factory) : ApplicationContextTest
         await db.SaveChangesAsync();
 
         // Act
-        var response = await Client.GetAsync($"api/customers/{customerId}");
+        var response = await Client.GetAsync($"api/customers/{customer.Id}");
 
         // Assert
         response.EnsureSuccessStatusCode();

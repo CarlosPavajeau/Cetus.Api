@@ -6,14 +6,14 @@ using SharedKernel;
 
 namespace Application.Customers.Find;
 
-internal sealed class FindCustomerQueryHandler(IApplicationDbContext context)
+internal sealed class FindCustomerQueryHandler(IApplicationDbContext db, ITenantContext tenant)
     : IQueryHandler<FindCustomerQuery, CustomerResponse>
 {
     public async Task<Result<CustomerResponse>> Handle(FindCustomerQuery query, CancellationToken cancellationToken)
     {
-        var customer = await context.Customers
+        var customer = await db.Customers
             .AsNoTracking()
-            .Where(x => x.DocumentNumber == query.Id)
+            .Where(c => c.Id == query.Id)
             .Select(CustomerResponse.Map)
             .FirstOrDefaultAsync(cancellationToken);
 
@@ -22,6 +22,11 @@ internal sealed class FindCustomerQueryHandler(IApplicationDbContext context)
             return Result.Failure<CustomerResponse>(CustomerErrors.NotFound(query.Id));
         }
 
-        return customer;
+        var since = await db.Orders
+            .AsNoTracking()
+            .Where(o => o.CustomerId == query.Id && o.StoreId == tenant.Id)
+            .MinAsync(o => (DateTime?)o.CreatedAt, cancellationToken);
+
+        return customer with { Since = since };
     }
 }

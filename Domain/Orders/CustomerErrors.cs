@@ -4,10 +4,10 @@ namespace Domain.Orders;
 
 public static class CustomerErrors
 {
-    public static Error NotFound(string customerId) =>
+    public static Error NotFound(Guid id) =>
         Error.NotFound(
             "Customers.NotFound",
-            $"Customer with ID {customerId} was not found."
+            $"Customer with ID {id} was not found."
         );
 
     public static Error NotFoundByPhone(string phone) =>
