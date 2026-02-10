@@ -11,5 +11,5 @@ public sealed class PaymentLink
     public DateTime ExpiresAt { get; set; }
     public DateTime CreatedAt { get; set; }
 
-    public Order Order { get; set; }
+    public Order? Order { get; set; }
 }
