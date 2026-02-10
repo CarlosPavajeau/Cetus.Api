@@ -7,6 +7,7 @@ using Application.Abstractions.Services;
 using Application.Abstractions.Wompi;
 using Domain.Coupons;
 using Domain.Orders;
+using Domain.PaymentLinks;
 using Domain.Products;
 using Domain.Reviews;
 using Infrastructure.Database;
@@ -100,6 +101,7 @@ public static class DependencyInjection
                         dbContextOptionsBuilder.MapEnum<DocumentType>("document_type");
                         dbContextOptionsBuilder.MapEnum<OrderChannel>("order_channel");
                         dbContextOptionsBuilder.MapEnum<PaymentStatus>("payment_status");
+                        dbContextOptionsBuilder.MapEnum<PaymentLinkStatus>("payment_link_status");
                     })
                 .UseSnakeCaseNamingConvention();
         });

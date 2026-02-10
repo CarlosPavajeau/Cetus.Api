@@ -2,6 +2,7 @@ using Domain.Auth;
 using Domain.Categories;
 using Domain.Coupons;
 using Domain.Orders;
+using Domain.PaymentLinks;
 using Domain.Products;
 using Domain.Reviews;
 using Domain.States;
@@ -29,6 +30,7 @@ public interface IApplicationDbContext
     DbSet<OrderItem> OrderItems { get; }
     DbSet<DeliveryFee> DeliveryFees { get; }
     DbSet<OrderTimeline> OrderTimeline { get; }
+    DbSet<PaymentLink> PaymentLinks { get; }
 
     DbSet<State> States { get; }
     DbSet<City> Cities { get; }
