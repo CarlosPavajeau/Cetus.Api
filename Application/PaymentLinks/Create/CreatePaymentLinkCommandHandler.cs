@@ -1,3 +1,4 @@
+using System.Security.Cryptography;
 using Application.Abstractions.Data;
 using Application.Abstractions.Messaging;
 using Domain.Orders;
@@ -110,6 +111,6 @@ internal sealed class CreatePaymentLinkCommandHandler(
 
     private static string GenerateSecureToken()
     {
-        return Guid.NewGuid().ToString("N");
+        return Convert.ToHexStringLower(RandomNumberGenerator.GetBytes(32));
     }
 }
