@@ -40,8 +40,8 @@ public class SendPendingReviewRequestsJob(
         string senderEmail = configuration["Resend:From"]
                              ?? throw new InvalidOperationException(
                                  "Sender email configuration 'Resend:From' is missing");
-        string baseUrl = configuration["Clerk:AuthorizedParty"]
-                         ?? throw new InvalidOperationException("Clerk:AuthorizedParty configuration is missing");
+        string baseUrl = configuration["App:PublicUrl"]
+                         ?? throw new InvalidOperationException("PublicUrl configuration is missing");
 
         foreach (var request in pendingRequests)
         {
