@@ -15,9 +15,9 @@ internal sealed class Create : IEndpoint
             ICommandHandler<CreatePaymentLinkCommand, PaymentLinkResponse> handler,
             CancellationToken cancellationToken) =>
         {
-            var query = new CreatePaymentLinkCommand(orderId);
+            var command = new CreatePaymentLinkCommand(orderId);
 
-            var result = await handler.Handle(query, cancellationToken);
+            var result = await handler.Handle(command, cancellationToken);
 
             return result.Match(Results.Ok, CustomResults.Problem);
         }).WithTags(Tags.PaymentLinks);

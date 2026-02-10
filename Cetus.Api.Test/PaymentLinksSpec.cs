@@ -2,6 +2,7 @@ using System.Net;
 using System.Net.Http.Json;
 using Application.Orders.ChangeStatus;
 using Application.PaymentLinks;
+using Application.PaymentLinks.Create;
 using Application.PaymentLinks.FindState;
 using Cetus.Api.Test.Shared;
 using Cetus.Api.Test.Shared.Helpers;
@@ -20,7 +21,8 @@ public class PaymentLinksSpec(ApplicationTestCase factory) : ApplicationContextT
         var order = await OrderHelper.CreateOrder(Client, product.VariantId);
 
         // Act
-        var response = await Client.GetAsync($"api/orders/{order.Id}/payment-link");
+        var response =
+            await Client.PostAsJsonAsync<CreatePaymentLinkCommand?>($"api/orders/{order.Id}/payment-link", null);
 
         // Assert
         response.EnsureSuccessStatusCode();
@@ -37,7 +39,8 @@ public class PaymentLinksSpec(ApplicationTestCase factory) : ApplicationContextT
         var orderId = Guid.NewGuid();
 
         // Act
-        var response = await Client.GetAsync($"api/orders/{orderId}/payment-link");
+        var response =
+            await Client.PostAsJsonAsync<CreatePaymentLinkCommand?>($"api/orders/{orderId}/payment-link", null);
 
         // Assert
         response.StatusCode.ShouldBe(HttpStatusCode.NotFound);
@@ -52,11 +55,12 @@ public class PaymentLinksSpec(ApplicationTestCase factory) : ApplicationContextT
 
         // Cancel the order
         var changeOrderStatus = new ChangeOrderStatusCommand(order.Id, OrderStatus.Canceled);
-        var cancelResponse = await Client.PutAsJsonAsync($"orders/{order.Id}/status", changeOrderStatus);
+        var cancelResponse = await Client.PutAsJsonAsync($"api/orders/{order.Id}/status", changeOrderStatus);
         cancelResponse.EnsureSuccessStatusCode();
 
         // Act
-        var response = await Client.GetAsync($"api/orders/{order.Id}/payment-link");
+        var response =
+            await Client.PostAsJsonAsync<CreatePaymentLinkCommand?>($"api/orders/{order.Id}/payment-link", null);
 
         // Assert
         response.StatusCode.ShouldBe(HttpStatusCode.Conflict);
@@ -76,11 +80,12 @@ public class PaymentLinksSpec(ApplicationTestCase factory) : ApplicationContextT
             PaymentMethod.CashOnDelivery,
             PaymentStatus.Verified
         );
-        var paidResponse = await Client.PutAsJsonAsync($"orders/{order.Id}/status", changeOrderStatus);
+        var paidResponse = await Client.PutAsJsonAsync($"api/orders/{order.Id}/status", changeOrderStatus);
         paidResponse.EnsureSuccessStatusCode();
 
         // Act
-        var response = await Client.GetAsync($"api/orders/{order.Id}/payment-link");
+        var response =
+            await Client.PostAsJsonAsync<CreatePaymentLinkCommand?>($"api/orders/{order.Id}/payment-link", null);
 
         // Assert
         response.StatusCode.ShouldBe(HttpStatusCode.Conflict);
@@ -94,11 +99,13 @@ public class PaymentLinksSpec(ApplicationTestCase factory) : ApplicationContextT
         var order = await OrderHelper.CreateOrder(Client, product.VariantId);
 
         // Generate the first payment link
-        var firstResponse = await Client.GetAsync($"api/orders/{order.Id}/payment-link");
+        var firstResponse =
+            await Client.PostAsJsonAsync<CreatePaymentLinkCommand?>($"api/orders/{order.Id}/payment-link", null);
         firstResponse.EnsureSuccessStatusCode();
 
         // Act
-        var secondResponse = await Client.GetAsync($"api/orders/{order.Id}/payment-link");
+        var secondResponse =
+            await Client.PostAsJsonAsync<CreatePaymentLinkCommand?>($"api/orders/{order.Id}/payment-link", null);
 
         // Assert
         secondResponse.StatusCode.ShouldBe(HttpStatusCode.Conflict);
@@ -112,7 +119,8 @@ public class PaymentLinksSpec(ApplicationTestCase factory) : ApplicationContextT
         var order = await OrderHelper.CreateOrder(Client, product.VariantId);
 
         // Generate a payment link
-        var response = await Client.GetAsync($"api/orders/{order.Id}/payment-link");
+        var response =
+            await Client.PostAsJsonAsync<CreatePaymentLinkCommand?>($"api/orders/{order.Id}/payment-link", null);
         response.EnsureSuccessStatusCode();
 
         var paymentLinkResponse = await response.DeserializeAsync<PaymentLinkResponse>();
@@ -151,7 +159,7 @@ public class PaymentLinksSpec(ApplicationTestCase factory) : ApplicationContextT
         var order = await OrderHelper.CreateOrder(Client, product.VariantId);
 
         // Generate a payment link
-        var response = await Client.GetAsync($"api/orders/{order.Id}/payment-link");
+        var response = await Client.PostAsJsonAsync<CreatePaymentLinkCommand?>($"api/orders/{order.Id}/payment-link", null);
         response.EnsureSuccessStatusCode();
 
         // Act
