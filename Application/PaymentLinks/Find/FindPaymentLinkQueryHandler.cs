@@ -16,8 +16,10 @@ internal sealed class FindPaymentLinkQueryHandler(
     public async Task<Result<PaymentLinkResponse>> Handle(FindPaymentLinkQuery query,
         CancellationToken cancellationToken)
     {
+        var now = dateTimeProvider.UtcNow;
         var paymentLink = await db.PaymentLinks
             .Where(pl => pl.Token == query.Token)
+            .Where(pl => pl.Status == PaymentLinkStatus.Active && pl.CreatedAt > now)
             .FirstOrDefaultAsync(cancellationToken);
 
         if (paymentLink is null)
@@ -25,7 +27,6 @@ internal sealed class FindPaymentLinkQueryHandler(
             return Result.Failure<PaymentLinkResponse>(PaymentLinkErrors.NotFound(query.Token));
         }
 
-        var now = dateTimeProvider.UtcNow;
         string baseUrl = configuration["App:PublicUrl"]!;
         string url = $"{baseUrl}/pay/{paymentLink.Token}";
 
