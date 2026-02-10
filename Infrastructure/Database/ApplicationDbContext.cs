@@ -5,6 +5,7 @@ using Domain.Auth;
 using Domain.Categories;
 using Domain.Coupons;
 using Domain.Orders;
+using Domain.PaymentLinks;
 using Domain.Products;
 using Domain.Reviews;
 using Domain.States;
@@ -37,6 +38,7 @@ public sealed class ApplicationDbContext(
     public DbSet<OrderItem> OrderItems { get; set; }
     public DbSet<DeliveryFee> DeliveryFees { get; set; }
     public DbSet<OrderTimeline> OrderTimeline { get; set; }
+    public DbSet<PaymentLink> PaymentLinks { get; set; }
 
     public DbSet<State> States { get; set; }
     public DbSet<City> Cities { get; set; }
