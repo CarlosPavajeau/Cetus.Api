@@ -20,6 +20,6 @@ internal sealed class Create : IEndpoint
             var result = await handler.Handle(query, cancellationToken);
 
             return result.Match(Results.Ok, CustomResults.Problem);
-        });
+        }).WithTags(Tags.PaymentLinks);
     }
 }
