@@ -4,6 +4,7 @@ using Domain.Orders;
 using Domain.PaymentLinks;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
+using Npgsql;
 using SharedKernel;
 
 namespace Application.PaymentLinks.Create;
@@ -39,6 +40,7 @@ internal sealed class CreatePaymentLinkCommandHandler(
             return Result.Failure<PaymentLinkResponse>(PaymentLinkErrors.AlreadyPaid(command.OrderId));
         }
 
+        // Fast-fail: check for an active link before starting the transaction
         bool existingLink = await db.PaymentLinks
             .AsNoTracking()
             .Where(pl => pl.OrderId == command.OrderId)
@@ -50,15 +52,6 @@ internal sealed class CreatePaymentLinkCommandHandler(
         {
             return Result.Failure<PaymentLinkResponse>(PaymentLinkErrors.ActiveLinkExists(command.OrderId));
         }
-
-        // Mark previous links as expired
-        await db.PaymentLinks
-            .Where(pl => pl.OrderId == command.OrderId)
-            .Where(pl => pl.Status == PaymentLinkStatus.Active)
-            .ExecuteUpdateAsync(s =>
-                    s.SetProperty(pl => pl.Status, PaymentLinkStatus.Expired),
-                cancellationToken
-            );
 
         string token = GenerateSecureToken();
         int expirationHours = command.ExpirationHours > 0 ? command.ExpirationHours : 24;
@@ -74,8 +67,31 @@ internal sealed class CreatePaymentLinkCommandHandler(
             CreatedAt = now
         };
 
-        await db.PaymentLinks.AddAsync(paymentLink, cancellationToken);
-        await db.SaveChangesAsync(cancellationToken);
+        await using var transaction = await db.BeginTransactionAsync(cancellationToken);
+
+        try
+        {
+            // Mark previous links as expired
+            await db.PaymentLinks
+                .Where(pl => pl.OrderId == command.OrderId)
+                .Where(pl => pl.Status == PaymentLinkStatus.Active)
+                .ExecuteUpdateAsync(s =>
+                        s.SetProperty(pl => pl.Status, PaymentLinkStatus.Expired),
+                    cancellationToken
+                );
+
+            await db.PaymentLinks.AddAsync(paymentLink, cancellationToken);
+            await db.SaveChangesAsync(cancellationToken);
+
+            await transaction.CommitAsync(cancellationToken);
+        }
+        catch (DbUpdateException ex) when (ex.InnerException is PostgresException
+                                           {
+                                               SqlState: PostgresErrorCodes.UniqueViolation
+                                           })
+        {
+            return Result.Failure<PaymentLinkResponse>(PaymentLinkErrors.ActiveLinkExists(command.OrderId));
+        }
 
         string baseUrl = configuration["App:PublicUrl"]!;
         string url = $"{baseUrl}/pay/{token}";
