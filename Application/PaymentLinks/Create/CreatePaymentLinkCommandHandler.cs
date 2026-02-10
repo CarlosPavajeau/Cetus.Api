@@ -96,6 +96,9 @@ internal sealed class CreatePaymentLinkCommandHandler(
 
         string baseUrl = configuration["App:PublicUrl"]!;
         string url = $"{baseUrl}/pay/{token}";
+        var timeRemaining = paymentLink.ExpiresAt > now
+            ? paymentLink.ExpiresAt - now
+            : TimeSpan.Zero;
 
         return new PaymentLinkResponse(
             paymentLink.Id,
@@ -105,7 +108,7 @@ internal sealed class CreatePaymentLinkCommandHandler(
             paymentLink.Status,
             paymentLink.ExpiresAt,
             paymentLink.CreatedAt,
-            paymentLink.ExpiresAt - now
+            timeRemaining.Milliseconds
         );
     }
 

@@ -68,7 +68,7 @@ internal sealed class FindPaymentLinkStateQueryHandler(
                 activeLink.Status,
                 activeLink.ExpiresAt,
                 activeLink.CreatedAt,
-                timeRemaining
+                timeRemaining.Milliseconds
             )
         );
     }

@@ -42,7 +42,7 @@ internal sealed class FindPaymentLinkQueryHandler(
             paymentLink.Status,
             paymentLink.ExpiresAt,
             paymentLink.CreatedAt,
-            timeRemaining
+            timeRemaining.Milliseconds
         );
     }
 }

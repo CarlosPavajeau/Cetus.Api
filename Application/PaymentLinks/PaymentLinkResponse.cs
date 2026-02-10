@@ -10,5 +10,5 @@ public sealed record PaymentLinkResponse(
     PaymentLinkStatus Status,
     DateTime ExpiresAt,
     DateTime CreatedAt,
-    TimeSpan? TimeRemaining
+    int TimeRemaining
 );
