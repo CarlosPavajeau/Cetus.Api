@@ -61,6 +61,7 @@ internal sealed class CreatePaymentLinkCommandHandler(
             );
 
         string token = GenerateSecureToken();
+        int expirationHours = command.ExpirationHours > 0 ? command.ExpirationHours : 24;
         var now = dateTimeProvider.UtcNow;
 
         var paymentLink = new PaymentLink
@@ -69,7 +70,7 @@ internal sealed class CreatePaymentLinkCommandHandler(
             OrderId = command.OrderId,
             Token = token,
             Status = PaymentLinkStatus.Active,
-            ExpiresAt = now.AddHours(command.ExpirationHours),
+            ExpiresAt = now.AddHours(expirationHours),
             CreatedAt = now
         };
 
