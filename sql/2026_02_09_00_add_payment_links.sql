@@ -12,6 +12,6 @@ CREATE TABLE payment_links
     FOREIGN KEY (order_id) REFERENCES orders (id) ON DELETE CASCADE
 );
 
-CREATE INDEX idx_payment_links_order_active
+CREATE UNIQUE INDEX idx_payment_links_order_active
     ON payment_links (order_id, status)
     WHERE status = 'active';
