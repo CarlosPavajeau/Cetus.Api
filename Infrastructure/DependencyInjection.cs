@@ -14,6 +14,7 @@ using Infrastructure.Database;
 using Infrastructure.DomainEvents;
 using Infrastructure.Email;
 using Infrastructure.MercadoPago;
+using Infrastructure.PaymentLinks.Jobs;
 using Infrastructure.Products;
 using Infrastructure.Reviews.Jobs;
 using Infrastructure.Stores;
@@ -298,6 +299,19 @@ public static class DependencyInjection
                     .WithIdentity($"{sendPendingReviewRequestsJobKey.Name}-trigger")
                     .WithCronSchedule("0 0 9 * * ?") // Every day at 9 AM UTC
                     .WithDescription("Send pending review requests job trigger");
+            });
+
+            var expirePaymentLinksJobKey = new JobKey(ExpirePaymentLinksJob.Name);
+            config.AddJob<ExpirePaymentLinksJob>(options =>
+                options.WithIdentity(expirePaymentLinksJobKey));
+
+            config.AddTrigger(trigger =>
+            {
+                trigger
+                    .ForJob(expirePaymentLinksJobKey)
+                    .WithIdentity($"{expirePaymentLinksJobKey.Name}-trigger")
+                    .WithCronSchedule("0 */30 * * * ?") // Every 30 minutes
+                    .WithDescription("Expire payment links job trigger");
             });
         });
 
