@@ -6,9 +6,9 @@ using SharedKernel;
 
 namespace Application.Orders.Pay;
 
-internal sealed class SendNotificationEmailWhenPaidOrder(
+internal sealed class SendCustomerNotificationEmailWhenPaidOrder(
     IEmailSender emailSender,
-    ILogger<SendNotificationEmailWhenPaidOrder> logger
+    ILogger<SendCustomerNotificationEmailWhenPaidOrder> logger
 ) : IDomainEventHandler<PaidOrderDomainEvent>
 {
     private static readonly CultureInfo ColombianCulture = new("es-CO");
