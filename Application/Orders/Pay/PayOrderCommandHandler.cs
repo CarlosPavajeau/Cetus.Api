@@ -28,13 +28,14 @@ internal sealed class PayOrderCommandHandler(IApplicationDbContext db, IDateTime
         }
 
         var oldStatus = order.Status;
+        var paymentConfirmedAt = dateTimeProvider.UtcNow;
 
         order.Status = OrderStatus.PaymentConfirmed;
         order.TransactionId = command.TransactionId;
         order.PaymentProvider = command.PaymentProvider;
         order.PaymentMethod = command.PaymentMethod;
         order.PaymentStatus = PaymentStatus.Verified;
-        order.PaymentVerifiedAt = dateTimeProvider.UtcNow;
+        order.PaymentVerifiedAt = paymentConfirmedAt;
 
         order.Raise(new PaidOrderDomainEvent(new PaidOrder(
             order.Id,
@@ -50,7 +51,7 @@ internal sealed class PayOrderCommandHandler(IApplicationDbContext db, IDateTime
             OrderId = order.Id,
             FromStatus = oldStatus,
             ToStatus = OrderStatus.PaymentConfirmed,
-            CreatedAt = dateTimeProvider.UtcNow
+            CreatedAt = paymentConfirmedAt
         };
 
         await db.OrderTimeline.AddAsync(timelineEntry, cancellationToken);
