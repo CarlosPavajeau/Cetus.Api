@@ -19,7 +19,6 @@ internal sealed class FindPaymentLinkQueryHandler(
         var now = dateTimeProvider.UtcNow;
         var paymentLink = await db.PaymentLinks
             .Where(pl => pl.Token == query.Token)
-            .Where(pl => pl.Status == PaymentLinkStatus.Active && pl.ExpiresAt > now)
             .FirstOrDefaultAsync(cancellationToken);
 
         if (paymentLink is null)
