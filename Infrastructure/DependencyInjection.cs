@@ -279,7 +279,15 @@ public static class DependencyInjection
 
     private static IServiceCollection AddCache(this IServiceCollection services)
     {
-        services.AddFusionCache().AsHybridCache();
+        services.AddFusionCache()
+            .WithDefaultEntryOptions(new FusionCacheEntryOptions
+            {
+                Duration = TimeSpan.FromMinutes(10),
+                EagerRefreshThreshold = 0.8f,
+                FactorySoftTimeout = TimeSpan.FromSeconds(1),
+                AllowTimedOutFactoryBackgroundCompletion = true
+            })
+            .AsHybridCache();
 
         return services;
     }
