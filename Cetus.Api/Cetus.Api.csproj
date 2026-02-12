@@ -5,13 +5,13 @@
         <PackageReference Include="EFCore.NamingConventions"/>
         <PackageReference Include="FluentValidation.DependencyInjectionExtensions"/>
         <PackageReference Include="Microsoft.ApplicationInsights.AspNetCore"/>
+        <PackageReference Include="Microsoft.AspNetCore.OpenApi" />
         <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL"/>
         <PackageReference Include="Resend"/>
         <PackageReference Include="Serilog"/>
         <PackageReference Include="Serilog.AspNetCore"/>
         <PackageReference Include="Serilog.Sinks.ApplicationInsights"/>
         <PackageReference Include="Serilog.Sinks.OpenTelemetry"/>
-        <PackageReference Include="Swashbuckle.AspNetCore"/>
         <PackageReference Include="ZiggyCreatures.FusionCache"/>
     </ItemGroup>
 

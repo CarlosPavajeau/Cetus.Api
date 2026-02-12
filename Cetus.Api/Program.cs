@@ -37,7 +37,7 @@ builder.Host.UseSerilog((context, loggerConfig) =>
     }
 });
 
-builder.Services.AddSwaggerGenWithAuth();
+builder.Services.AddOpenApi();
 
 builder.Services.ConfigureHttpJsonOptions(options =>
 {
@@ -72,8 +72,7 @@ app.MapEndpoints(apiGroup);
 
 if (app.Environment.IsDevelopment())
 {
-    app.UseSwagger();
-    app.UseSwaggerUI();
+    app.MapOpenApi();
 }
 
 app.MapHealthChecks("health", new HealthCheckOptions
