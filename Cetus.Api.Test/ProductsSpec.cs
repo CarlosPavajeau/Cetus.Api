@@ -954,7 +954,6 @@ public class ProductsSpec(ApplicationTestCase factory) : ApplicationContextTestC
 
         var command = new UpdateProductVariantCommand(
             variant.Id,
-            variant.Stock + 5,
             variant.Price + 10.00m,
             true,
             true
@@ -969,7 +968,6 @@ public class ProductsSpec(ApplicationTestCase factory) : ApplicationContextTestC
         var updatedVariant = await response.DeserializeAsync<SimpleProductVariantResponse>();
 
         updatedVariant.ShouldNotBeNull();
-        updatedVariant.Stock.ShouldBe(command.Stock);
         updatedVariant.Price.ShouldBe(command.Price);
     }
 
