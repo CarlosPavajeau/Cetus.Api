@@ -29,7 +29,8 @@ internal static class LoggingDecorator
             }
             else
             {
-                logger.LogError("Completed command {CommandName} with error", typeof(TCommand).Name);
+                logger.LogError("Completed command {CommandName} with error in {Elapsed}ms", typeof(TCommand).Name,
+                    stopwatch.ElapsedMilliseconds);
             }
 
             return result;
@@ -58,7 +59,8 @@ internal static class LoggingDecorator
             }
             else
             {
-                logger.LogError("Completed command {CommandName} with error", typeof(TCommand).Name);
+                logger.LogError("Completed command {CommandName} with error in {Elapsed}ms", typeof(TCommand).Name,
+                    stopwatch.ElapsedMilliseconds);
             }
 
             return result;
@@ -87,7 +89,8 @@ internal static class LoggingDecorator
             }
             else
             {
-                logger.LogError("Completed query {QueryName} with error", typeof(TQuery).Name);
+                logger.LogError("Completed query {QueryName} with error in {Elapsed}ms", typeof(TQuery).Name,
+                    stopwatch.ElapsedMilliseconds);
             }
 
             return result;
