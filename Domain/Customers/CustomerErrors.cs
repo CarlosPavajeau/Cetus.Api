@@ -19,4 +19,12 @@ public static class CustomerErrors
             $"Customer with phone number {phone} was not found."
         );
     }
+    
+    public static Error PhoneNumberAlreadyUsed(string phone)
+    {
+        return Error.Conflict(
+            "Customers.PhoneNumberAlreadyUsed",
+            $"The phone number {phone} is already used by another customer."
+        );
+    }
 }
