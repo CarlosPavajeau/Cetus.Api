@@ -1,5 +1,6 @@
 ﻿using System.Reflection;
 using System.Threading.RateLimiting;
+using Application.Abstractions.Configurations;
 using Application.Abstractions.Data;
 using Application.Abstractions.Email;
 using Application.Abstractions.MercadoPago;
@@ -11,6 +12,7 @@ using Domain.Orders;
 using Domain.PaymentLinks;
 using Domain.Products;
 using Domain.Reviews;
+using Infrastructure.Configurations;
 using Infrastructure.Database;
 using Infrastructure.DomainEvents;
 using Infrastructure.Email;
@@ -81,6 +83,30 @@ public static class DependencyInjection
         services.AddHostedService<DomainEventsPooler>();
 
         services.AddScoped<IStockReservationService, StockReservationService>();
+
+        services.AddOptions<AppSettings>()
+            .BindConfiguration(AppSettings.ConfigurationSection)
+            .ValidateOnStart();
+
+        services.AddOptions<AwsSettings>()
+            .BindConfiguration(AwsSettings.ConfigurationSection)
+            .ValidateOnStart();
+
+        services.AddOptions<JwtSettings>()
+            .BindConfiguration(JwtSettings.ConfigurationSection)
+            .ValidateOnStart();
+
+        services.AddOptions<ResendSettings>()
+            .BindConfiguration(ResendSettings.ConfigurationSection)
+            .ValidateOnStart();
+
+        services.AddOptions<MercadoPagoSettings>()
+            .BindConfiguration(MercadoPagoSettings.ConfigurationSection)
+            .ValidateOnStart();
+
+        services.AddOptions<WompiSettings>()
+            .BindConfiguration(WompiSettings.ConfigurationSection)
+            .ValidateOnStart();
 
         return services;
     }

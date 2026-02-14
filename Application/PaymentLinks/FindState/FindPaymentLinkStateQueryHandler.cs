@@ -1,9 +1,10 @@
+using Application.Abstractions.Configurations;
 using Application.Abstractions.Data;
 using Application.Abstractions.Messaging;
 using Domain.Orders;
 using Domain.PaymentLinks;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Options;
 using SharedKernel;
 
 namespace Application.PaymentLinks.FindState;
@@ -11,10 +12,12 @@ namespace Application.PaymentLinks.FindState;
 internal sealed class FindPaymentLinkStateQueryHandler(
     IApplicationDbContext db,
     ITenantContext tenant,
-    IConfiguration configuration,
+    IOptions<AppSettings> options,
     IDateTimeProvider dateTimeProvider)
     : IQueryHandler<FindPaymentLinkStateQuery, PaymentLinkStateResponse>
 {
+    private readonly AppSettings _appSettings = options.Value;
+
     public async Task<Result<PaymentLinkStateResponse>> Handle(FindPaymentLinkStateQuery query,
         CancellationToken cancellationToken)
     {
@@ -54,7 +57,7 @@ internal sealed class FindPaymentLinkStateQueryHandler(
         var timeRemaining = activeLink.ExpiresAt > dateTimeProvider.UtcNow
             ? activeLink.ExpiresAt - dateTimeProvider.UtcNow
             : TimeSpan.Zero;
-        string baseUrl = configuration["App:PublicUrl"]!;
+        string baseUrl = _appSettings.PublicUrl;
         string url = $"{baseUrl}/pay/{activeLink.Token}";
 
         return new PaymentLinkStateResponse(

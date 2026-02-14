@@ -1,3 +1,4 @@
+using Application.Abstractions.Configurations;
 using Application.Abstractions.Data;
 using Application.Abstractions.MercadoPago;
 using Application.Abstractions.Messaging;
@@ -5,7 +6,7 @@ using Domain.Orders;
 using Domain.Stores;
 using MercadoPago.Client.Preference;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Options;
 using SharedKernel;
 
 namespace Application.Orders.CreatePayment;
@@ -13,9 +14,11 @@ namespace Application.Orders.CreatePayment;
 internal sealed class CreateOrderPaymentCommandHandler(
     IApplicationDbContext db,
     IMercadoPagoClient mercadoPagoClient,
-    IConfiguration configuration
+    IOptions<AppSettings> options
 ) : ICommandHandler<CreateOrderPaymentCommand, string>
 {
+    private readonly AppSettings _appSettings = options.Value;
+
     public async Task<Result<string>> Handle(CreateOrderPaymentCommand command, CancellationToken cancellationToken)
     {
         var order = await db.Orders
@@ -51,7 +54,7 @@ internal sealed class CreateOrderPaymentCommandHandler(
             return Result.Failure<string>(StoreErrors.NotConnectedToMercadoPago(store.Slug));
         }
 
-        string? cdnUrl = configuration["CdnUrl"];
+        string? cdnUrl = _appSettings.CdnUrl;
         var createPreferenceRequest = new PreferenceRequest
         {
             ExternalReference = order.Id.ToString(),

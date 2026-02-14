@@ -1,24 +1,28 @@
+using Application.Abstractions.Configurations;
 using Application.Abstractions.Data;
+using Application.Abstractions.Email;
 using Domain.Reviews;
+using Infrastructure.Configurations;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 using Quartz;
-using Resend;
 using SharedKernel;
 
 namespace Infrastructure.Reviews.Jobs;
 
 public class SendPendingReviewRequestsJob(
     IApplicationDbContext db,
-    IResend resend,
+    IEmailSender emailSender,
     IDateTimeProvider dateTimeProvider,
-    IConfiguration configuration,
+    IOptions<AppSettings> appOptions,
     ILogger<SendPendingReviewRequestsJob> logger)
     : IJob
 {
     public const string Name = nameof(SendPendingReviewRequestsJob);
     private const string EmailSubject = "¡Cuéntanos sobre tu experiencia!";
+    
+    private readonly AppSettings _appSettings = appOptions.Value;
 
     public async Task Execute(IJobExecutionContext context)
     {
@@ -36,13 +40,8 @@ public class SendPendingReviewRequestsJob(
             logger.LogInformation("No pending review requests to send at {ExecutionTime}", context.FireTimeUtc);
             return;
         }
-
-        string senderEmail = configuration["Resend:From"]
-                             ?? throw new InvalidOperationException(
-                                 "Sender email configuration 'Resend:From' is missing");
-        string baseUrl = configuration["App:PublicUrl"]
-                         ?? throw new InvalidOperationException("PublicUrl configuration is missing");
-
+        
+        string baseUrl = _appSettings.PublicUrl;
         foreach (var request in pendingRequests)
         {
             if (request.Customer?.Email is null)
@@ -54,7 +53,8 @@ public class SendPendingReviewRequestsJob(
             {
                 string reviewUrl = BuildReviewUrl(request, baseUrl);
                 string messageBody = BuildMessageBody(request, reviewUrl);
-                await SendReviewRequestEmail(request.Customer.Email, EmailSubject, messageBody, senderEmail);
+                
+                await emailSender.SendEmail(EmailSubject, messageBody, request.Customer.Email, context.CancellationToken);
 
                 request.Status = ReviewRequestStatus.Sent;
             }
@@ -72,20 +72,6 @@ public class SendPendingReviewRequestsJob(
     private static string BuildReviewUrl(ReviewRequest request, string baseUrl)
     {
         return $"{baseUrl}/reviews/new?token={request.Token}";
-    }
-
-    private async Task SendReviewRequestEmail(string email, string subject, string body, string senderEmail)
-    {
-        var message = new EmailMessage
-        {
-            From = senderEmail
-        };
-
-        message.To.Add(email);
-        message.Subject = subject;
-        message.HtmlBody = body;
-
-        await resend.EmailSendAsync(message);
     }
 
     private static string BuildMessageBody(ReviewRequest request, string reviewUrl)

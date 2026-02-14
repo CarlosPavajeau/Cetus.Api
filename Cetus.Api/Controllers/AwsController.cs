@@ -3,9 +3,11 @@ using Amazon.Runtime;
 using Amazon.S3;
 using Amazon.S3.Model;
 using Cetus.Api.Requests.Aws;
+using Infrastructure.Configurations;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.RateLimiting;
+using Microsoft.Extensions.Options;
 
 namespace Cetus.Api.Controllers;
 
@@ -13,37 +15,31 @@ namespace Cetus.Api.Controllers;
 [ApiController]
 [EnableRateLimiting("fixed")]
 [Route("api/[controller]")]
-public class AwsController : ControllerBase
+public class AwsController(IOptions<AwsSettings> options, ILogger<AwsController> logger)
+    : ControllerBase
 {
     private const string FailedToGeneratePreSignedUrl = "Failed to generate pre-signed URL";
 
-    private readonly IConfiguration _configuration;
-    private readonly ILogger<AwsController> _logger;
-
-    public AwsController(IConfiguration configuration, ILogger<AwsController> logger)
-    {
-        _configuration = configuration;
-        _logger = logger;
-    }
+    private readonly AwsSettings _settings = options.Value;
 
     [HttpPost("s3/presigned-url")]
     public async Task<IActionResult> GetPreSignedUrl([FromBody] CreateSignedUrlRequest request)
     {
-        string? region = _configuration["AWS:Region"];
-        string? bucketName = _configuration["AWS:BucketName"];
+        string region = _settings.Region;
+        string bucketName = _settings.BucketName;
 
         if (string.IsNullOrWhiteSpace(region) || string.IsNullOrWhiteSpace(bucketName))
         {
-            _logger.LogError("AWS configuration is missing");
+            logger.LogError("AWS configuration is missing");
             return BadRequest("AWS configuration is missing");
         }
 
-        string? accessKey = _configuration["AWS:AccessKey"];
-        string? secretKey = _configuration["AWS:SecretKey"];
+        string accessKey = _settings.AccessKey;
+        string secretKey = _settings.SecretKey;
 
         if (string.IsNullOrWhiteSpace(accessKey) || string.IsNullOrWhiteSpace(secretKey))
         {
-            _logger.LogError("AWS credentials are missing");
+            logger.LogError("AWS credentials are missing");
             return BadRequest("AWS credentials are missing");
         }
 
@@ -64,15 +60,15 @@ public class AwsController : ControllerBase
 
             if (!string.IsNullOrWhiteSpace(url))
             {
-                return Ok(new {Url = url});
+                return Ok(new { Url = url });
             }
 
-            _logger.LogError(FailedToGeneratePreSignedUrl);
+            logger.LogError(FailedToGeneratePreSignedUrl);
             return BadRequest(FailedToGeneratePreSignedUrl);
         }
         catch (Exception e)
         {
-            _logger.LogError(e, FailedToGeneratePreSignedUrl);
+            logger.LogError(e, FailedToGeneratePreSignedUrl);
             return BadRequest(FailedToGeneratePreSignedUrl);
         }
     }

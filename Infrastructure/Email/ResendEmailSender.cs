@@ -1,13 +1,15 @@
 using Application.Abstractions.Email;
-using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 using Resend;
 
 namespace Infrastructure.Email;
 
-public class ResendEmailSender(IResend resend, IConfiguration configuration, ILogger<ResendEmailSender> logger)
+public class ResendEmailSender(IResend resend, IOptions<ResendSettings> options, ILogger<ResendEmailSender> logger)
     : IEmailSender
 {
+    private readonly ResendSettings _settings = options.Value;
+
     public async Task SendEmail(string subject, string body, string to, CancellationToken cancellationToken = default)
     {
         await SendEmail(subject, body, [to], cancellationToken);
@@ -18,10 +20,7 @@ public class ResendEmailSender(IResend resend, IConfiguration configuration, ILo
     {
         try
         {
-            string senderEmail = configuration["Resend:From"]
-                                 ?? throw new InvalidOperationException(
-                                     "Sender email configuration 'Resend:From' is missing");
-
+            string senderEmail = _settings.From;
             var message = new EmailMessage
             {
                 From = senderEmail

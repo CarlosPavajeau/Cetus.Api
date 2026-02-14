@@ -5,13 +5,14 @@ using MercadoPago.Client.Payment;
 using MercadoPago.Client.Preference;
 using MercadoPago.Resource.Payment;
 using MercadoPago.Resource.Preference;
-using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 using PaymentMethod = Domain.Orders.PaymentMethod;
 
 namespace Infrastructure.MercadoPago;
 
-public class MercadoPagoClient(IConfiguration configuration, ILogger<MercadoPagoClient> logger) : IMercadoPagoClient
+public class MercadoPagoClient(IOptions<MercadoPagoSettings> options, ILogger<MercadoPagoClient> logger)
+    : IMercadoPagoClient
 {
     private static readonly Dictionary<string, PaymentMethod> PaymentMethods = new()
     {
@@ -24,17 +25,17 @@ public class MercadoPagoClient(IConfiguration configuration, ILogger<MercadoPago
         { "account_money", PaymentMethod.BankTransfer }
     };
 
+    private readonly MercadoPagoSettings _settings = options.Value;
+
     public async Task<string?> GenerateAuthorizationUrl(CancellationToken cancellationToken = default)
     {
-        string? clientId = configuration["MercadoPago:ClientId"];
-
+        string clientId = _settings.ClientId;
         if (string.IsNullOrEmpty(clientId))
         {
             throw new InvalidOperationException("MercadoPago clientId is missing");
         }
 
-        string? redirectUri = configuration["MercadoPago:RedirectUri"];
-
+        string redirectUri = _settings.RedirectUri;
         if (string.IsNullOrEmpty(redirectUri))
         {
             throw new InvalidOperationException("MercadoPago redirect URI is missing");
@@ -66,12 +67,13 @@ public class MercadoPagoClient(IConfiguration configuration, ILogger<MercadoPago
         try
         {
             var preferenceClient = new PreferenceClient();
-            var options = new RequestOptions
+            var requestOptions = new RequestOptions
             {
                 AccessToken = accessToken
             };
 
-            var preference = await preferenceClient.CreateAsync(request, options, cancellationToken: cancellationToken);
+            var preference =
+                await preferenceClient.CreateAsync(request, requestOptions, cancellationToken: cancellationToken);
 
             return preference;
         }
@@ -88,12 +90,12 @@ public class MercadoPagoClient(IConfiguration configuration, ILogger<MercadoPago
         try
         {
             var paymentClient = new PaymentClient();
-            var options = new RequestOptions
+            var requestOptions = new RequestOptions
             {
                 AccessToken = accessToken
             };
 
-            var result = await paymentClient.CancelAsync(paymentId, options, cancellationToken);
+            var result = await paymentClient.CancelAsync(paymentId, requestOptions, cancellationToken);
 
             return result;
         }
@@ -110,12 +112,12 @@ public class MercadoPagoClient(IConfiguration configuration, ILogger<MercadoPago
         try
         {
             var paymentClient = new PaymentClient();
-            var options = new RequestOptions
+            var requestOptions = new RequestOptions
             {
                 AccessToken = accessToken
             };
 
-            var result = await paymentClient.RefundAsync(paymentId, options, cancellationToken);
+            var result = await paymentClient.RefundAsync(paymentId, requestOptions, cancellationToken);
 
             return result;
         }

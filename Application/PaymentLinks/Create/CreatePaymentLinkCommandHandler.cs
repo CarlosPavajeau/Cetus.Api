@@ -1,10 +1,11 @@
 using System.Security.Cryptography;
+using Application.Abstractions.Configurations;
 using Application.Abstractions.Data;
 using Application.Abstractions.Messaging;
 using Domain.Orders;
 using Domain.PaymentLinks;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Options;
 using Npgsql;
 using SharedKernel;
 
@@ -13,10 +14,12 @@ namespace Application.PaymentLinks.Create;
 internal sealed class CreatePaymentLinkCommandHandler(
     IApplicationDbContext db,
     ITenantContext tenant,
-    IConfiguration configuration,
+    IOptions<AppSettings> options,
     IDateTimeProvider dateTimeProvider)
     : ICommandHandler<CreatePaymentLinkCommand, PaymentLinkResponse>
 {
+    private readonly AppSettings _appSettings = options.Value;
+
     public async Task<Result<PaymentLinkResponse>> Handle(CreatePaymentLinkCommand command,
         CancellationToken cancellationToken)
     {
@@ -94,7 +97,7 @@ internal sealed class CreatePaymentLinkCommandHandler(
             return Result.Failure<PaymentLinkResponse>(PaymentLinkErrors.ActiveLinkExists(command.OrderId));
         }
 
-        string baseUrl = configuration["App:PublicUrl"]!;
+        string baseUrl = _appSettings.PublicUrl;
         string url = $"{baseUrl}/pay/{token}";
         var timeRemaining = paymentLink.ExpiresAt > now
             ? paymentLink.ExpiresAt - now
