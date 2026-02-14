@@ -2,7 +2,6 @@ using Application.Abstractions.Configurations;
 using Application.Abstractions.Data;
 using Application.Abstractions.Email;
 using Domain.Reviews;
-using Infrastructure.Configurations;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
@@ -21,7 +20,7 @@ public class SendPendingReviewRequestsJob(
 {
     public const string Name = nameof(SendPendingReviewRequestsJob);
     private const string EmailSubject = "¡Cuéntanos sobre tu experiencia!";
-    
+
     private readonly AppSettings _appSettings = appOptions.Value;
 
     public async Task Execute(IJobExecutionContext context)
@@ -40,7 +39,7 @@ public class SendPendingReviewRequestsJob(
             logger.LogInformation("No pending review requests to send at {ExecutionTime}", context.FireTimeUtc);
             return;
         }
-        
+
         string baseUrl = _appSettings.PublicUrl;
         foreach (var request in pendingRequests)
         {
@@ -53,8 +52,9 @@ public class SendPendingReviewRequestsJob(
             {
                 string reviewUrl = BuildReviewUrl(request, baseUrl);
                 string messageBody = BuildMessageBody(request, reviewUrl);
-                
-                await emailSender.SendEmail(EmailSubject, messageBody, request.Customer.Email, context.CancellationToken);
+
+                await emailSender.SendEmail(EmailSubject, messageBody, request.Customer.Email,
+                    context.CancellationToken);
 
                 request.Status = ReviewRequestStatus.Sent;
             }
