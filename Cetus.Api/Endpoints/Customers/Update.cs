@@ -3,7 +3,6 @@ using Application.Customers.Find;
 using Application.Customers.Update;
 using Cetus.Api.Extensions;
 using Cetus.Api.Infrastructure;
-using Microsoft.Extensions.Caching.Hybrid;
 
 namespace Cetus.Api.Endpoints.Customers;
 
@@ -15,17 +14,9 @@ internal sealed class Update : IEndpoint
             Guid id,
             UpdateCustomerCommand command,
             ICommandHandler<UpdateCustomerCommand, CustomerResponse> handler,
-            HybridCache cache,
             CancellationToken cancellationToken) =>
         {
-            string normalizedPhone = new([.. command.Phone.Where(char.IsDigit)]);
-            var result = await handler.Handle(command with { Id = id, Phone = normalizedPhone }, cancellationToken);
-
-            string cacheKey = $"customer-by-phone-{normalizedPhone}";
-            if (result.IsSuccess)
-            {
-                await cache.RemoveAsync(cacheKey, cancellationToken);
-            }
+            var result = await handler.Handle(command with { Id = id }, cancellationToken);
 
             return result.Match(Results.Ok, CustomResults.Problem);
         }).WithTags(Tags.Customers);

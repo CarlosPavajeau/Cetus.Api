@@ -3,11 +3,12 @@ using Application.Abstractions.Messaging;
 using Application.Customers.Find;
 using Domain.Customers;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Caching.Hybrid;
 using SharedKernel;
 
 namespace Application.Customers.Update;
 
-internal sealed class UpdateCustomerCommandHandler(IApplicationDbContext db)
+internal sealed class UpdateCustomerCommandHandler(IApplicationDbContext db, HybridCache cache)
     : ICommandHandler<UpdateCustomerCommand, CustomerResponse>
 {
     public async Task<Result<CustomerResponse>> Handle(UpdateCustomerCommand command,
@@ -30,14 +31,18 @@ internal sealed class UpdateCustomerCommandHandler(IApplicationDbContext db)
             }
         }
 
+        string normalizedPhone = new([.. command.Phone.Where(char.IsDigit)]);
+        string oldPhone = customer.Phone;
+
         customer.Name = command.Name;
-        customer.Phone = command.Phone;
+        customer.Phone = normalizedPhone;
         customer.Email = command.Email;
         customer.DocumentType = command.DocumentType;
         customer.DocumentNumber = command.DocumentNumber;
         customer.Address = command.Address;
 
         await db.SaveChangesAsync(cancellationToken);
+        await cache.RemoveAsync($"customer-by-phone-{oldPhone}", cancellationToken);
 
         return new CustomerResponse(
             customer.Id,
