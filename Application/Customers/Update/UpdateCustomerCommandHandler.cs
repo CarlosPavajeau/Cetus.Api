@@ -8,7 +8,7 @@ using SharedKernel;
 
 namespace Application.Customers.Update;
 
-internal sealed class UpdateCustomerCommandHandler(IApplicationDbContext db, HybridCache cache)
+internal sealed class UpdateCustomerCommandHandler(IApplicationDbContext db, ITenantContext tenant, HybridCache cache)
     : ICommandHandler<UpdateCustomerCommand, CustomerResponse>
 {
     public async Task<Result<CustomerResponse>> Handle(UpdateCustomerCommand command,
@@ -43,6 +43,7 @@ internal sealed class UpdateCustomerCommandHandler(IApplicationDbContext db, Hyb
 
         await db.SaveChangesAsync(cancellationToken);
         await cache.RemoveAsync($"customer-by-phone-{oldPhone}", cancellationToken);
+        await cache.RemoveAsync($"customer:{customer.Id}:t={tenant.Id}", cancellationToken);
 
         return new CustomerResponse(
             customer.Id,
