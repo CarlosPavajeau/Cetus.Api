@@ -21,9 +21,10 @@ internal sealed class UpdateCustomerCommandHandler(IApplicationDbContext db, ITe
             return Result.Failure<CustomerResponse>(CustomerErrors.NotFound(command.Id));
         }
 
-        if (!string.Equals(customer.Phone, command.Phone, StringComparison.OrdinalIgnoreCase))
+        string normalizedPhone = new([.. command.Phone.Where(char.IsDigit)]);
+        if (!string.Equals(customer.Phone, normalizedPhone, StringComparison.OrdinalIgnoreCase))
         {
-            var phoneValidation = await EnsurePhoneIsUnique(command, cancellationToken);
+            var phoneValidation = await EnsurePhoneIsUnique(command.Id, normalizedPhone, cancellationToken);
 
             if (phoneValidation.IsFailure)
             {
@@ -31,7 +32,6 @@ internal sealed class UpdateCustomerCommandHandler(IApplicationDbContext db, ITe
             }
         }
 
-        string normalizedPhone = new([.. command.Phone.Where(char.IsDigit)]);
         string oldPhone = customer.Phone;
 
         customer.Name = command.Name;
@@ -56,15 +56,16 @@ internal sealed class UpdateCustomerCommandHandler(IApplicationDbContext db, ITe
     }
 
     private async Task<Result<CustomerResponse>> EnsurePhoneIsUnique(
-        UpdateCustomerCommand command,
+        Guid currentCustomerId,
+        string phone,
         CancellationToken cancellationToken)
     {
         bool phoneAlreadyUsed = await db.Customers
             .AsNoTracking()
-            .AnyAsync(c => c.Phone == command.Phone && c.Id != command.Id, cancellationToken);
+            .AnyAsync(c => c.Phone == phone && c.Id != currentCustomerId, cancellationToken);
 
         return phoneAlreadyUsed
-            ? Result.Failure<CustomerResponse>(CustomerErrors.PhoneNumberAlreadyUsed(command.Phone))
+            ? Result.Failure<CustomerResponse>(CustomerErrors.PhoneNumberAlreadyUsed(phone))
             : Result.Success<CustomerResponse>(default!);
     }
 }
