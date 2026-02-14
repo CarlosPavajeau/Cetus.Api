@@ -221,6 +221,121 @@ public class CustomersSpec(ApplicationTestCase factory) : ApplicationContextTest
         result.Page.ShouldBe(1);
     }
 
+    [Fact(DisplayName = "Should update a customer")]
+    public async Task ShouldUpdateCustomer()
+    {
+        // Arrange
+        var customer = await CreateCustomer();
+
+        string newName = _faker.Person.FullName;
+        string newEmail = _faker.Internet.Email();
+        string newPhone = _faker.Phone.PhoneNumber("##########");
+        string newDocumentNumber = _faker.Person.NationalNumber();
+        string newAddress = _faker.Address.FullAddress();
+
+        var updateCommand = new
+        {
+            Name = newName,
+            Email = newEmail,
+            Phone = newPhone,
+            DocumentType = DocumentType.CC,
+            DocumentNumber = newDocumentNumber,
+            Address = newAddress
+        };
+
+        // Act
+        var response = await Client.PutAsJsonAsync($"api/customers/{customer.Id}", updateCommand);
+
+        // Assert
+        response.EnsureSuccessStatusCode();
+
+        var updated = await response.DeserializeAsync<CustomerResponse>();
+
+        updated.ShouldNotBeNull();
+        updated.Name.ShouldBe(newName);
+        updated.Email.ShouldBe(newEmail);
+        updated.Phone.ShouldBe(newPhone);
+        updated.DocumentType.ShouldBe(DocumentType.CC);
+        updated.DocumentNumber.ShouldBe(newDocumentNumber);
+    }
+
+    [Fact(DisplayName = "Should return not found when updating non-existing customer")]
+    public async Task ShouldReturnNotFoundWhenUpdatingNonExistingCustomer()
+    {
+        // Arrange
+        var updateCommand = new
+        {
+            Name = _faker.Person.FullName,
+            Phone = _faker.Phone.PhoneNumber("##########")
+        };
+
+        // Act
+        var response = await Client.PutAsJsonAsync($"api/customers/{Guid.CreateVersion7()}", updateCommand);
+
+        // Assert
+        response.StatusCode.ShouldBe(HttpStatusCode.NotFound);
+    }
+
+    [Fact(DisplayName = "Should return conflict when updating phone to one already used")]
+    public async Task ShouldReturnConflictWhenPhoneAlreadyUsed()
+    {
+        // Arrange
+        var existingCustomer = await CreateCustomer();
+        var anotherCustomer = await CreateCustomer();
+
+        string name = anotherCustomer.Name;
+        string phone = existingCustomer.Phone;
+        var updateCommand = new { Name = name, Phone = phone };
+
+        // Act
+        var response = await Client.PutAsJsonAsync($"api/customers/{anotherCustomer.Id}", updateCommand);
+
+        // Assert
+        response.StatusCode.ShouldBe(HttpStatusCode.Conflict);
+    }
+
+    [Fact(DisplayName = "Should return bad request when updating customer with empty name")]
+    public async Task ShouldReturnBadRequestWhenNameIsEmpty()
+    {
+        // Arrange
+        var customer = await CreateCustomer();
+
+        string phone = customer.Phone;
+        var updateCommand = new { Name = "", Phone = phone };
+
+        // Act
+        var response = await Client.PutAsJsonAsync($"api/customers/{customer.Id}", updateCommand);
+
+        // Assert
+        response.StatusCode.ShouldBe(HttpStatusCode.BadRequest);
+    }
+
+    private async Task<CustomerResponse> CreateCustomer()
+    {
+        var db = Services.GetRequiredService<IApplicationDbContext>();
+        var customer = new Customer
+        {
+            Id = Guid.CreateVersion7(),
+            DocumentType = DocumentType.CC,
+            DocumentNumber = _faker.Person.NationalNumber(),
+            Name = _faker.Person.FullName,
+            Email = _faker.Internet.Email(),
+            Phone = _faker.Phone.PhoneNumber("##########")
+        };
+
+        await db.Customers.AddAsync(customer);
+        await db.SaveChangesAsync();
+
+        return new CustomerResponse(
+            customer.Id,
+            customer.DocumentType,
+            customer.DocumentNumber,
+            customer.Name,
+            customer.Email,
+            customer.Phone
+        );
+    }
+
     private async Task<SimpleOrderResponse> CreateOrder(CreateProductWithVariantResponse product,
         CreateOrderCustomer customer)
     {

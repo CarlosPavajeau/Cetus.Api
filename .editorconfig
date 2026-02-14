@@ -348,6 +348,9 @@ dotnet_diagnostic.CS8618.severity = none
 # CA1054: URI parameters should not be strings
 dotnet_diagnostic.CA1054.severity = none
 
+# CA1873: Avoid potentially expensive logging
+dotnet_diagnostic.CA1873.severity = none
+
 # IDE Code Analyzers rules
 
 # IDE0005
