@@ -1,6 +1,7 @@
 using Domain.Auth;
 using Domain.Categories;
 using Domain.Coupons;
+using Domain.Customers;
 using Domain.Orders;
 using Domain.PaymentLinks;
 using Domain.Products;

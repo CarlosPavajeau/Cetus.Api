@@ -1,7 +1,7 @@
 using Application.Abstractions.Data;
 using Application.Abstractions.Messaging;
 using Application.Customers.Find;
-using Domain.Orders;
+using Domain.Customers;
 using Microsoft.EntityFrameworkCore;
 using SharedKernel;
 

@@ -4,6 +4,7 @@ using Application.Abstractions.Data;
 using Domain.Auth;
 using Domain.Categories;
 using Domain.Coupons;
+using Domain.Customers;
 using Domain.Orders;
 using Domain.PaymentLinks;
 using Domain.Products;
@@ -54,32 +55,6 @@ public sealed class ApplicationDbContext(
 
     public DbSet<User> Users { get; set; }
 
-    private sealed class DateTimeToUtcConverter() : ValueConverter<DateTime, DateTime>(Serialize, Deserialize)
-    {
-        private static readonly Expression<Func<DateTime, DateTime>> Deserialize =
-            x => x.Kind == DateTimeKind.Unspecified ? DateTime.SpecifyKind(x, DateTimeKind.Utc) : x;
-
-        private static readonly Expression<Func<DateTime, DateTime>> Serialize =
-            x => x.Kind == DateTimeKind.Unspecified ? DateTime.SpecifyKind(x, DateTimeKind.Utc) : x;
-    }
-
-    protected override void ConfigureConventions(ModelConfigurationBuilder configurationBuilder)
-    {
-        base.ConfigureConventions(configurationBuilder);
-
-        configurationBuilder
-            .Properties<DateTime>()
-            .HaveConversion<DateTimeToUtcConverter>();
-    }
-
-    protected override void OnModelCreating(ModelBuilder modelBuilder)
-    {
-        base.OnModelCreating(modelBuilder);
-
-        modelBuilder.HasPostgresExtension("pg_trgm");
-        modelBuilder.ApplyConfigurationsFromAssembly(GetType().Assembly);
-    }
-
     public override async Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)
     {
         // When should you publish domain events?
@@ -104,6 +79,23 @@ public sealed class ApplicationDbContext(
         return Database.BeginTransactionAsync(IsolationLevel.RepeatableRead, cancellationToken);
     }
 
+    protected override void ConfigureConventions(ModelConfigurationBuilder configurationBuilder)
+    {
+        base.ConfigureConventions(configurationBuilder);
+
+        configurationBuilder
+            .Properties<DateTime>()
+            .HaveConversion<DateTimeToUtcConverter>();
+    }
+
+    protected override void OnModelCreating(ModelBuilder modelBuilder)
+    {
+        base.OnModelCreating(modelBuilder);
+
+        modelBuilder.HasPostgresExtension("pg_trgm");
+        modelBuilder.ApplyConfigurationsFromAssembly(GetType().Assembly);
+    }
+
     private async Task PublishDomainEventsAsync()
     {
         var domainEvents = ChangeTracker
@@ -120,5 +112,14 @@ public sealed class ApplicationDbContext(
             .ToList();
 
         await domainEventsDispatcher.DispatchAsync(domainEvents);
+    }
+
+    private sealed class DateTimeToUtcConverter() : ValueConverter<DateTime, DateTime>(Serialize, Deserialize)
+    {
+        private static readonly Expression<Func<DateTime, DateTime>> Deserialize =
+            x => x.Kind == DateTimeKind.Unspecified ? DateTime.SpecifyKind(x, DateTimeKind.Utc) : x;
+
+        private static readonly Expression<Func<DateTime, DateTime>> Serialize =
+            x => x.Kind == DateTimeKind.Unspecified ? DateTime.SpecifyKind(x, DateTimeKind.Utc) : x;
     }
 }

@@ -1,6 +1,6 @@
 using System.ComponentModel.DataAnnotations;
 
-namespace Domain.Orders;
+namespace Domain.Customers;
 
 public sealed class Customer
 {

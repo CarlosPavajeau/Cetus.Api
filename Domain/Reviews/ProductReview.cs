@@ -1,4 +1,4 @@
-using Domain.Orders;
+using Domain.Customers;
 using Domain.Products;
 
 namespace Domain.Reviews;

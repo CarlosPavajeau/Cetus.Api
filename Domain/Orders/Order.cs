@@ -1,3 +1,4 @@
+using Domain.Customers;
 using Domain.States;
 using SharedKernel;
 

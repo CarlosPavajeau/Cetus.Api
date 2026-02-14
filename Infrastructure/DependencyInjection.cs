@@ -6,6 +6,7 @@ using Application.Abstractions.MercadoPago;
 using Application.Abstractions.Services;
 using Application.Abstractions.Wompi;
 using Domain.Coupons;
+using Domain.Customers;
 using Domain.Orders;
 using Domain.PaymentLinks;
 using Domain.Products;
@@ -50,8 +51,9 @@ public static class DependencyInjection
 
     public static IServiceCollection AddInfrastructure(
         this IServiceCollection services,
-        IConfiguration configuration) =>
-        services
+        IConfiguration configuration)
+    {
+        return services
             .AddServices()
             .AddDatabase(configuration)
             .AddHealthChecks(configuration)
@@ -64,6 +66,7 @@ public static class DependencyInjection
             .AddCache()
             .AddQuartz()
             .AddPayment(configuration);
+    }
 
     private static IServiceCollection AddServices(this IServiceCollection services)
     {
@@ -129,7 +132,7 @@ public static class DependencyInjection
         otel.ConfigureResource(resource =>
         {
             resource.AddService(
-                serviceName: serviceName,
+                serviceName,
                 serviceVersion: Assembly.GetExecutingAssembly().GetName().Version?.ToString() ?? "unknown",
                 serviceInstanceId: Environment.MachineName
             );
@@ -194,23 +197,6 @@ public static class DependencyInjection
         return services;
     }
 
-    public class JwksRetriever : IConfigurationRetriever<OpenIdConnectConfiguration>
-    {
-        public async Task<OpenIdConnectConfiguration> GetConfigurationAsync(
-            string address,
-            IDocumentRetriever retriever,
-            CancellationToken cancel)
-        {
-            string json = await retriever.GetDocumentAsync(address, cancel);
-            var jwks = new JsonWebKeySet(json);
-
-            return new OpenIdConnectConfiguration
-            {
-                JsonWebKeySet = jwks
-            };
-        }
-    }
-
     private static IServiceCollection AddAuthorizationInternal(this IServiceCollection services)
     {
         services.AddAuthorization();
@@ -265,8 +251,8 @@ public static class DependencyInjection
 
             options.AddPolicy("fixed", context =>
                 RateLimitPartition.GetFixedWindowLimiter(
-                    partitionKey: context.Connection.RemoteIpAddress?.ToString() ?? string.Empty,
-                    factory: _ => new FixedWindowRateLimiterOptions
+                    context.Connection.RemoteIpAddress?.ToString() ?? string.Empty,
+                    _ => new FixedWindowRateLimiterOptions
                     {
                         PermitLimit = 100,
                         Window = TimeSpan.FromMinutes(1)
@@ -338,5 +324,22 @@ public static class DependencyInjection
         services.AddTransient<IWompiClient, WompiClient>();
 
         return services;
+    }
+
+    public class JwksRetriever : IConfigurationRetriever<OpenIdConnectConfiguration>
+    {
+        public async Task<OpenIdConnectConfiguration> GetConfigurationAsync(
+            string address,
+            IDocumentRetriever retriever,
+            CancellationToken cancel)
+        {
+            string json = await retriever.GetDocumentAsync(address, cancel);
+            var jwks = new JsonWebKeySet(json);
+
+            return new OpenIdConnectConfiguration
+            {
+                JsonWebKeySet = jwks
+            };
+        }
     }
 }

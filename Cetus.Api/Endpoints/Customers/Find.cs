@@ -2,7 +2,7 @@ using Application.Abstractions.Data;
 using Application.Abstractions.Messaging;
 using Application.Customers.Find;
 using Cetus.Api.Infrastructure;
-using Domain.Orders;
+using Domain.Customers;
 using Microsoft.Extensions.Caching.Hybrid;
 using SharedKernel;
 

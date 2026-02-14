@@ -18,6 +18,7 @@ using Bogus.Extensions.Belgium;
 using Cetus.Api.Test.Shared;
 using Cetus.Api.Test.Shared.Fakers;
 using Cetus.Api.Test.Shared.Helpers;
+using Domain.Customers;
 using Domain.Orders;
 using Microsoft.Extensions.DependencyInjection;
 using SharedKernel;
@@ -27,11 +28,11 @@ namespace Cetus.Api.Test;
 
 public class OrdersSpec(ApplicationTestCase factory) : ApplicationContextTestCase(factory)
 {
-    private readonly Guid cityId = Guid.Parse("f97957e9-d820-4858-ac26-b5d03d658370");
     private const decimal DeliveryFee = 100m;
+    private readonly Faker _faker = new();
 
     private readonly CreateOrderCustomerFaker _orderCustomerFaker = new();
-    private readonly Faker _faker = new();
+    private readonly Guid cityId = Guid.Parse("f97957e9-d820-4858-ac26-b5d03d658370");
 
     private CreateOrderCommand GenerateCreateOrderCommand(CreateProductWithVariantResponse product, int quantity = 1)
     {

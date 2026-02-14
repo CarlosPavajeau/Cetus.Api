@@ -1,4 +1,5 @@
 using Application.Abstractions.Messaging;
+using Domain.Customers;
 using Domain.Orders;
 
 namespace Application.Orders.CreateSale;

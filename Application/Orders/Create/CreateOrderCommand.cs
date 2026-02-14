@@ -1,5 +1,5 @@
 using Application.Abstractions.Messaging;
-using Domain.Orders;
+using Domain.Customers;
 
 namespace Application.Orders.Create;
 

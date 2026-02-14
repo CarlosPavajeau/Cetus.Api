@@ -10,7 +10,7 @@ using Bogus.Extensions.Belgium;
 using Cetus.Api.Test.Shared;
 using Cetus.Api.Test.Shared.Fakers;
 using Cetus.Api.Test.Shared.Helpers;
-using Domain.Orders;
+using Domain.Customers;
 using Microsoft.Extensions.DependencyInjection;
 using SharedKernel;
 using Shouldly;
@@ -19,9 +19,9 @@ namespace Cetus.Api.Test;
 
 public class CustomersSpec(ApplicationTestCase factory) : ApplicationContextTestCase(factory)
 {
+    private readonly Guid _cityId = Guid.Parse("f97957e9-d820-4858-ac26-b5d03d658370");
     private readonly Faker _faker = new();
     private readonly CreateOrderCustomerFaker _orderCustomerFaker = new();
-    private readonly Guid _cityId = Guid.Parse("f97957e9-d820-4858-ac26-b5d03d658370");
 
     [Fact(DisplayName = "Should find a customer by ID")]
     public async Task ShouldFindCustomerById()
