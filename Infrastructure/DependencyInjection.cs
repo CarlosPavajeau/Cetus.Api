@@ -86,26 +86,32 @@ public static class DependencyInjection
 
         services.AddOptions<AppSettings>()
             .BindConfiguration(AppSettings.ConfigurationSection)
+            .ValidateDataAnnotations()
             .ValidateOnStart();
 
         services.AddOptions<AwsSettings>()
             .BindConfiguration(AwsSettings.ConfigurationSection)
+            .ValidateDataAnnotations()
             .ValidateOnStart();
 
         services.AddOptions<JwtSettings>()
             .BindConfiguration(JwtSettings.ConfigurationSection)
+            .ValidateDataAnnotations()
             .ValidateOnStart();
 
         services.AddOptions<ResendSettings>()
             .BindConfiguration(ResendSettings.ConfigurationSection)
+            .ValidateDataAnnotations()
             .ValidateOnStart();
 
         services.AddOptions<MercadoPagoSettings>()
             .BindConfiguration(MercadoPagoSettings.ConfigurationSection)
+            .ValidateDataAnnotations()
             .ValidateOnStart();
 
         services.AddOptions<WompiSettings>()
             .BindConfiguration(WompiSettings.ConfigurationSection)
+            .ValidateDataAnnotations()
             .ValidateOnStart();
 
         return services;

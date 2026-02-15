@@ -1,9 +1,11 @@
+using System.ComponentModel.DataAnnotations;
+
 namespace Application.Abstractions.Configurations;
 
 public sealed class AppSettings
 {
     public const string ConfigurationSection = "App";
 
-    public string PublicUrl { get; set; }
-    public string CdnUrl { get; set; }
+    [Required] public string PublicUrl { get; set; }
+    [Required] public string CdnUrl { get; set; }
 }
