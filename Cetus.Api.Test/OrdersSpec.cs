@@ -54,6 +54,18 @@ public class OrdersSpec(ApplicationTestCase factory) : ApplicationContextTestCas
         return newOrder;
     }
 
+    private ChangeOrderStatusCommand BuildChangeStatusCommand(Guid orderId, OrderStatus newStatus)
+    {
+        return new ChangeOrderStatusCommand(
+            orderId,
+            newStatus,
+            PaymentMethod.CashOnDelivery,
+            PaymentStatus.Verified,
+            "system",
+            "Notes"
+        );
+    }
+
     [Fact(DisplayName = "Should create a new order")]
     public async Task ShouldCreateANewOrder()
     {
@@ -152,27 +164,41 @@ public class OrdersSpec(ApplicationTestCase factory) : ApplicationContextTestCas
         var product = await ProductHelper.CreateProductWithVariant(Client);
         var newOrder = GenerateCreateOrderCommand(product);
 
-        var response = await Client.PostAsJsonAsync("api/orders", newOrder);
+        var createResponse = await Client.PostAsJsonAsync("api/orders", newOrder);
 
-        response.EnsureSuccessStatusCode();
+        createResponse.EnsureSuccessStatusCode();
 
-        var orderId = await response.DeserializeAsync<OrderResponse>();
-        orderId.ShouldNotBeNull();
+        var createdOrder = await createResponse.DeserializeAsync<OrderResponse>();
+        createdOrder.ShouldNotBeNull();
 
         // Act
-        var deliverOrderResponse = await Client.PostAsync($"api/orders/{orderId.Id}/deliver", null);
+        var changeStatusCommand = BuildChangeStatusCommand(createdOrder.Id, OrderStatus.PaymentConfirmed);
+        var response = await Client.PutAsJsonAsync($"api/orders/{createdOrder.Id}/status", changeStatusCommand);
+        response.EnsureSuccessStatusCode();
+
+        changeStatusCommand = BuildChangeStatusCommand(createdOrder.Id, OrderStatus.Processing);
+        response = await Client.PutAsJsonAsync($"api/orders/{createdOrder.Id}/status", changeStatusCommand);
+        response.EnsureSuccessStatusCode();
+
+        changeStatusCommand = BuildChangeStatusCommand(createdOrder.Id, OrderStatus.Shipped);
+        response = await Client.PutAsJsonAsync($"api/orders/{createdOrder.Id}/status", changeStatusCommand);
+        response.EnsureSuccessStatusCode();
+
+        changeStatusCommand = BuildChangeStatusCommand(createdOrder.Id, OrderStatus.Delivered);
+        response = await Client.PutAsJsonAsync($"api/orders/{createdOrder.Id}/status", changeStatusCommand);
+        response.EnsureSuccessStatusCode();
 
         // Assert
-        deliverOrderResponse.EnsureSuccessStatusCode();
+        response.EnsureSuccessStatusCode();
 
-        var getOrderResponse = await Client.GetAsync($"api/orders/{orderId.Id}");
+        var order = await Client.GetAsync($"api/orders/{createdOrder.Id}");
 
-        getOrderResponse.EnsureSuccessStatusCode();
+        order.EnsureSuccessStatusCode();
 
-        var orderResponse = await getOrderResponse.DeserializeAsync<OrderResponse>();
+        var orderResponse = await order.DeserializeAsync<OrderResponse>();
 
         orderResponse.ShouldNotBeNull();
-        orderResponse.Id.ShouldBe(orderId.Id);
+        orderResponse.Id.ShouldBe(createdOrder.Id);
         orderResponse.Status.ShouldBe(OrderStatus.Delivered);
     }
 
