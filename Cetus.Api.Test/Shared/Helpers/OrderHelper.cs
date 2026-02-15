@@ -1,8 +1,10 @@
 using System.Net.Http.Json;
 using Application.Orders;
+using Application.Orders.ChangeStatus;
 using Application.Orders.Create;
 using Bogus;
 using Cetus.Api.Test.Shared.Fakers;
+using Domain.Orders;
 using Shouldly;
 
 namespace Cetus.Api.Test.Shared.Helpers;
@@ -35,5 +37,37 @@ public static class OrderHelper
         order.ShouldNotBeNull();
 
         return order;
+    }
+
+    public static async Task ChangeStatus(
+        HttpClient client,
+        Guid orderId,
+        OrderStatus newStatus,
+        PaymentMethod paymentMethod = PaymentMethod.CashOnDelivery,
+        PaymentStatus paymentStatus = PaymentStatus.Verified)
+    {
+        var command = new ChangeOrderStatusCommand(
+            orderId,
+            newStatus,
+            paymentMethod,
+            paymentStatus,
+            "system",
+            "Notes"
+        );
+
+        var response = await client.PutAsJsonAsync($"api/orders/{orderId}/status", command);
+
+        response.EnsureSuccessStatusCode();
+    }
+
+    public static async Task ChangeStatusThrough(
+        HttpClient client,
+        Guid orderId,
+        params OrderStatus[] statuses)
+    {
+        foreach (var status in statuses)
+        {
+            await ChangeStatus(client, orderId, status);
+        }
     }
 }

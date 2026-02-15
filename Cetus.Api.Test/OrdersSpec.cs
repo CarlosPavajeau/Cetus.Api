@@ -152,27 +152,31 @@ public class OrdersSpec(ApplicationTestCase factory) : ApplicationContextTestCas
         var product = await ProductHelper.CreateProductWithVariant(Client);
         var newOrder = GenerateCreateOrderCommand(product);
 
-        var response = await Client.PostAsJsonAsync("api/orders", newOrder);
+        var createResponse = await Client.PostAsJsonAsync("api/orders", newOrder);
 
-        response.EnsureSuccessStatusCode();
+        createResponse.EnsureSuccessStatusCode();
 
-        var orderId = await response.DeserializeAsync<OrderResponse>();
-        orderId.ShouldNotBeNull();
+        var createdOrder = await createResponse.DeserializeAsync<OrderResponse>();
+        createdOrder.ShouldNotBeNull();
 
         // Act
-        var deliverOrderResponse = await Client.PostAsync($"api/orders/{orderId.Id}/deliver", null);
+        await OrderHelper.ChangeStatusThrough(
+            Client,
+            createdOrder.Id,
+            OrderStatus.PaymentConfirmed,
+            OrderStatus.Processing,
+            OrderStatus.Shipped,
+            OrderStatus.Delivered
+        );
 
-        // Assert
-        deliverOrderResponse.EnsureSuccessStatusCode();
+        var order = await Client.GetAsync($"api/orders/{createdOrder.Id}");
 
-        var getOrderResponse = await Client.GetAsync($"api/orders/{orderId.Id}");
+        order.EnsureSuccessStatusCode();
 
-        getOrderResponse.EnsureSuccessStatusCode();
-
-        var orderResponse = await getOrderResponse.DeserializeAsync<OrderResponse>();
+        var orderResponse = await order.DeserializeAsync<OrderResponse>();
 
         orderResponse.ShouldNotBeNull();
-        orderResponse.Id.ShouldBe(orderId.Id);
+        orderResponse.Id.ShouldBe(createdOrder.Id);
         orderResponse.Status.ShouldBe(OrderStatus.Delivered);
     }
 
@@ -251,12 +255,17 @@ public class OrdersSpec(ApplicationTestCase factory) : ApplicationContextTestCas
 
         response.EnsureSuccessStatusCode();
 
-        var orderId = await response.DeserializeAsync<OrderResponse>();
-        orderId.ShouldNotBeNull();
+        var order = await response.DeserializeAsync<OrderResponse>();
+        order.ShouldNotBeNull();
 
-        var deliverOrderResponse = await Client.PostAsync($"api/orders/{orderId.Id}/deliver", null);
-
-        deliverOrderResponse.EnsureSuccessStatusCode();
+        await OrderHelper.ChangeStatusThrough(
+            Client,
+            order.Id,
+            OrderStatus.PaymentConfirmed,
+            OrderStatus.Processing,
+            OrderStatus.Shipped,
+            OrderStatus.Delivered
+        );
 
         // Act
         string month = DateTime.UtcNow.ToString("MMMM", CultureInfo.InvariantCulture);
@@ -281,15 +290,19 @@ public class OrdersSpec(ApplicationTestCase factory) : ApplicationContextTestCas
         var newOrder = GenerateCreateOrderCommand(product);
 
         var response = await Client.PostAsJsonAsync("api/orders", newOrder);
-
         response.EnsureSuccessStatusCode();
 
-        var orderId = await response.DeserializeAsync<OrderResponse>();
-        orderId.ShouldNotBeNull();
+        var order = await response.DeserializeAsync<OrderResponse>();
+        order.ShouldNotBeNull();
 
-        var deliverOrderResponse = await Client.PostAsync($"api/orders/{orderId.Id}/deliver", null);
-
-        deliverOrderResponse.EnsureSuccessStatusCode();
+        await OrderHelper.ChangeStatusThrough(
+            Client,
+            order.Id,
+            OrderStatus.PaymentConfirmed,
+            OrderStatus.Processing,
+            OrderStatus.Shipped,
+            OrderStatus.Delivered
+        );
 
         // Act
         string month = DateTime.UtcNow.ToString("MMMM", CultureInfo.InvariantCulture);
@@ -386,7 +399,7 @@ public class OrdersSpec(ApplicationTestCase factory) : ApplicationContextTestCas
         // Act
         var changeStatusCommand = new ChangeOrderStatusCommand(
             orderId.Id,
-            OrderStatus.Delivered,
+            OrderStatus.PaymentConfirmed,
             PaymentMethod.CashOnDelivery,
             PaymentStatus.Verified,
             "system",
@@ -406,7 +419,7 @@ public class OrdersSpec(ApplicationTestCase factory) : ApplicationContextTestCas
 
         orderResponse.ShouldNotBeNull();
         orderResponse.Id.ShouldBe(orderId.Id);
-        orderResponse.Status.ShouldBe(OrderStatus.Delivered);
+        orderResponse.Status.ShouldBe(OrderStatus.PaymentConfirmed);
     }
 
     [Fact(DisplayName = "Should not change order status with invalid transition")]
@@ -449,23 +462,13 @@ public class OrdersSpec(ApplicationTestCase factory) : ApplicationContextTestCas
 
         response.EnsureSuccessStatusCode();
 
-        var orderId = await response.DeserializeAsync<OrderResponse>();
-        orderId.ShouldNotBeNull();
+        var order = await response.DeserializeAsync<OrderResponse>();
+        order.ShouldNotBeNull();
 
-        var changeStatusCommand = new ChangeOrderStatusCommand(
-            orderId.Id,
-            OrderStatus.Delivered,
-            PaymentMethod.CashOnDelivery,
-            PaymentStatus.Verified,
-            "system",
-            "Notes"
-        );
-        var changeStatusResponse =
-            await Client.PutAsJsonAsync($"api/orders/{orderId.Id}/status", changeStatusCommand);
-        changeStatusResponse.EnsureSuccessStatusCode();
+        await OrderHelper.ChangeStatus(Client, order.Id, OrderStatus.PaymentConfirmed);
 
         // Act
-        var getOrderTimelineResponse = await Client.GetAsync($"api/orders/{orderId.Id}/timeline");
+        var getOrderTimelineResponse = await Client.GetAsync($"api/orders/{order.Id}/timeline");
 
         // Assert
         getOrderTimelineResponse.EnsureSuccessStatusCode();

@@ -20,7 +20,6 @@ public sealed record CreateProductWithVariantResponse(
 
 public static class ProductHelper
 {
-    private static readonly CreateProductCommandFaker ProductCommandFaker = new();
     private static readonly Faker Faker = new();
     private static readonly SemaphoreSlim CategoryLock = new(1, 1);
 
@@ -30,7 +29,7 @@ public static class ProductHelper
     {
         await SetCategoryIdIfDontExists(client);
 
-        var newProduct = ProductCommandFaker
+        var newProduct = new CreateProductCommandFaker()
             .WithCategoryId(_categoryId ?? Guid.NewGuid())
             .Generate();
 
