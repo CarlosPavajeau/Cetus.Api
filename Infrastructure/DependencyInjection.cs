@@ -1,5 +1,6 @@
 ﻿using System.Reflection;
 using System.Threading.RateLimiting;
+using Application.Abstractions.Configurations;
 using Application.Abstractions.Data;
 using Application.Abstractions.Email;
 using Application.Abstractions.MercadoPago;
@@ -11,6 +12,7 @@ using Domain.Orders;
 using Domain.PaymentLinks;
 using Domain.Products;
 using Domain.Reviews;
+using Infrastructure.Configurations;
 using Infrastructure.Database;
 using Infrastructure.DomainEvents;
 using Infrastructure.Email;
@@ -28,6 +30,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Protocols;
 using Microsoft.IdentityModel.Protocols.OpenIdConnect;
 using Microsoft.IdentityModel.Tokens;
@@ -61,7 +64,7 @@ public static class DependencyInjection
             .AddAuthenticationInternal(configuration)
             .AddAuthorizationInternal()
             .AddCors(configuration)
-            .AddEmail(configuration)
+            .AddEmail()
             .AddRateLimit()
             .AddCache()
             .AddQuartz()
@@ -81,6 +84,42 @@ public static class DependencyInjection
         services.AddHostedService<DomainEventsPooler>();
 
         services.AddScoped<IStockReservationService, StockReservationService>();
+
+        services.AddOptions<AppSettings>()
+            .BindConfiguration(AppSettings.ConfigurationSection)
+            .ValidateDataAnnotations()
+            .ValidateOnStart();
+
+        services.AddOptions<AwsSettings>()
+            .BindConfiguration(AwsSettings.ConfigurationSection)
+            .ValidateDataAnnotations()
+            .ValidateOnStart();
+
+        services.AddOptions<JwtSettings>()
+            .BindConfiguration(JwtSettings.ConfigurationSection)
+            .ValidateDataAnnotations()
+            .ValidateOnStart();
+
+        services.AddOptions<ResendSettings>()
+            .BindConfiguration(ResendSettings.ConfigurationSection)
+            .ValidateDataAnnotations()
+            .ValidateOnStart();
+
+        services.AddOptions<ResendClientOptions>()
+            .Configure<IOptions<ResendSettings>>((clientOpts, resendOpts) =>
+            {
+                clientOpts.ApiToken = resendOpts.Value.ApiToken;
+            });
+
+        services.AddOptions<MercadoPagoSettings>()
+            .BindConfiguration(MercadoPagoSettings.ConfigurationSection)
+            .ValidateDataAnnotations()
+            .ValidateOnStart();
+
+        services.AddOptions<WompiSettings>()
+            .BindConfiguration(WompiSettings.ConfigurationSection)
+            .ValidateDataAnnotations()
+            .ValidateOnStart();
 
         return services;
     }
@@ -230,13 +269,9 @@ public static class DependencyInjection
         return services;
     }
 
-    private static IServiceCollection AddEmail(this IServiceCollection services, IConfiguration configuration)
+    private static IServiceCollection AddEmail(this IServiceCollection services)
     {
-        services.AddOptions();
         services.AddHttpClient<ResendClient>();
-
-        services.Configure<ResendClientOptions>(options => { options.ApiToken = configuration["Resend:ApiToken"]!; });
-
         services.AddTransient<IResend, ResendClient>();
         services.AddTransient<IEmailSender, ResendEmailSender>();
 

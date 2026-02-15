@@ -1,18 +1,21 @@
+using Application.Abstractions.Configurations;
 using Application.Abstractions.Data;
 using Application.Abstractions.Messaging;
 using Domain.PaymentLinks;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Options;
 using SharedKernel;
 
 namespace Application.PaymentLinks.Find;
 
 internal sealed class FindPaymentLinkQueryHandler(
     IApplicationDbContext db,
-    IConfiguration configuration,
+    IOptions<AppSettings> options,
     IDateTimeProvider dateTimeProvider
 ) : IQueryHandler<FindPaymentLinkQuery, PaymentLinkResponse>
 {
+    private readonly AppSettings _appSettings = options.Value;
+
     public async Task<Result<PaymentLinkResponse>> Handle(FindPaymentLinkQuery query,
         CancellationToken cancellationToken)
     {
@@ -26,7 +29,7 @@ internal sealed class FindPaymentLinkQueryHandler(
             return Result.Failure<PaymentLinkResponse>(PaymentLinkErrors.NotFound(query.Token));
         }
 
-        string baseUrl = configuration["App:PublicUrl"]!;
+        string baseUrl = _appSettings.PublicUrl;
         string url = $"{baseUrl}/pay/{paymentLink.Token}";
 
         var timeRemaining = paymentLink.ExpiresAt > now
