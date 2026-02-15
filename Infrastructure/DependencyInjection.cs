@@ -63,7 +63,7 @@ public static class DependencyInjection
             .AddAuthenticationInternal(configuration)
             .AddAuthorizationInternal()
             .AddCors(configuration)
-            .AddEmail(configuration)
+            .AddEmail()
             .AddRateLimit()
             .AddCache()
             .AddQuartz()
@@ -100,6 +100,11 @@ public static class DependencyInjection
             .ValidateOnStart();
 
         services.AddOptions<ResendSettings>()
+            .BindConfiguration(ResendSettings.ConfigurationSection)
+            .ValidateDataAnnotations()
+            .ValidateOnStart();
+
+        services.AddOptions<ResendClientOptions>()
             .BindConfiguration(ResendSettings.ConfigurationSection)
             .ValidateDataAnnotations()
             .ValidateOnStart();
@@ -262,13 +267,9 @@ public static class DependencyInjection
         return services;
     }
 
-    private static IServiceCollection AddEmail(this IServiceCollection services, IConfiguration configuration)
+    private static IServiceCollection AddEmail(this IServiceCollection services)
     {
-        services.AddOptions();
         services.AddHttpClient<ResendClient>();
-
-        services.Configure<ResendClientOptions>(options => { options.ApiToken = configuration["Resend:ApiToken"]!; });
-
         services.AddTransient<IResend, ResendClient>();
         services.AddTransient<IEmailSender, ResendEmailSender>();
 
