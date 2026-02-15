@@ -12,6 +12,7 @@ using Bogus;
 using Cetus.Api.Test.Shared;
 using Cetus.Api.Test.Shared.Fakers;
 using Cetus.Api.Test.Shared.Helpers;
+using Domain.Orders;
 using Domain.Reviews;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
@@ -71,8 +72,14 @@ public class ReviewsSpec(ApplicationTestCase factory) : ApplicationContextTestCa
         order.ShouldNotBeNull();
 
         // Arrange - Deliver the order to generate review request
-        var deliverOrderResponse = await Client.PostAsync($"api/orders/{order.Id}/deliver", null);
-        deliverOrderResponse.EnsureSuccessStatusCode();
+        await OrderHelper.ChangeStatusThrough(
+            Client,
+            order.Id,
+            OrderStatus.PaymentConfirmed,
+            OrderStatus.Processing,
+            OrderStatus.Shipped,
+            OrderStatus.Delivered
+        );
 
         await WaitForCustomerRequests(order.CustomerId);
 
@@ -125,8 +132,14 @@ public class ReviewsSpec(ApplicationTestCase factory) : ApplicationContextTestCa
         order.ShouldNotBeNull();
 
         // Arrange - Deliver the order to generate review request
-        var deliverOrderResponse = await Client.PostAsync($"api/orders/{order.Id}/deliver", null);
-        deliverOrderResponse.EnsureSuccessStatusCode();
+        await OrderHelper.ChangeStatusThrough(
+            Client,
+            order.Id,
+            OrderStatus.PaymentConfirmed,
+            OrderStatus.Processing,
+            OrderStatus.Shipped,
+            OrderStatus.Delivered
+        );
 
         await WaitForCustomerRequests(order.CustomerId);
 
@@ -181,8 +194,14 @@ public class ReviewsSpec(ApplicationTestCase factory) : ApplicationContextTestCa
             order.ShouldNotBeNull();
 
             // Deliver order
-            var deliverOrderResponse = await Client.PostAsync($"api/orders/{order.Id}/deliver", null);
-            deliverOrderResponse.EnsureSuccessStatusCode();
+            await OrderHelper.ChangeStatusThrough(
+                Client,
+                order.Id,
+                OrderStatus.PaymentConfirmed,
+                OrderStatus.Processing,
+                OrderStatus.Shipped,
+                OrderStatus.Delivered
+            );
 
             await WaitForCustomerRequests(order.CustomerId);
 
@@ -280,8 +299,14 @@ public class ReviewsSpec(ApplicationTestCase factory) : ApplicationContextTestCa
             order.ShouldNotBeNull();
 
             // Deliver order
-            var deliverOrderResponse = await Client.PostAsync($"api/orders/{order.Id}/deliver", null);
-            deliverOrderResponse.EnsureSuccessStatusCode();
+            await OrderHelper.ChangeStatusThrough(
+                Client,
+                order.Id,
+                OrderStatus.PaymentConfirmed,
+                OrderStatus.Processing,
+                OrderStatus.Shipped,
+                OrderStatus.Delivered
+            );
 
             await WaitForCustomerRequests(order.CustomerId);
 
@@ -330,8 +355,14 @@ public class ReviewsSpec(ApplicationTestCase factory) : ApplicationContextTestCa
         order.ShouldNotBeNull();
 
         // Deliver order
-        var deliverOrderResponse = await Client.PostAsync($"api/orders/{order.Id}/deliver", null);
-        deliverOrderResponse.EnsureSuccessStatusCode();
+        await OrderHelper.ChangeStatusThrough(
+            Client,
+            order.Id,
+            OrderStatus.PaymentConfirmed,
+            OrderStatus.Processing,
+            OrderStatus.Shipped,
+            OrderStatus.Delivered
+        );
 
         await WaitForCustomerRequests(order.CustomerId);
 
@@ -382,8 +413,14 @@ public class ReviewsSpec(ApplicationTestCase factory) : ApplicationContextTestCa
         order.ShouldNotBeNull();
 
         // Deliver order
-        var deliverOrderResponse = await Client.PostAsync($"api/orders/{order.Id}/deliver", null);
-        deliverOrderResponse.EnsureSuccessStatusCode();
+        await OrderHelper.ChangeStatusThrough(
+            Client,
+            order.Id,
+            OrderStatus.PaymentConfirmed,
+            OrderStatus.Processing,
+            OrderStatus.Shipped,
+            OrderStatus.Delivered
+        );
 
         await WaitForCustomerRequests(order.CustomerId);
 
