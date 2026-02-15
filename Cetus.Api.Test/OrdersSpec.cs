@@ -54,18 +54,6 @@ public class OrdersSpec(ApplicationTestCase factory) : ApplicationContextTestCas
         return newOrder;
     }
 
-    private ChangeOrderStatusCommand BuildChangeStatusCommand(Guid orderId, OrderStatus newStatus)
-    {
-        return new ChangeOrderStatusCommand(
-            orderId,
-            newStatus,
-            PaymentMethod.CashOnDelivery,
-            PaymentStatus.Verified,
-            "system",
-            "Notes"
-        );
-    }
-
     [Fact(DisplayName = "Should create a new order")]
     public async Task ShouldCreateANewOrder()
     {
@@ -172,24 +160,14 @@ public class OrdersSpec(ApplicationTestCase factory) : ApplicationContextTestCas
         createdOrder.ShouldNotBeNull();
 
         // Act
-        var changeStatusCommand = BuildChangeStatusCommand(createdOrder.Id, OrderStatus.PaymentConfirmed);
-        var response = await Client.PutAsJsonAsync($"api/orders/{createdOrder.Id}/status", changeStatusCommand);
-        response.EnsureSuccessStatusCode();
-
-        changeStatusCommand = BuildChangeStatusCommand(createdOrder.Id, OrderStatus.Processing);
-        response = await Client.PutAsJsonAsync($"api/orders/{createdOrder.Id}/status", changeStatusCommand);
-        response.EnsureSuccessStatusCode();
-
-        changeStatusCommand = BuildChangeStatusCommand(createdOrder.Id, OrderStatus.Shipped);
-        response = await Client.PutAsJsonAsync($"api/orders/{createdOrder.Id}/status", changeStatusCommand);
-        response.EnsureSuccessStatusCode();
-
-        changeStatusCommand = BuildChangeStatusCommand(createdOrder.Id, OrderStatus.Delivered);
-        response = await Client.PutAsJsonAsync($"api/orders/{createdOrder.Id}/status", changeStatusCommand);
-        response.EnsureSuccessStatusCode();
-
-        // Assert
-        response.EnsureSuccessStatusCode();
+        await OrderHelper.ChangeStatusThrough(
+            Client,
+            createdOrder.Id,
+            OrderStatus.PaymentConfirmed,
+            OrderStatus.Processing,
+            OrderStatus.Shipped,
+            OrderStatus.Delivered
+        );
 
         var order = await Client.GetAsync($"api/orders/{createdOrder.Id}");
 
@@ -412,7 +390,7 @@ public class OrdersSpec(ApplicationTestCase factory) : ApplicationContextTestCas
         // Act
         var changeStatusCommand = new ChangeOrderStatusCommand(
             orderId.Id,
-            OrderStatus.Delivered,
+            OrderStatus.PaymentConfirmed,
             PaymentMethod.CashOnDelivery,
             PaymentStatus.Verified,
             "system",
