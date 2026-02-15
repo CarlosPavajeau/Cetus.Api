@@ -410,7 +410,7 @@ public class OrdersSpec(ApplicationTestCase factory) : ApplicationContextTestCas
 
         orderResponse.ShouldNotBeNull();
         orderResponse.Id.ShouldBe(orderId.Id);
-        orderResponse.Status.ShouldBe(OrderStatus.Delivered);
+        orderResponse.Status.ShouldBe(OrderStatus.PaymentConfirmed);
     }
 
     [Fact(DisplayName = "Should not change order status with invalid transition")]
