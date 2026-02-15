@@ -30,6 +30,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Protocols;
 using Microsoft.IdentityModel.Protocols.OpenIdConnect;
 using Microsoft.IdentityModel.Tokens;
@@ -105,9 +106,10 @@ public static class DependencyInjection
             .ValidateOnStart();
 
         services.AddOptions<ResendClientOptions>()
-            .BindConfiguration(ResendSettings.ConfigurationSection)
-            .ValidateDataAnnotations()
-            .ValidateOnStart();
+            .Configure<IOptions<ResendSettings>>((clientOpts, resendOpts) =>
+            {
+                clientOpts.ApiToken = resendOpts.Value.ApiToken;
+            });
 
         services.AddOptions<MercadoPagoSettings>()
             .BindConfiguration(MercadoPagoSettings.ConfigurationSection)
