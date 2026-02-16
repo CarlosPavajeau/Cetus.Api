@@ -7,6 +7,6 @@ public sealed record UpdateProductVariantCommand(
     decimal Price,
     bool Enabled,
     bool Featured,
-    decimal? RetailPrice = null,
+    decimal? CostPrice = null,
     decimal? CompareAtPrice = null
 ) : ICommand<SimpleProductVariantResponse>;

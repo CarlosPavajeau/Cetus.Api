@@ -14,10 +14,10 @@ public sealed class UpdateProductVariantCommandValidator : AbstractValidator<Upd
             .GreaterThan(0)
             .WithMessage("Price must be greater than 0.");
 
-        RuleFor(x => x.RetailPrice)
+        RuleFor(x => x.CostPrice)
             .GreaterThan(0)
-            .When(p => p.RetailPrice is not null)
-            .WithMessage("RetailPrice must be greater than 0.");
+            .When(p => p.CostPrice is not null)
+            .WithMessage("CostPrice must be greater than 0.");
 
         RuleFor(x => x.CompareAtPrice)
             .GreaterThan(0)

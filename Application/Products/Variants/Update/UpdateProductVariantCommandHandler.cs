@@ -22,7 +22,7 @@ internal sealed class UpdateProductVariantCommandHandler(IApplicationDbContext d
         }
 
         variant.Price = command.Price;
-        variant.RetailPrice = command.RetailPrice;
+        variant.CostPrice = command.CostPrice;
         variant.CompareAtPrice = command.CompareAtPrice;
         variant.Enabled = command.Enabled;
         variant.Featured = command.Featured;

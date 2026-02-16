@@ -6,7 +6,7 @@ public sealed class ProductVariant
     public string Sku { get; set; } = string.Empty;
 
     public decimal Price { get; set; }
-    public decimal? RetailPrice { get; set; }
+    public decimal? CostPrice { get; set; }
     public decimal? CompareAtPrice { get; set; }
 
     public int Stock { get; set; }

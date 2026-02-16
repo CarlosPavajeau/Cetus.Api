@@ -117,7 +117,7 @@ internal sealed class CreateProductVariantCommandHandler(
             {
                 Sku = normalizedSku,
                 Price = command.Price,
-                RetailPrice = command.RetailPrice,
+                CostPrice = command.CostPrice,
                 Stock = command.Stock,
                 ProductId = command.ProductId,
                 Enabled = true,
