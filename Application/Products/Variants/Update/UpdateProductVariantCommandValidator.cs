@@ -22,6 +22,9 @@ public sealed class UpdateProductVariantCommandValidator : AbstractValidator<Upd
         RuleFor(x => x.CompareAtPrice)
             .GreaterThan(0)
             .When(p => p.CompareAtPrice is not null)
-            .WithMessage("CompareAtPrice must be greater than 0.");
+            .WithMessage("CompareAtPrice must be greater than 0.")
+            .GreaterThanOrEqualTo(x => x.Price)
+            .When(p => p.CompareAtPrice is not null)
+            .WithMessage("CompareAtPrice must be greater than or equal to Price.");
     }
 }
