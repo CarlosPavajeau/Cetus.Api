@@ -46,6 +46,7 @@ internal sealed class FindProductBySlugQueryHandler(IApplicationDbContext contex
                 v.Id,
                 v.Sku,
                 v.Price,
+                v.CompareAtPrice,
                 v.Stock,
                 Images = v.Images
                     .OrderBy(i => i.SortOrder)
@@ -115,6 +116,7 @@ internal sealed class FindProductBySlugQueryHandler(IApplicationDbContext contex
             v.Id,
             v.Sku,
             v.Price,
+            v.CompareAtPrice,
             v.Stock,
             v.Images,
             variantOptionValues.GetValueOrDefault(v.Id, [])
