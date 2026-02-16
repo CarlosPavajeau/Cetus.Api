@@ -117,6 +117,8 @@ internal sealed class CreateProductVariantCommandHandler(
             {
                 Sku = normalizedSku,
                 Price = command.Price,
+                CostPrice = command.CostPrice,
+                CompareAtPrice = command.CompareAtPrice,
                 Stock = command.Stock,
                 ProductId = command.ProductId,
                 Enabled = true,
@@ -148,20 +150,9 @@ internal sealed class CreateProductVariantCommandHandler(
             await db.ProductImages.AddRangeAsync(variantImages, cancellationToken);
 
             await db.SaveChangesAsync(cancellationToken);
-
             await transaction.CommitAsync(cancellationToken);
 
-            var response = new SimpleProductVariantResponse(
-                variant.Id,
-                variant.Sku,
-                variant.Stock,
-                variant.Price,
-                variant.Enabled,
-                variant.Featured,
-                variant.ProductId
-            );
-
-            return response;
+            return SimpleProductVariantResponse.From(variant);
         }
         catch (Exception e)
         {

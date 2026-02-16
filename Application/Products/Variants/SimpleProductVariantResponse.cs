@@ -7,11 +7,21 @@ public sealed record SimpleProductVariantResponse(
     string Sku,
     int Stock,
     decimal Price,
+    decimal? CompareAtPrice,
+    decimal? CostPrice,
     bool Enabled,
     bool Featured,
     Guid ProductId)
 {
     public static SimpleProductVariantResponse From(ProductVariant variant) =>
-        new(variant.Id, variant.Sku, variant.Stock, variant.Price, variant.Enabled, variant.Featured,
-            variant.ProductId);
+        new(variant.Id,
+            variant.Sku,
+            variant.Stock,
+            variant.Price,
+            variant.CompareAtPrice,
+            variant.CostPrice,
+            variant.Enabled,
+            variant.Featured,
+            variant.ProductId
+        );
 }

@@ -4,7 +4,11 @@ public sealed class ProductVariant
 {
     public long Id { get; set; }
     public string Sku { get; set; } = string.Empty;
+
     public decimal Price { get; set; }
+    public decimal? CostPrice { get; set; }
+    public decimal? CompareAtPrice { get; set; }
+
     public int Stock { get; set; }
 
     public bool Enabled { get; set; }
