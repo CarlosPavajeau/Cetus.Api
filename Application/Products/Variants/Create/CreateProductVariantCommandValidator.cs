@@ -23,7 +23,7 @@ public sealed class CreateProductVariantCommandValidator : AbstractValidator<Cre
         RuleFor(p => p.CostPrice)
             .GreaterThan(0)
             .When(p => p.CostPrice != null)
-            .WithMessage("RetailPrice must be greater than 0.");
+            .WithMessage("CostPrice must be greater than 0.");
 
         RuleFor(p => p.Stock)
             .GreaterThanOrEqualTo(0)
