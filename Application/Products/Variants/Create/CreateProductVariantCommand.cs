@@ -10,5 +10,6 @@ public sealed record CreateProductVariantCommand(
     int Stock,
     IReadOnlyList<long> OptionValueIds,
     IReadOnlyList<CreateProductImage> Images,
-    decimal? CostPrice = null
+    decimal? CostPrice = null,
+    decimal? CompareAtPrice = null
 ) : ICommand<SimpleProductVariantResponse>;
