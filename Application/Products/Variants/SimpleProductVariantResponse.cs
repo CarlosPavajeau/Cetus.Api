@@ -8,6 +8,7 @@ public sealed record SimpleProductVariantResponse(
     int Stock,
     decimal Price,
     decimal? CompareAtPrice,
+    decimal? CostPrice,
     bool Enabled,
     bool Featured,
     Guid ProductId)
@@ -18,6 +19,7 @@ public sealed record SimpleProductVariantResponse(
             variant.Stock,
             variant.Price,
             variant.CompareAtPrice,
+            variant.CostPrice,
             variant.Enabled,
             variant.Featured,
             variant.ProductId
