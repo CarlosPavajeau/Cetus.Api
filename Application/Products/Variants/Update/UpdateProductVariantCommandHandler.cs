@@ -22,8 +22,16 @@ internal sealed class UpdateProductVariantCommandHandler(IApplicationDbContext d
         }
 
         variant.Price = command.Price;
-        variant.CostPrice = command.CostPrice;
-        variant.CompareAtPrice = command.CompareAtPrice;
+        if (command.CostPrice is not null)
+        {
+            variant.CostPrice = command.CostPrice;
+        }
+
+        if (command.CompareAtPrice is not null)
+        {
+            variant.CompareAtPrice = command.CompareAtPrice;
+        }
+
         variant.Enabled = command.Enabled;
         variant.Featured = command.Featured;
 
