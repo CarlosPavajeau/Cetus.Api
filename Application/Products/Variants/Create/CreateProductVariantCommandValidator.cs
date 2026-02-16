@@ -29,9 +29,9 @@ public sealed class CreateProductVariantCommandValidator : AbstractValidator<Cre
             .GreaterThan(0)
             .When(p => p.CompareAtPrice is not null)
             .WithMessage("CompareAtPrice must be greater than 0.")
-            .GreaterThanOrEqualTo(x => x.Price)
+            .GreaterThan(x => x.Price)
             .When(p => p.CompareAtPrice is not null)
-            .WithMessage("CompareAtPrice must be greater than or equal to Price.");
+            .WithMessage("CompareAtPrice must be greater than to Price.");
 
         RuleFor(p => p.Stock)
             .GreaterThanOrEqualTo(0)
