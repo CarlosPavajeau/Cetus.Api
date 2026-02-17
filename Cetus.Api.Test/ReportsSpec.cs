@@ -88,7 +88,7 @@ public class ReportsSpec(ApplicationTestCase factory) : ApplicationContextTestCa
 
         // Assert
         report.ShouldNotBeNull();
-        report.Summary.TotalSales.ShouldBeGreaterThanOrEqualTo(0);
+        report.Summary.TotalSales.ShouldBeGreaterThan(0);
         report.Summary.GrossProfit.ShouldBeLessThanOrEqualTo(report.Summary.TotalSales);
         report.Trend.ShouldNotBeNull();
         report.ProductsWithoutCost.ShouldNotBeNull();
