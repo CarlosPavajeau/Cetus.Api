@@ -165,12 +165,12 @@ internal sealed class GetMonthlyProfitabilityQueryHandler(
             return null;
         }
 
-        decimal salesChange = previousMonth.TotalSales > 0
-            ? Math.Round((currentMonth.TotalSales - previousMonth.TotalSales) / previousMonth.TotalSales * 100, 2)
+        decimal salesChange = previousMonth.TotalSales != 0
+            ? Math.Round((currentMonth.TotalSales - previousMonth.TotalSales) / Math.Abs(previousMonth.TotalSales) * 100, 2)
             : 0;
 
-        decimal profitChange = previousMonth.GrossProfit > 0
-            ? Math.Round((currentMonth.GrossProfit - previousMonth.GrossProfit) / previousMonth.GrossProfit * 100, 2)
+        decimal profitChange = previousMonth.GrossProfit != 0
+            ? Math.Round((currentMonth.GrossProfit - previousMonth.GrossProfit) / Math.Abs(previousMonth.GrossProfit) * 100, 2)
             : 0;
 
         decimal marginChange = Math.Round(currentMonth.MarginPercentage - previousMonth.MarginPercentage, 2);
