@@ -16,8 +16,8 @@ internal sealed class GetMonthlyProfitabilityQueryHandler(
         CancellationToken cancellationToken)
     {
         var now = dateTimeProvider.UtcNow;
-        var from = query.From ?? new DateTime(now.Year, now.Month, 1, 0, 0, 0, DateTimeKind.Utc);
-        var to = query.To ?? now;
+        var from = query.From?.Date ?? now.Date;
+        var to = query.To?.Date ?? now.Date.AddDays(1);
         var storeId = tenant.Id;
 
         var baseOrdersQuery = db.Orders
@@ -89,7 +89,7 @@ internal sealed class GetMonthlyProfitabilityQueryHandler(
         DateTime now,
         CancellationToken cancellationToken)
     {
-        var sixMonthsAgo = new DateTime(now.Year, now.Month, 1, 0, 0, 0, DateTimeKind.Utc).AddMonths(-5);
+        var sixMonthsAgo = now.Date.AddMonths(-5);
 
         var trendOrdersQuery = db.Orders
             .AsNoTracking()
