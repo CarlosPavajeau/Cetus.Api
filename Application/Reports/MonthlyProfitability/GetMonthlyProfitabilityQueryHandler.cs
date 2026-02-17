@@ -64,7 +64,7 @@ internal sealed class GetMonthlyProfitabilityQueryHandler(
                 oi => oi.VariantId,
                 pv => pv.Id,
                 (oi, pv) => new { oi.Price, oi.Quantity, pv.CostPrice })
-            .GroupBy(_ => 1)
+            .GroupBy(_ => true)
             .Select(g => new
             {
                 TotalSales = g.Sum(x => x.Price * x.Quantity),
@@ -166,11 +166,13 @@ internal sealed class GetMonthlyProfitabilityQueryHandler(
         }
 
         decimal salesChange = previousMonth.TotalSales != 0
-            ? Math.Round((currentMonth.TotalSales - previousMonth.TotalSales) / Math.Abs(previousMonth.TotalSales) * 100, 2)
+            ? Math.Round(
+                (currentMonth.TotalSales - previousMonth.TotalSales) / Math.Abs(previousMonth.TotalSales) * 100, 2)
             : 0;
 
         decimal profitChange = previousMonth.GrossProfit != 0
-            ? Math.Round((currentMonth.GrossProfit - previousMonth.GrossProfit) / Math.Abs(previousMonth.GrossProfit) * 100, 2)
+            ? Math.Round(
+                (currentMonth.GrossProfit - previousMonth.GrossProfit) / Math.Abs(previousMonth.GrossProfit) * 100, 2)
             : 0;
 
         decimal marginChange = Math.Round(currentMonth.MarginPercentage - previousMonth.MarginPercentage, 2);
