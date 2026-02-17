@@ -1,4 +1,6 @@
+using System.Globalization;
 using System.Net.Http.Json;
+using Application.Orders;
 using Application.Orders.Create;
 using Application.Reports.DailySummary;
 using Application.Reports.MonthlyProfitability;
@@ -6,6 +8,7 @@ using Bogus;
 using Cetus.Api.Test.Shared;
 using Cetus.Api.Test.Shared.Fakers;
 using Cetus.Api.Test.Shared.Helpers;
+using Domain.Orders;
 using Shouldly;
 
 namespace Cetus.Api.Test;
@@ -66,6 +69,18 @@ public class ReportsSpec(ApplicationTestCase factory) : ApplicationContextTestCa
         var createResponse = await Client.PostAsJsonAsync("api/orders", newOrder);
         createResponse.EnsureSuccessStatusCode();
 
+        var createdOrder = await createResponse.DeserializeAsync<SimpleOrderResponse>();
+        createdOrder.ShouldNotBeNull();
+
+        await OrderHelper.ChangeStatusThrough(
+            Client,
+            createdOrder.Id,
+            OrderStatus.PaymentConfirmed,
+            OrderStatus.Processing,
+            OrderStatus.Shipped,
+            OrderStatus.Delivered
+        );
+
         // Act
         var response = await Client.GetAsync("api/reports/monthly-profitability");
         response.EnsureSuccessStatusCode();
@@ -89,8 +104,20 @@ public class ReportsSpec(ApplicationTestCase factory) : ApplicationContextTestCa
         var createResponse = await Client.PostAsJsonAsync("api/orders", newOrder);
         createResponse.EnsureSuccessStatusCode();
 
-        string from = DateTime.UtcNow.Date.ToString("yyyy-MM-dd", System.Globalization.CultureInfo.InvariantCulture);
-        string to = DateTime.UtcNow.Date.AddDays(1).ToString("yyyy-MM-dd", System.Globalization.CultureInfo.InvariantCulture);
+        var createdOrder = await createResponse.DeserializeAsync<SimpleOrderResponse>();
+        createdOrder.ShouldNotBeNull();
+
+        await OrderHelper.ChangeStatusThrough(
+            Client,
+            createdOrder.Id,
+            OrderStatus.PaymentConfirmed,
+            OrderStatus.Processing,
+            OrderStatus.Shipped,
+            OrderStatus.Delivered
+        );
+
+        string from = DateTime.UtcNow.Date.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture);
+        string to = DateTime.UtcNow.Date.AddDays(1).ToString("yyyy-MM-dd", CultureInfo.InvariantCulture);
 
         // Act
         var response = await Client.GetAsync($"api/reports/monthly-profitability?from={from}&to={to}");
