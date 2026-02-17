@@ -94,7 +94,8 @@ internal sealed class GetMonthlyProfitabilityQueryHandler(
         var trendOrdersQuery = db.Orders
             .AsNoTracking()
             .Where(o => o.StoreId == storeId)
-            .Where(o => o.CreatedAt >= sixMonthsAgo);
+            .Where(o => o.CreatedAt >= sixMonthsAgo)
+            .Where(o => o.CreatedAt <= now);
 
         if (excludeCanceled)
         {
