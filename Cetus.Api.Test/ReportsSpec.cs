@@ -63,7 +63,7 @@ public class ReportsSpec(ApplicationTestCase factory) : ApplicationContextTestCa
     public async Task ShouldGetMonthlyProfitabilityReport()
     {
         // Arrange
-        var product = await ProductHelper.CreateProductWithVariant(Client);
+        var product = await ProductHelper.CreateProductWithVariant(Client, 50.0m);
         var newOrder = GenerateCreateOrderCommand(product);
 
         var createResponse = await Client.PostAsJsonAsync("api/orders", newOrder);
@@ -98,7 +98,7 @@ public class ReportsSpec(ApplicationTestCase factory) : ApplicationContextTestCa
     public async Task ShouldGetMonthlyProfitabilityReportWithDateRange()
     {
         // Arrange
-        var product = await ProductHelper.CreateProductWithVariant(Client);
+        var product = await ProductHelper.CreateProductWithVariant(Client, 50.0m);
         var newOrder = GenerateCreateOrderCommand(product);
 
         var createResponse = await Client.PostAsJsonAsync("api/orders", newOrder);
