@@ -12,6 +12,7 @@ public sealed class OrderItem
 
     public int Quantity { get; set; }
     public decimal Price { get; set; }
+    public decimal? CostPrice { get; set; }
 
     [NotMapped] public Guid ProductId => ProductVariant?.ProductId ?? Guid.Empty;
     [NotMapped] public Product? Product => ProductVariant?.Product;

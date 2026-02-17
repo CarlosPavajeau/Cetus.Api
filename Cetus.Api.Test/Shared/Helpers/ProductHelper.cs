@@ -25,7 +25,8 @@ public static class ProductHelper
 
     private static Guid? _categoryId;
 
-    public static async Task<CreateProductWithVariantResponse> CreateProductWithVariant(HttpClient client)
+    public static async Task<CreateProductWithVariantResponse> CreateProductWithVariant(HttpClient client,
+        decimal? costPrice = null)
     {
         await SetCategoryIdIfDontExists(client);
 
@@ -47,7 +48,8 @@ public static class ProductHelper
             100.00m,
             10,
             [],
-            [new CreateProductImage(Faker.Image.PicsumUrl(), Faker.Commerce.ProductName(), 0)]
+            [new CreateProductImage(Faker.Image.PicsumUrl(), Faker.Commerce.ProductName(), 0)],
+            costPrice
         );
 
         // Act

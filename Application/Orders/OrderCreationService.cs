@@ -8,7 +8,7 @@ using SharedKernel;
 
 namespace Application.Orders;
 
-internal sealed record VariantInfo(long Id, decimal Price, string ProductName, string? ImageUrl = null);
+internal sealed record VariantInfo(long Id, decimal Price, string ProductName, string? ImageUrl = null, decimal? CostPrice = null);
 
 internal sealed class OrderCreationService(
     IApplicationDbContext context,
@@ -44,7 +44,8 @@ internal sealed class OrderCreationService(
                 v.Id,
                 v.Price,
                 v.Product!.Name,
-                v.Images.Select(img => img.ImageUrl).FirstOrDefault()
+                v.Images.Select(img => img.ImageUrl).FirstOrDefault(),
+                v.CostPrice
             ))
             .ToListAsync(cancellationToken);
 
