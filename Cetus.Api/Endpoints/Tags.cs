@@ -15,4 +15,5 @@ public static class Tags
     public const string MercadoPago = "MercadoPago";
     public const string Wompi = "Wompi";
     public const string Webhooks = "Webhooks";
+    public const string Reports = "Reports";
 }
