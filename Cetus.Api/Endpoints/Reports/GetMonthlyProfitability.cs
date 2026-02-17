@@ -30,7 +30,8 @@ internal sealed class GetMonthlyProfitability : IEndpoint
                     Expiration = TimeSpan.FromMinutes(10),
                     LocalCacheExpiration = TimeSpan.FromMinutes(5),
                 },
-                cancellationToken: cancellationToken
+                cancellationToken: cancellationToken,
+                tags: [$"reports:t={tenant.Id}"]
             );
 
             return result.Match(Results.Ok, CustomResults.Problem);
