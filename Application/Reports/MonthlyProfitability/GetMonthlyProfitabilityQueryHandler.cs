@@ -16,14 +16,14 @@ internal sealed class GetMonthlyProfitabilityQueryHandler(
         CancellationToken cancellationToken)
     {
         var now = dateTimeProvider.UtcNow;
-        var from = query.From?.Date ?? now.Date;
+        var from = query.From?.Date ?? new DateTime(now.Year, now.Month, 1, 0, 0, 0, DateTimeKind.Utc);
         var to = query.To?.Date ?? now.Date.AddDays(1);
         var storeId = tenant.Id;
 
         var baseOrdersQuery = db.Orders
             .AsNoTracking()
             .Where(o => o.StoreId == storeId)
-            .Where(o => o.CreatedAt >= from && o.CreatedAt <= to);
+            .Where(o => o.CreatedAt >= from && o.CreatedAt < to);
 
         if (query.ExcludeCanceled)
         {
@@ -90,7 +90,7 @@ internal sealed class GetMonthlyProfitabilityQueryHandler(
             .AsNoTracking()
             .Where(o => o.StoreId == storeId)
             .Where(o => o.CreatedAt >= sixMonthsAgo)
-            .Where(o => o.CreatedAt <= now);
+            .Where(o => o.CreatedAt < now);
 
         if (excludeCanceled)
         {
