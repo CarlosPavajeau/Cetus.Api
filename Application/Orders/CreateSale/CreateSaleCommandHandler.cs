@@ -134,6 +134,7 @@ internal sealed class CreateSaleCommandHandler(
                     ImageUrl = variant.ImageUrl,
                     Quantity = i.Quantity,
                     Price = variant.Price,
+                    CostPrice = variant.CostPrice,
                     VariantId = i.VariantId
                 };
             })
