@@ -39,7 +39,7 @@ internal sealed class GetMonthlyProfitabilityQueryHandler(
 
         var summary = await GetSummaryAsync(baseOrdersQuery, cancellationToken);
         var trend = await GetTrendAsync(storeId, query.ExcludeCanceled, query.ExcludeRefunded, now, cancellationToken);
-        var previousMonthComparison = GetPreviousMonthComparison(trend, now);
+        var previousMonthComparison = GetPreviousMonthComparison(trend, from);
         var productsWithoutCost = await GetProductsWithoutCostAsync(baseOrdersQuery, cancellationToken);
 
         return new MonthlyProfitabilityResponse(
@@ -157,12 +157,12 @@ internal sealed class GetMonthlyProfitabilityQueryHandler(
 
         decimal salesChange = previousMonth.TotalSales != 0
             ? Math.Round(
-                (currentMonth.TotalSales - previousMonth.TotalSales) / Math.Abs(previousMonth.TotalSales) * 100, 2)
+                (currentMonth.TotalSales - previousMonth.TotalSales) / Math.Abs(previousMonth.TotalSales), 2)
             : 0;
 
         decimal profitChange = previousMonth.GrossProfit != 0
             ? Math.Round(
-                (currentMonth.GrossProfit - previousMonth.GrossProfit) / Math.Abs(previousMonth.GrossProfit) * 100, 2)
+                (currentMonth.GrossProfit - previousMonth.GrossProfit) / Math.Abs(previousMonth.GrossProfit), 2)
             : 0;
 
         decimal marginChange = Math.Round(currentMonth.MarginPercentage - previousMonth.MarginPercentage, 2);
