@@ -59,11 +59,6 @@ internal sealed class GetMonthlyProfitabilityQueryHandler(
         var metrics = await db.OrderItems
             .AsNoTracking()
             .Where(oi => validOrderIds.Contains(oi.OrderId))
-            .Join(
-                db.ProductVariants.AsNoTracking(),
-                oi => oi.VariantId,
-                pv => pv.Id,
-                (oi, pv) => new { oi.Price, oi.Quantity, pv.CostPrice })
             .GroupBy(_ => true)
             .Select(g => new
             {
@@ -117,12 +112,7 @@ internal sealed class GetMonthlyProfitabilityQueryHandler(
                 trendOrderIds,
                 oi => oi.OrderId,
                 o => o.Id,
-                (oi, o) => new { oi.Price, oi.Quantity, oi.VariantId, o.CreatedAt })
-            .Join(
-                db.ProductVariants.AsNoTracking(),
-                x => x.VariantId,
-                pv => pv.Id,
-                (x, pv) => new { x.Price, x.Quantity, pv.CostPrice, x.CreatedAt })
+                (oi, o) => new { oi.Price, oi.Quantity, oi.CostPrice, o.CreatedAt })
             .GroupBy(x => new { x.CreatedAt.Year, x.CreatedAt.Month })
             .Select(g => new
             {
@@ -189,8 +179,9 @@ internal sealed class GetMonthlyProfitabilityQueryHandler(
         var warnings = await db.OrderItems
             .AsNoTracking()
             .Where(oi => validOrderIds.Contains(oi.OrderId))
+            .Where(oi => oi.CostPrice == null)
             .Join(
-                db.ProductVariants.AsNoTracking().Where(pv => pv.CostPrice == null),
+                db.ProductVariants.AsNoTracking(),
                 oi => oi.VariantId,
                 pv => pv.Id,
                 (oi, pv) => new { pv.ProductId, oi.ProductName, pv.Id, pv.Sku })
