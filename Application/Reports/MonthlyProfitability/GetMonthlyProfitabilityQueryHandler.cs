@@ -12,42 +12,127 @@ internal sealed class GetMonthlyProfitabilityQueryHandler(
     IDateTimeProvider dateTimeProvider)
     : IQueryHandler<GetMonthlyProfitabilityQuery, MonthlyProfitabilityResponse>
 {
+    private sealed record PeriodRange(
+        DateTime SelectedFrom,
+        DateTime SelectedTo,
+        DateTime ComparisonFrom,
+        DateTime ComparisonTo
+    );
+
     public async Task<Result<MonthlyProfitabilityResponse>> Handle(GetMonthlyProfitabilityQuery query,
         CancellationToken cancellationToken)
     {
         var now = dateTimeProvider.UtcNow;
-        var from = query.From?.Date ?? new DateTime(now.Year, now.Month, 1, 0, 0, 0, DateTimeKind.Utc);
-        var to = query.To?.Date ?? now.Date.AddDays(1);
         var storeId = tenant.Id;
 
-        var baseOrdersQuery = db.Orders
+        var (selectedFrom, selectedTo, comparisonFrom, comparisonTo) =
+            ResolveFromPreset(query.Preset, query.Year, query.Month, now);
+
+        var selectedOrdersQuery = BuildOrdersQuery(storeId, selectedFrom, selectedTo, query);
+        var comparisonOrdersQuery = BuildOrdersQuery(storeId, comparisonFrom, comparisonTo, query);
+
+        var summary = await GetSummaryAsync(selectedOrdersQuery, cancellationToken);
+        var comparisonSummary = await GetSummaryAsync(comparisonOrdersQuery, cancellationToken);
+        var previousMonthComparison = ComputeComparison(summary, comparisonSummary);
+        var trend = await GetTrendAsync(storeId, query.ExcludeCanceled, query.ExcludeRefunded, now, cancellationToken);
+        var productsWithoutCost = await GetProductsWithoutCostAsync(selectedOrdersQuery, cancellationToken);
+
+        return new MonthlyProfitabilityResponse(
+            Summary: summary,
+            ComparisonSummary: comparisonSummary,
+            PreviousMonthComparison: previousMonthComparison,
+            Trend: trend,
+            ProductsWithoutCost: productsWithoutCost
+        );
+    }
+
+    private static PeriodRange ResolveFromPreset(PeriodPreset preset, int? year, int? month, DateTime now)
+    {
+        return preset switch
+        {
+            PeriodPreset.ThisMonth => ResolveThisMonth(now),
+            PeriodPreset.LastMonth => ResolveLastMonth(now),
+            PeriodPreset.SpecificMonth => ResolveSpecificMonth(year!.Value, month!.Value),
+            _ => ResolveThisMonth(now)
+        };
+    }
+
+    private static PeriodRange ResolveThisMonth(DateTime now)
+    {
+        var selectedFrom = new DateTime(now.Year, now.Month, 1, 0, 0, 0, DateTimeKind.Utc);
+        var selectedTo = now.Date.AddDays(1);
+        int daysCovered = (selectedTo - selectedFrom).Days;
+
+        var comparisonFrom = selectedFrom.AddMonths(-1);
+        var comparisonTo = comparisonFrom.AddDays(daysCovered);
+
+        return new PeriodRange(selectedFrom, selectedTo, comparisonFrom, comparisonTo);
+    }
+
+    private static PeriodRange ResolveLastMonth(DateTime now)
+    {
+        var selectedFrom = new DateTime(now.Year, now.Month, 1, 0, 0, 0, DateTimeKind.Utc).AddMonths(-1);
+        var selectedTo = new DateTime(now.Year, now.Month, 1, 0, 0, 0, DateTimeKind.Utc);
+        var comparisonFrom = selectedFrom.AddMonths(-1);
+
+        return new PeriodRange(selectedFrom, selectedTo, comparisonFrom, selectedFrom);
+    }
+
+    private static PeriodRange ResolveSpecificMonth(int year, int month)
+    {
+        var selectedFrom = new DateTime(year, month, 1, 0, 0, 0, DateTimeKind.Utc);
+        var selectedTo = selectedFrom.AddMonths(1);
+        var comparisonFrom = selectedFrom.AddMonths(-1);
+
+        return new PeriodRange(selectedFrom, selectedTo, comparisonFrom, selectedFrom);
+    }
+
+    private IQueryable<Order> BuildOrdersQuery(
+        Guid storeId,
+        DateTime from,
+        DateTime to,
+        GetMonthlyProfitabilityQuery query)
+    {
+        var ordersQuery = db.Orders
             .AsNoTracking()
             .Where(o => o.StoreId == storeId)
             .Where(o => o.CreatedAt >= from && o.CreatedAt < to);
 
         if (query.ExcludeCanceled)
         {
-            baseOrdersQuery = baseOrdersQuery
+            ordersQuery = ordersQuery
                 .Where(o => o.Status != OrderStatus.Canceled && o.Status != OrderStatus.Returned);
         }
 
         if (query.ExcludeRefunded)
         {
-            baseOrdersQuery = baseOrdersQuery
+            ordersQuery = ordersQuery
                 .Where(o => o.PaymentStatus != PaymentStatus.Refunded);
         }
 
-        var summary = await GetSummaryAsync(baseOrdersQuery, cancellationToken);
-        var trend = await GetTrendAsync(storeId, query.ExcludeCanceled, query.ExcludeRefunded, now, cancellationToken);
-        var previousMonthComparison = GetPreviousMonthComparison(trend, from);
-        var productsWithoutCost = await GetProductsWithoutCostAsync(baseOrdersQuery, cancellationToken);
+        return ordersQuery;
+    }
 
-        return new MonthlyProfitabilityResponse(
-            Summary: summary,
-            PreviousMonthComparison: previousMonthComparison,
-            Trend: trend,
-            ProductsWithoutCost: productsWithoutCost
-        );
+    private static MonthComparison? ComputeComparison(
+        ProfitabilitySummary current,
+        ProfitabilitySummary comparison)
+    {
+        if (comparison is { TotalSales: 0, GrossProfit: 0 })
+        {
+            return null;
+        }
+
+        decimal salesChange = comparison.TotalSales != 0
+            ? Math.Round((current.TotalSales - comparison.TotalSales) / Math.Abs(comparison.TotalSales), 2)
+            : 0;
+
+        decimal profitChange = comparison.GrossProfit != 0
+            ? Math.Round((current.GrossProfit - comparison.GrossProfit) / Math.Abs(comparison.GrossProfit), 2)
+            : 0;
+
+        decimal marginChange = Math.Round(current.MarginPercentage - comparison.MarginPercentage, 2);
+
+        return new MonthComparison(salesChange, profitChange, marginChange);
     }
 
     private async Task<ProfitabilitySummary> GetSummaryAsync(
@@ -137,37 +222,6 @@ internal sealed class GetMonthlyProfitabilityQueryHandler(
                 return new MonthlyTrend(m.Year, m.Month, m.TotalSales, m.TotalCost, grossProfit, marginPercentage);
             })
         ];
-    }
-
-    private static MonthComparison? GetPreviousMonthComparison(IReadOnlyList<MonthlyTrend> trend, DateTime now)
-    {
-        if (trend.Count < 2)
-        {
-            return null;
-        }
-
-        var currentMonth = trend.FirstOrDefault(t => t.Year == now.Year && t.Month == now.Month);
-        var previousDate = now.AddMonths(-1);
-        var previousMonth = trend.FirstOrDefault(t => t.Year == previousDate.Year && t.Month == previousDate.Month);
-
-        if (currentMonth is null || previousMonth is null)
-        {
-            return null;
-        }
-
-        decimal salesChange = previousMonth.TotalSales != 0
-            ? Math.Round(
-                (currentMonth.TotalSales - previousMonth.TotalSales) / Math.Abs(previousMonth.TotalSales), 2)
-            : 0;
-
-        decimal profitChange = previousMonth.GrossProfit != 0
-            ? Math.Round(
-                (currentMonth.GrossProfit - previousMonth.GrossProfit) / Math.Abs(previousMonth.GrossProfit), 2)
-            : 0;
-
-        decimal marginChange = Math.Round(currentMonth.MarginPercentage - previousMonth.MarginPercentage, 2);
-
-        return new MonthComparison(salesChange, profitChange, marginChange);
     }
 
     private async Task<IReadOnlyList<ProductCostWarning>> GetProductsWithoutCostAsync(

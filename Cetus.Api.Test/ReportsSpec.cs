@@ -1,4 +1,3 @@
-using System.Globalization;
 using System.Net.Http.Json;
 using Application.Orders;
 using Application.Orders.Create;
@@ -59,7 +58,7 @@ public class ReportsSpec(ApplicationTestCase factory) : ApplicationContextTestCa
         report.Orders.Total.ShouldBeGreaterThan(0);
     }
 
-    [Fact(DisplayName = "Should get monthly profitability report")]
+    [Fact(DisplayName = "Should get monthly profitability report with default preset")]
     public async Task ShouldGetMonthlyProfitabilityReport()
     {
         // Arrange
@@ -94,40 +93,34 @@ public class ReportsSpec(ApplicationTestCase factory) : ApplicationContextTestCa
         report.ProductsWithoutCost.ShouldNotBeNull();
     }
 
-    [Fact(DisplayName = "Should get monthly profitability report with date range")]
-    public async Task ShouldGetMonthlyProfitabilityReportWithDateRange()
+    [Fact(DisplayName = "Should get monthly profitability report with LastMonth preset")]
+    public async Task ShouldGetMonthlyProfitabilityReportWithLastMonth()
     {
-        // Arrange
-        var product = await ProductHelper.CreateProductWithVariant(Client, 50.0m);
-        var newOrder = GenerateCreateOrderCommand(product);
-
-        var createResponse = await Client.PostAsJsonAsync("api/orders", newOrder);
-        createResponse.EnsureSuccessStatusCode();
-
-        var createdOrder = await createResponse.DeserializeAsync<SimpleOrderResponse>();
-        createdOrder.ShouldNotBeNull();
-
-        await OrderHelper.ChangeStatusThrough(
-            Client,
-            createdOrder.Id,
-            OrderStatus.PaymentConfirmed,
-            OrderStatus.Processing,
-            OrderStatus.Shipped,
-            OrderStatus.Delivered
-        );
-
-        string from = DateTime.UtcNow.Date.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture);
-        string to = DateTime.UtcNow.Date.AddDays(1).ToString("yyyy-MM-dd", CultureInfo.InvariantCulture);
-
         // Act
-        var response = await Client.GetAsync($"api/reports/monthly-profitability?from={from}&to={to}");
+        var response = await Client.GetAsync("api/reports/monthly-profitability?preset=LastMonth");
         response.EnsureSuccessStatusCode();
         var report = await response.DeserializeAsync<MonthlyProfitabilityResponse>();
 
         // Assert
         report.ShouldNotBeNull();
         report.Summary.ShouldNotBeNull();
-        report.Summary.TotalSales.ShouldBeGreaterThan(0);
+        report.Trend.ShouldNotBeNull();
+    }
+
+    [Fact(DisplayName = "Should get monthly profitability report with SpecificMonth preset")]
+    public async Task ShouldGetMonthlyProfitabilityReportWithSpecificMonth()
+    {
+        // Act
+        var now = DateTime.UtcNow;
+        var response = await Client.GetAsync(
+            $"api/reports/monthly-profitability?preset=SpecificMonth&year={now.Year}&month={now.Month}");
+        response.EnsureSuccessStatusCode();
+        var report = await response.DeserializeAsync<MonthlyProfitabilityResponse>();
+
+        // Assert
+        report.ShouldNotBeNull();
+        report.Summary.ShouldNotBeNull();
+        report.Trend.ShouldNotBeNull();
     }
 
     [Fact(DisplayName = "Should return products without cost in monthly profitability report")]
@@ -139,10 +132,10 @@ public class ReportsSpec(ApplicationTestCase factory) : ApplicationContextTestCa
 
         var createResponse = await Client.PostAsJsonAsync("api/orders", newOrder);
         createResponse.EnsureSuccessStatusCode();
-        
+
         var createdOrder = await createResponse.DeserializeAsync<SimpleOrderResponse>();
         createdOrder.ShouldNotBeNull();
-        
+
         await OrderHelper.ChangeStatusThrough(
             Client,
             createdOrder.Id,

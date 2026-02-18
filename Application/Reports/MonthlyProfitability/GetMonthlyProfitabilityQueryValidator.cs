@@ -6,11 +6,23 @@ internal sealed class GetMonthlyProfitabilityQueryValidator : AbstractValidator<
 {
     public GetMonthlyProfitabilityQueryValidator()
     {
-        When(q => q.From.HasValue && q.To.HasValue, () =>
+        RuleFor(q => q.Preset)
+            .IsInEnum()
+            .WithMessage("El tipo de periodo no es valido.");
+
+        When(q => q.Preset == PeriodPreset.SpecificMonth, () =>
         {
-            RuleFor(q => q.From)
-                .LessThan(q => q.To)
-                .WithMessage("La fecha de inicio debe ser anterior a la fecha de fin.");
+            RuleFor(q => q.Year)
+                .NotNull()
+                .WithMessage("El anio es requerido cuando se selecciona un mes especifico.")
+                .InclusiveBetween(2020, DateTime.UtcNow.Year)
+                .WithMessage("El anio debe estar entre 2020 y el anio actual.");
+
+            RuleFor(q => q.Month)
+                .NotNull()
+                .WithMessage("El mes es requerido cuando se selecciona un mes especifico.")
+                .InclusiveBetween(1, 12)
+                .WithMessage("El mes debe estar entre 1 y 12.");
         });
     }
 }

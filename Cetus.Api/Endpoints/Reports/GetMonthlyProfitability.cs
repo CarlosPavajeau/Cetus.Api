@@ -4,7 +4,6 @@ using Application.Reports.MonthlyProfitability;
 using Cetus.Api.Extensions;
 using Cetus.Api.Infrastructure;
 using Microsoft.Extensions.Caching.Hybrid;
-using SharedKernel;
 
 namespace Cetus.Api.Endpoints.Reports;
 
@@ -17,16 +16,11 @@ internal sealed class GetMonthlyProfitability : IEndpoint
             IQueryHandler<GetMonthlyProfitabilityQuery, MonthlyProfitabilityResponse> handler,
             HybridCache cache,
             ITenantContext tenant,
-            IDateTimeProvider dateTimeProvider,
             CancellationToken cancellationToken
         ) =>
         {
-            var now = dateTimeProvider.UtcNow;
-            var from = query.From?.Date ?? new DateTime(now.Year, now.Month, 1, 0, 0, 0, DateTimeKind.Utc);
-            var to = query.To?.Date ?? now.Date.AddDays(1);
-
-            string cacheKey = $"monthly-profitability-{tenant.Id}-{from:yyyyMMdd}-{to:yyyyMMdd}" +
-                              $"-{query.ExcludeCanceled}-{query.ExcludeRefunded}";
+            string cacheKey = $"monthly-profitability:t={tenant.Id}:p={query.Preset}:y={query.Year}:m={query.Month}" +
+                              $":ec={query.ExcludeCanceled}:ef={query.ExcludeRefunded}";
 
             var result = await cache.GetOrCreateAsync(
                 cacheKey,
