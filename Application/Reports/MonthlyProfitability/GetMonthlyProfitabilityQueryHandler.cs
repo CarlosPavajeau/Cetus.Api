@@ -26,7 +26,7 @@ internal sealed class GetMonthlyProfitabilityQueryHandler(
         var storeId = tenant.Id;
 
         var (selectedFrom, selectedTo, comparisonFrom, comparisonTo) =
-            ResolveFromPreset(query.Preset, query.Year, query.Month, now);
+            ResolveFromPreset(query.ResolvedPreset, query.Year, query.Month, now);
 
         var selectedOrdersQuery = BuildOrdersQuery(storeId, selectedFrom, selectedTo, query);
         var comparisonOrdersQuery = BuildOrdersQuery(storeId, comparisonFrom, comparisonTo, query);
@@ -123,14 +123,14 @@ internal sealed class GetMonthlyProfitabilityQueryHandler(
         }
 
         decimal salesChange = comparison.TotalSales != 0
-            ? Math.Round((current.TotalSales - comparison.TotalSales) / Math.Abs(comparison.TotalSales), 2)
+            ? Math.Round((current.TotalSales - comparison.TotalSales) / Math.Abs(comparison.TotalSales), 4)
             : 0;
 
         decimal profitChange = comparison.GrossProfit != 0
-            ? Math.Round((current.GrossProfit - comparison.GrossProfit) / Math.Abs(comparison.GrossProfit), 2)
+            ? Math.Round((current.GrossProfit - comparison.GrossProfit) / Math.Abs(comparison.GrossProfit), 4)
             : 0;
 
-        decimal marginChange = Math.Round(current.MarginPercentage - comparison.MarginPercentage, 2);
+        decimal marginChange = Math.Round(current.MarginPercentage - comparison.MarginPercentage, 4);
 
         return new MonthComparison(salesChange, profitChange, marginChange);
     }
@@ -156,7 +156,7 @@ internal sealed class GetMonthlyProfitabilityQueryHandler(
         decimal totalCost = metrics?.TotalCost ?? 0;
         decimal grossProfit = totalSales - totalCost;
         decimal marginPercentage = totalSales > 0
-            ? Math.Round(grossProfit / totalSales * 100, 2)
+            ? Math.Round(grossProfit / totalSales, 4)
             : 0;
 
         return new ProfitabilitySummary(totalSales, totalCost, grossProfit, marginPercentage);
@@ -216,7 +216,7 @@ internal sealed class GetMonthlyProfitabilityQueryHandler(
             {
                 decimal grossProfit = m.TotalSales - m.TotalCost;
                 decimal marginPercentage = m.TotalSales > 0
-                    ? Math.Round(grossProfit / m.TotalSales * 100, 2)
+                    ? Math.Round(grossProfit / m.TotalSales, 4)
                     : 0;
 
                 return new MonthlyTrend(m.Year, m.Month, m.TotalSales, m.TotalCost, grossProfit, marginPercentage);

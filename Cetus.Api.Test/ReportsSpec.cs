@@ -97,7 +97,7 @@ public class ReportsSpec(ApplicationTestCase factory) : ApplicationContextTestCa
     public async Task ShouldGetMonthlyProfitabilityReportWithLastMonth()
     {
         // Act
-        var response = await Client.GetAsync("api/reports/monthly-profitability?preset=LastMonth");
+        var response = await Client.GetAsync("api/reports/monthly-profitability?preset=last_month");
         response.EnsureSuccessStatusCode();
         var report = await response.DeserializeAsync<MonthlyProfitabilityResponse>();
 
@@ -113,7 +113,7 @@ public class ReportsSpec(ApplicationTestCase factory) : ApplicationContextTestCa
         // Act
         var now = DateTime.UtcNow;
         var response = await Client.GetAsync(
-            $"api/reports/monthly-profitability?preset=SpecificMonth&year={now.Year}&month={now.Month}");
+            $"api/reports/monthly-profitability?preset=specific_month&year={now.Year}&month={now.Month}");
         response.EnsureSuccessStatusCode();
         var report = await response.DeserializeAsync<MonthlyProfitabilityResponse>();
 

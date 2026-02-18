@@ -19,7 +19,7 @@ internal sealed class GetMonthlyProfitability : IEndpoint
             CancellationToken cancellationToken
         ) =>
         {
-            string cacheKey = $"monthly-profitability:t={tenant.Id}:p={query.Preset}:y={query.Year}:m={query.Month}" +
+            string cacheKey = $"monthly-profitability:t={tenant.Id}:p={query.ResolvedPreset}:y={query.Year}:m={query.Month}" +
                               $":ec={query.ExcludeCanceled}:ef={query.ExcludeRefunded}";
 
             var result = await cache.GetOrCreateAsync(

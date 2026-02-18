@@ -6,11 +6,7 @@ internal sealed class GetMonthlyProfitabilityQueryValidator : AbstractValidator<
 {
     public GetMonthlyProfitabilityQueryValidator()
     {
-        RuleFor(q => q.Preset)
-            .IsInEnum()
-            .WithMessage("El tipo de periodo no es valido.");
-
-        When(q => q.Preset == PeriodPreset.SpecificMonth, () =>
+        When(q => q.ResolvedPreset == PeriodPreset.SpecificMonth, () =>
         {
             RuleFor(q => q.Year)
                 .NotNull()
