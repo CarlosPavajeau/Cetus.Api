@@ -2,6 +2,7 @@ namespace Cetus.Api.Endpoints;
 
 public static class Tags
 {
+    public const string Aws = "Aws";
     public const string Categories = "Categories";
     public const string Orders = "Orders";
     public const string PaymentLinks = "Payment Links";
