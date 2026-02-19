@@ -19,7 +19,6 @@ internal sealed class Delete : IEndpoint
             CancellationToken cancellationToken) =>
         {
             var command = new DeleteCategoryCommand(id);
-
             var result = await handler.Handle(command, cancellationToken);
 
             if (result.IsSuccess)

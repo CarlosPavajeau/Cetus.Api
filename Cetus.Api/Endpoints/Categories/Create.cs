@@ -10,15 +10,18 @@ namespace Cetus.Api.Endpoints.Categories;
 
 internal sealed class Create : IEndpoint
 {
+    private sealed record Request(string Name);
+
     public void MapEndpoint(IEndpointRouteBuilder app)
     {
         app.MapPost("categories", async (
-            CreateCategoryCommand command,
+            Request request,
             ICommandHandler<CreateCategoryCommand, CategoryResponse> handler,
             HybridCache cache,
             ITenantContext context,
             CancellationToken cancellationToken) =>
         {
+            var command = new CreateCategoryCommand(request.Name);
             var result = await handler.Handle(command, cancellationToken);
 
             if (result.IsSuccess)

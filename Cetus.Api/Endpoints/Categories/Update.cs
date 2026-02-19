@@ -9,21 +9,19 @@ namespace Cetus.Api.Endpoints.Categories;
 
 internal sealed class Update : IEndpoint
 {
+    private sealed record Request(string Name);
+
     public void MapEndpoint(IEndpointRouteBuilder app)
     {
         app.MapPut("categories/{id:guid}", async (
             Guid id,
-            UpdateCategoryCommand command,
+            Request request,
             ICommandHandler<UpdateCategoryCommand, bool> handler,
             HybridCache cache,
             ITenantContext context,
             CancellationToken cancellationToken) =>
         {
-            if (id != command.Id)
-            {
-                return Results.BadRequest("Id in route and command do not match.");
-            }
-
+            var command = new UpdateCategoryCommand(id, request.Name);
             var result = await handler.Handle(command, cancellationToken);
 
             if (result.IsSuccess)
