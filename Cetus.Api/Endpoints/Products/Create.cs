@@ -10,15 +10,18 @@ namespace Cetus.Api.Endpoints.Products;
 
 internal sealed class Create : IEndpoint
 {
+    private sealed record Request(string Name, string? Description, Guid CategoryId);
+
     public void MapEndpoint(IEndpointRouteBuilder app)
     {
         app.MapPost("products", async (
-            CreateProductCommand command,
+            Request request,
             ICommandHandler<CreateProductCommand, ProductResponse> handler,
             HybridCache cache,
             ITenantContext tenant,
             CancellationToken cancellationToken) =>
         {
+            var command = new CreateProductCommand(request.Name, request.Description, request.CategoryId);
             var result = await handler.Handle(command, cancellationToken);
 
             if (result.IsSuccess)

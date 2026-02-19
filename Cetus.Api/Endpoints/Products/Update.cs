@@ -9,20 +9,19 @@ namespace Cetus.Api.Endpoints.Products;
 
 internal sealed class Update : IEndpoint
 {
+    private sealed record Request(string Name, string? Description, Guid CategoryId, bool Enabled);
+
     public void MapEndpoint(IEndpointRouteBuilder app)
     {
         app.MapPut("products/{id:guid}", async (
             Guid id,
-            UpdateProductCommand command,
+            Request request,
             ICommandHandler<UpdateProductCommand, ProductResponse> handler,
             HybridCache cache,
             CancellationToken cancellationToken) =>
         {
-            if (id != command.Id)
-            {
-                return Results.BadRequest("Product ID mismatch.");
-            }
-
+            var command = new UpdateProductCommand(id, request.Name, request.Description, request.CategoryId,
+                request.Enabled);
             var result = await handler.Handle(command, cancellationToken);
 
             if (result.IsSuccess)

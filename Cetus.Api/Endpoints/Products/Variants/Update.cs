@@ -10,24 +10,26 @@ namespace Cetus.Api.Endpoints.Products.Variants;
 
 internal sealed class Update : IEndpoint
 {
+    private sealed record Request(
+        decimal Price,
+        bool Enabled,
+        bool Featured,
+        decimal? CostPrice = null,
+        decimal? CompareAtPrice = null
+    );
+
     public void MapEndpoint(IEndpointRouteBuilder app)
     {
         app.MapPut("products/variants/{id:long}", async (
             long id,
-            UpdateProductVariantCommand command,
+            Request request,
             ICommandHandler<UpdateProductVariantCommand, SimpleProductVariantResponse> handler,
             ITenantContext tenant,
             HybridCache cache,
             CancellationToken cancellationToken) =>
         {
-            if (id != command.Id)
-            {
-                return Results.ValidationProblem(new Dictionary<string, string[]>
-                {
-                    ["id"] = ["Route 'id' must match body 'id'."]
-                });
-            }
-
+            var command = new UpdateProductVariantCommand(id, request.Price, request.Enabled, request.Featured,
+                request.CostPrice, request.CompareAtPrice);
             var result = await handler.Handle(command, cancellationToken);
 
             if (result.IsSuccess)

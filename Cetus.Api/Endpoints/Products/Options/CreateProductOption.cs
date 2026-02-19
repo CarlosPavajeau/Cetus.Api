@@ -9,21 +9,19 @@ namespace Cetus.Api.Endpoints.Products.Options;
 
 internal sealed class CreateProductOption : IEndpoint
 {
+    private sealed record Request(long OptionTypeId);
+
     public void MapEndpoint(IEndpointRouteBuilder app)
     {
         app.MapPost("products/{productId:guid}/options", async (
             Guid productId,
-            CreateProductOptionCommand command,
+            Request request,
             ICommandHandler<CreateProductOptionCommand> handler,
             HybridCache cache,
             ITenantContext tenant,
             CancellationToken cancellationToken) =>
         {
-            if (productId != command.ProductId)
-            {
-                return Results.BadRequest("Product ID mismatch.");
-            }
-
+            var command = new CreateProductOptionCommand(productId, request.OptionTypeId);
             var result = await handler.Handle(command, cancellationToken);
 
             if (result.IsSuccess)

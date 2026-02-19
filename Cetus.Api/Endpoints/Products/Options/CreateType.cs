@@ -9,15 +9,18 @@ namespace Cetus.Api.Endpoints.Products.Options;
 
 internal sealed class CreateType : IEndpoint
 {
+    private sealed record Request(string Name, IReadOnlyList<string> Values);
+
     public void MapEndpoint(IEndpointRouteBuilder app)
     {
         app.MapPost("products/option-types", async (
-            CreateProductOptionTypeCommand command,
+            Request request,
             ICommandHandler<CreateProductOptionTypeCommand> handler,
             HybridCache cache,
             ITenantContext tenant,
             CancellationToken cancellationToken) =>
         {
+            var command = new CreateProductOptionTypeCommand(request.Name, request.Values);
             var result = await handler.Handle(command, cancellationToken);
 
             if (result.IsSuccess)
