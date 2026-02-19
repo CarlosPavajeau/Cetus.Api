@@ -16,7 +16,7 @@ internal sealed class PresignedUrl : IEndpoint
     public void MapEndpoint(IEndpointRouteBuilder app)
     {
         app.MapPost("aws/s3/presigned-url", async (
-            [FromBody] Request request,
+            Request request,
             IOptions<AwsSettings> options,
             ILogger<PresignedUrl> logger
         ) =>

@@ -9,16 +9,25 @@ namespace Cetus.Api.Endpoints.Reports;
 
 internal sealed class GetMonthlyProfitability : IEndpoint
 {
+    private sealed record Request(
+        PeriodPresetParser? Preset = null,
+        int? Year = null,
+        int? Month = null,
+        bool ExcludeCanceled = true,
+        bool ExcludeRefunded = true
+    );
+
     public void MapEndpoint(IEndpointRouteBuilder app)
     {
         app.MapGet("/reports/monthly-profitability", async (
-            [AsParameters] GetMonthlyProfitabilityQuery query,
+            [AsParameters] Request request,
             IQueryHandler<GetMonthlyProfitabilityQuery, MonthlyProfitabilityResponse> handler,
             HybridCache cache,
             ITenantContext tenant,
             CancellationToken cancellationToken
         ) =>
         {
+            var query = new GetMonthlyProfitabilityQuery(request.Preset, request.Year, request.Month, request.ExcludeCanceled, request.ExcludeRefunded);
             string cacheKey = $"monthly-profitability:t={tenant.Id}:p={query.ResolvedPreset}:y={query.Year}:m={query.Month}" +
                               $":ec={query.ExcludeCanceled}:ef={query.ExcludeRefunded}";
 

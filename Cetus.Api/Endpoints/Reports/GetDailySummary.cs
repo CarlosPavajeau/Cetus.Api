@@ -9,17 +9,19 @@ namespace Cetus.Api.Endpoints.Reports;
 
 internal sealed class GetDailySummary : IEndpoint
 {
+    private sealed record Request(DateTime? Date = null);
+
     public void MapEndpoint(IEndpointRouteBuilder app)
     {
         app.MapGet("/reports/daily-summary", async (
-            [AsParameters] GetDailySummaryQuery query,
+            [AsParameters] Request request,
             IQueryHandler<GetDailySummaryQuery, DailySummaryResponse> handler,
             HybridCache cache,
             ITenantContext tenant,
             CancellationToken cancellationToken
         ) =>
         {
-            var effectiveDate = query.Date ?? DateTime.UtcNow;
+            var effectiveDate = request.Date ?? DateTime.UtcNow;
             var effectiveQuery = new GetDailySummaryQuery(Date: effectiveDate);
 
             var result = await cache.GetOrCreateAsync(

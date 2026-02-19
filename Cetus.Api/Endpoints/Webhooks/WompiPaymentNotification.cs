@@ -7,7 +7,6 @@ using Cetus.Api.Extensions;
 using Cetus.Api.Infrastructure;
 using Cetus.Api.Realtime;
 using Domain.Orders;
-using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.SignalR;
 
 namespace Cetus.Api.Endpoints.Webhooks;
@@ -37,7 +36,7 @@ internal sealed class WompiPaymentNotification : IEndpoint
     public void MapEndpoint(IEndpointRouteBuilder app)
     {
         app.MapPost("/webhooks/wompi/payments", async (
-            [FromBody] WompiRequest request,
+            WompiRequest request,
             IWompiClient wompiClient,
             IHubContext<OrdersHub, IOrdersClient> ordersHub,
             ILogger<WompiPaymentNotification> logger,
