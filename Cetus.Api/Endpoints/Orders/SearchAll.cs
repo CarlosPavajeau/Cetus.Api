@@ -24,7 +24,13 @@ internal sealed class SearchAll : IEndpoint
             [FromServices] IQueryHandler<SearchAllOrdersQuery, PagedResult<OrderResponse>> handler,
             CancellationToken cancellationToken) =>
         {
-            var query = new SearchAllOrdersQuery(request.Page, request.PageSize, request.Statuses, request.From, request.To);
+            var query = new SearchAllOrdersQuery(
+                request.Page,
+                request.PageSize,
+                request.Statuses,
+                request.From,
+                request.To
+            );
             var result = await handler.Handle(query, cancellationToken);
 
             return result.Match(Results.Ok, CustomResults.Problem);

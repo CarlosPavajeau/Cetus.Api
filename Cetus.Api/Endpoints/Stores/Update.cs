@@ -27,14 +27,24 @@ internal sealed class Update : IEndpoint
             HybridCache cache,
             CancellationToken cancellationToken) =>
         {
-            var command = new UpdateStoreCommand(id, request.Name, request.Description, request.Address, request.Phone,
-                request.Email, request.CustomDomain);
+            var command = new UpdateStoreCommand(
+                id,
+                request.Name,
+                request.Description,
+                request.Address,
+                request.Phone,
+                request.Email,
+                request.CustomDomain
+            );
             var result = await handler.Handle(command, cancellationToken);
 
             if (result.IsSuccess)
             {
                 await cache.RemoveAsync(
-                    [CacheKeyBuilder.Build("stores", id.ToString()), CacheKeyBuilder.Build("stores", result.Value.Slug)],
+                    [
+                        CacheKeyBuilder.Build("stores", id.ToString()),
+                        CacheKeyBuilder.Build("stores", result.Value.Slug)
+                    ],
                     cancellationToken);
             }
 

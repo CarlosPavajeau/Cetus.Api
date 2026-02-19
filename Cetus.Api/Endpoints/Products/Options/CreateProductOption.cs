@@ -24,12 +24,18 @@ internal sealed class CreateProductOption : IEndpoint
             var command = new CreateProductOptionCommand(productId, request.OptionTypeId);
             var result = await handler.Handle(command, cancellationToken);
 
-            if (result.IsSuccess)
+            if (result.IsFailure)
             {
-                await cache.RemoveAsync(
-                    CacheKeyBuilder.Build("products", "options", tenant.Id.ToString(), productId.ToString()),
-                    cancellationToken);
+                return result.Match(Results.NoContent, CustomResults.Problem);
             }
+
+            string cacheKey = CacheKeyBuilder.Build(
+                "products",
+                "options",
+                tenant.Id.ToString(),
+                productId.ToString()
+            );
+            await cache.RemoveAsync(cacheKey, cancellationToken);
 
             return result.Match(Results.NoContent, CustomResults.Problem);
         }).WithTags(Tags.Products);

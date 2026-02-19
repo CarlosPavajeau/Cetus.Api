@@ -27,8 +27,14 @@ internal sealed class SearchAllTransactions : IEndpoint
             IQueryHandler<SearchInventoryTransactionsQuery, PagedResult<InventoryTransactionResponse>> handler,
             CancellationToken cancellationToken) =>
         {
-            var query = new SearchInventoryTransactionsQuery(request.Page, request.PageSize, request.VariantId,
-                request.Types, request.From, request.To);
+            var query = new SearchInventoryTransactionsQuery(
+                request.Page,
+                request.PageSize,
+                request.VariantId,
+                request.Types,
+                request.From,
+                request.To
+            );
             var result = await handler.Handle(query, cancellationToken);
 
             return result.Match(Results.Ok, CustomResults.Problem);

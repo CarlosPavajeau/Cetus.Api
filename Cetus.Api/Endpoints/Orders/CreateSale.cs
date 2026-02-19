@@ -39,11 +39,19 @@ internal sealed class CreateSale : IEndpoint
             CancellationToken cancellationToken) =>
         {
             var command = new CreateSaleCommand(
-                request.Items.Select(i => new CreateSaleItem(i.VariantId, i.Quantity)).ToList(),
-                new CreateSaleCustomer(request.Customer.Phone, request.Customer.Name, request.Customer.Email, request.Customer.DocumentType, request.Customer.DocumentNumber),
+                [.. request.Items.Select(i => new CreateSaleItem(i.VariantId, i.Quantity))],
+                new CreateSaleCustomer(
+                    request.Customer.Phone,
+                    request.Customer.Name,
+                    request.Customer.Email,
+                    request.Customer.DocumentType,
+                    request.Customer.DocumentNumber
+                ),
                 request.Channel,
                 request.PaymentMethod,
-                request.Shipping is null ? null : new CreateSaleShipping(request.Shipping.Address, request.Shipping.CityId),
+                request.Shipping is null
+                    ? null
+                    : new CreateSaleShipping(request.Shipping.Address, request.Shipping.CityId),
                 request.PaymentStatus
             );
 

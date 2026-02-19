@@ -24,11 +24,13 @@ internal sealed class Create : IEndpoint
             var command = new CreateProductCommand(request.Name, request.Description, request.CategoryId);
             var result = await handler.Handle(command, cancellationToken);
 
-            if (result.IsSuccess)
+            if (result.IsFailure)
             {
-                await cache.RemoveAsync(CacheKeyBuilder.Build("products", "for-sale", tenant.Id.ToString()),
-                    cancellationToken);
+                return result.Match(Results.Ok, CustomResults.Problem);
             }
+
+            string cacheKey = CacheKeyBuilder.Build("products", "for-sale", tenant.Id.ToString());
+            await cache.RemoveAsync(cacheKey, cancellationToken);
 
             return result.Match(Results.Ok, CustomResults.Problem);
         }).WithTags(Tags.Products);

@@ -32,15 +32,19 @@ internal sealed class Update : IEndpoint
                 request.CostPrice, request.CompareAtPrice);
             var result = await handler.Handle(command, cancellationToken);
 
-            if (!result.IsSuccess)
+            if (result.IsFailure)
             {
                 return result.Match(Results.Ok, CustomResults.Problem);
             }
 
             var productVariant = result.Value;
-            await cache.RemoveAsync(
-                CacheKeyBuilder.Build("products", "variants", tenant.Id.ToString(),
-                    productVariant.ProductId.ToString()), cancellationToken);
+            string cacheKey = CacheKeyBuilder.Build(
+                "products",
+                "variants",
+                tenant.Id.ToString(),
+                productVariant.ProductId.ToString()
+            );
+            await cache.RemoveAsync(cacheKey, cancellationToken);
 
             return result.Match(Results.Ok, CustomResults.Problem);
         }).WithTags(Tags.Products);

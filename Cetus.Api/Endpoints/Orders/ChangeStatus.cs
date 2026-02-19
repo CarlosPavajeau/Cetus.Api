@@ -28,7 +28,14 @@ internal sealed class ChangeStatus : IEndpoint
             ITenantContext tenant,
             CancellationToken cancellationToken) =>
         {
-            var command = new ChangeOrderStatusCommand(id, request.NewStatus, request.PaymentMethod, request.PaymentStatus, request.UserId, request.Notes);
+            var command = new ChangeOrderStatusCommand(
+                id,
+                request.NewStatus,
+                request.PaymentMethod,
+                request.PaymentStatus,
+                request.UserId,
+                request.Notes
+            );
             var result = await handler.Handle(command, cancellationToken);
 
             if (result.IsSuccess)

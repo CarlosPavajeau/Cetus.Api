@@ -1,3 +1,4 @@
+using System.Globalization;
 using Application.Abstractions.Data;
 using Application.Abstractions.Messaging;
 using Application.Reports.DailySummary;
@@ -24,7 +25,12 @@ internal sealed class GetDailySummary : IEndpoint
             var effectiveDate = request.Date ?? DateTime.UtcNow;
             var effectiveQuery = new GetDailySummaryQuery(Date: effectiveDate);
 
-            string cacheKey = CacheKeyBuilder.Build("reports", "daily-summary", tenant.Id.ToString(), effectiveDate.ToString("yyyyMMdd"));
+            string cacheKey = CacheKeyBuilder.Build(
+                "reports",
+                "daily-summary",
+                tenant.Id.ToString(),
+                effectiveDate.ToString("yyyyMMdd", CultureInfo.InvariantCulture)
+            );
 
             var result = await cache.GetOrCreateAsync(
                 cacheKey,

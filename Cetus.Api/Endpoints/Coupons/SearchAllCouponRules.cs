@@ -1,3 +1,4 @@
+using System.Globalization;
 using Application.Abstractions.Messaging;
 using Application.Coupons;
 using Application.Coupons.SearchAllRules;
@@ -19,7 +20,11 @@ internal sealed class SearchAllCouponRules : IEndpoint
         {
             var query = new SearchAllCouponRulesQuery(id);
 
-            string cacheKey = CacheKeyBuilder.Build("coupons", id.ToString(), "rules");
+            string cacheKey = CacheKeyBuilder.Build(
+                "coupons",
+                id.ToString(CultureInfo.InvariantCulture),
+                "rules"
+            );
 
             var result = await cache.GetOrCreateAsync(
                 cacheKey,

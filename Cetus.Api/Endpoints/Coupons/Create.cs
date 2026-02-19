@@ -37,7 +37,7 @@ internal sealed class Create : IEndpoint
                 request.UsageLimit,
                 request.StartDate,
                 request.EndDate,
-                request.Rules.Select(r => new CreateCouponRuleCommand(r.RuleType, r.Value)).ToList()
+                [.. request.Rules.Select(r => new CreateCouponRuleCommand(r.RuleType, r.Value))]
             );
 
             var result = await handler.Handle(command, cancellationToken);

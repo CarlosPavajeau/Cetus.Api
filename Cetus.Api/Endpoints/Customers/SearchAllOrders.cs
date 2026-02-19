@@ -1,3 +1,4 @@
+using System.Globalization;
 using Application.Abstractions.Data;
 using Application.Abstractions.Messaging;
 using Application.Customers.SearchAllOrders;
@@ -23,10 +24,16 @@ internal sealed class SearchAllOrders : IEndpoint
         {
             var queryParams = new List<KeyValuePair<string, string>>
             {
-                new("page", query.Page.ToString()),
-                new("pageSize", query.PageSize.ToString()),
+                new("page", query.Page.ToString(CultureInfo.InvariantCulture)),
+                new("pageSize", query.PageSize.ToString(CultureInfo.InvariantCulture))
             };
-            string cacheKey = CacheKeyBuilder.BuildWithQuery("customers", queryParams, customerId.ToString(), "orders", context.Id.ToString());
+            string cacheKey = CacheKeyBuilder.BuildWithQuery(
+                "customers",
+                queryParams,
+                customerId.ToString(),
+                "orders",
+                context.Id.ToString()
+            );
 
             var result = await cache.GetOrCreateAsync(
                 cacheKey,

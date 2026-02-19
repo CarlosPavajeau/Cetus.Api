@@ -21,10 +21,13 @@ internal sealed class Delete : IEndpoint
             var command = new DeleteCategoryCommand(id);
             var result = await handler.Handle(command, cancellationToken);
 
-            if (result.IsSuccess)
+            if (result.IsFailure)
             {
-                await cache.RemoveAsync(CacheKeyBuilder.Build("categories", context.Id.ToString()), cancellationToken);
+                return result.Match(Results.NoContent, CustomResults.Problem);
             }
+
+            string cacheKey = CacheKeyBuilder.Build("categories", context.Id.ToString());
+            await cache.RemoveAsync(cacheKey, cancellationToken);
 
             return result.Match(Results.NoContent, CustomResults.Problem);
         }).WithTags(Tags.Categories);

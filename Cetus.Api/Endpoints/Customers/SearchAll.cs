@@ -1,3 +1,4 @@
+using System.Globalization;
 using Application.Abstractions.Data;
 using Application.Abstractions.Messaging;
 using Application.Customers.SearchAll;
@@ -14,20 +15,24 @@ internal sealed class SearchAll : IEndpoint
     public void MapEndpoint(IEndpointRouteBuilder app)
     {
         app.MapGet("customers", async (
-            HybridCache cache,
-            [FromServices] IQueryHandler<SearchAllCustomersQuery, PagedResult<CustomerSummaryResponse>> handler,
             [AsParameters] SearchAllCustomersQuery query,
+            [FromServices] IQueryHandler<SearchAllCustomersQuery, PagedResult<CustomerSummaryResponse>> handler,
+            HybridCache cache,
             ITenantContext context,
             CancellationToken cancellationToken) =>
         {
             var queryParams = new List<KeyValuePair<string, string>>
             {
-                new("page", query.Page.ToString()),
-                new("pageSize", query.PageSize.ToString()),
+                new("page", query.Page.ToString(CultureInfo.InvariantCulture)),
+                new("pageSize", query.PageSize.ToString(CultureInfo.InvariantCulture)),
                 new("search", query.Search ?? ""),
-                new("sortBy", query.SortBy?.ToString() ?? ""),
+                new("sortBy", query.SortBy ?? ""),
             };
-            string cacheKey = CacheKeyBuilder.BuildWithQuery("customers", queryParams, context.Id.ToString());
+            string cacheKey = CacheKeyBuilder.BuildWithQuery(
+                "customers",
+                queryParams,
+                context.Id.ToString()
+            );
 
             var result = await cache.GetOrCreateAsync(
                 cacheKey,

@@ -1,3 +1,4 @@
+using System.Globalization;
 using Application.Abstractions.Data;
 using Application.Abstractions.Messaging;
 using Application.Reports.MonthlyProfitability;
@@ -27,16 +28,22 @@ internal sealed class GetMonthlyProfitability : IEndpoint
             CancellationToken cancellationToken
         ) =>
         {
-            var query = new GetMonthlyProfitabilityQuery(request.Preset, request.Year, request.Month, request.ExcludeCanceled, request.ExcludeRefunded);
+            var query = new GetMonthlyProfitabilityQuery(request.Preset, request.Year, request.Month,
+                request.ExcludeCanceled, request.ExcludeRefunded);
             var queryParams = new List<KeyValuePair<string, string>>
             {
                 new("excludeCanceled", query.ExcludeCanceled.ToString()),
                 new("excludeRefunded", query.ExcludeRefunded.ToString()),
-                new("month", query.Month?.ToString() ?? ""),
-                new("preset", query.ResolvedPreset?.ToString() ?? ""),
-                new("year", query.Year?.ToString() ?? ""),
+                new("month", query.Month?.ToString(CultureInfo.InvariantCulture) ?? ""),
+                new("preset", query.ResolvedPreset.ToString()),
+                new("year", query.Year?.ToString(CultureInfo.InvariantCulture) ?? "")
             };
-            string cacheKey = CacheKeyBuilder.BuildWithQuery("reports", queryParams, "monthly-profitability", tenant.Id.ToString());
+            string cacheKey = CacheKeyBuilder.BuildWithQuery(
+                "reports",
+                queryParams,
+                "monthly-profitability",
+                tenant.Id.ToString()
+            );
 
             var result = await cache.GetOrCreateAsync(
                 cacheKey,
@@ -44,7 +51,7 @@ internal sealed class GetMonthlyProfitability : IEndpoint
                 new HybridCacheEntryOptions
                 {
                     Expiration = TimeSpan.FromMinutes(10),
-                    LocalCacheExpiration = TimeSpan.FromMinutes(5),
+                    LocalCacheExpiration = TimeSpan.FromMinutes(5)
                 },
                 cancellationToken: cancellationToken,
                 tags: [$"reports:t={tenant.Id}"]

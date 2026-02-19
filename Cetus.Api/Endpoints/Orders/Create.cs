@@ -40,8 +40,14 @@ internal sealed class Create : IEndpoint
             CancellationToken cancellationToken) =>
         {
             var command = new CreateOrderCommand(
-                request.Items.Select(i => new CreateOrderItem(i.VariantId, i.Quantity)).ToList(),
-                new CreateOrderCustomer(request.Customer.Phone, request.Customer.Name, request.Customer.Email, request.Customer.DocumentType, request.Customer.DocumentNumber),
+                [.. request.Items.Select(i => new CreateOrderItem(i.VariantId, i.Quantity))],
+                new CreateOrderCustomer(
+                    request.Customer.Phone,
+                    request.Customer.Name,
+                    request.Customer.Email,
+                    request.Customer.DocumentType,
+                    request.Customer.DocumentNumber
+                ),
                 new CreateOrderShipping(request.Shipping.Address, request.Shipping.CityId)
             );
 

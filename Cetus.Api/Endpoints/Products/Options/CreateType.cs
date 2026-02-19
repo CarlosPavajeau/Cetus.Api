@@ -23,11 +23,13 @@ internal sealed class CreateType : IEndpoint
             var command = new CreateProductOptionTypeCommand(request.Name, request.Values);
             var result = await handler.Handle(command, cancellationToken);
 
-            if (result.IsSuccess)
+            if (result.IsFailure)
             {
-                await cache.RemoveAsync(CacheKeyBuilder.Build("products", "option-types", tenant.Id.ToString()),
-                    cancellationToken);
+                return result.Match(Results.NoContent, CustomResults.Problem);
             }
+
+            string cacheKey = CacheKeyBuilder.Build("products", "option-types", tenant.Id.ToString());
+            await cache.RemoveAsync(cacheKey, cancellationToken);
 
             return result.Match(Results.NoContent, CustomResults.Problem);
         }).WithTags(Tags.Products);
