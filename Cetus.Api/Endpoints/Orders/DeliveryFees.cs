@@ -12,13 +12,16 @@ namespace Cetus.Api.Endpoints.Orders;
 
 internal sealed class DeliveryFees : IEndpoint
 {
+    private sealed record Request(Guid CityId, decimal Fee);
+
     public void MapEndpoint(IEndpointRouteBuilder app)
     {
         app.MapPost("orders/delivery-fees", async (
-            CreateDeliveryFeeCommand command,
+            Request request,
             ICommandHandler<CreateDeliveryFeeCommand, DeliveryFeeResponse> handler,
             CancellationToken cancellationToken) =>
         {
+            var command = new CreateDeliveryFeeCommand(request.CityId, request.Fee);
             var result = await handler.Handle(command, cancellationToken);
 
             return result.Match(Results.Ok, CustomResults.Problem);

@@ -9,13 +9,22 @@ namespace Cetus.Api.Endpoints.Orders;
 
 internal sealed class SearchAll : IEndpoint
 {
+    private sealed record Request(
+        int Page = 1,
+        int PageSize = 20,
+        string[]? Statuses = null,
+        DateTime? From = null,
+        DateTime? To = null
+    );
+
     public void MapEndpoint(IEndpointRouteBuilder app)
     {
         app.MapGet("orders", async (
+            [AsParameters] Request request,
             [FromServices] IQueryHandler<SearchAllOrdersQuery, PagedResult<OrderResponse>> handler,
-            [AsParameters] SearchAllOrdersQuery query,
             CancellationToken cancellationToken) =>
         {
+            var query = new SearchAllOrdersQuery(request.Page, request.PageSize, request.Statuses, request.From, request.To);
             var result = await handler.Handle(query, cancellationToken);
 
             return result.Match(Results.Ok, CustomResults.Problem);
