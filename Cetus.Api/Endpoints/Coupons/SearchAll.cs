@@ -20,8 +20,10 @@ internal sealed class SearchAll : IEndpoint
         {
             var query = new SearchAllCouponsQuery();
 
+            string cacheKey = CacheKeyBuilder.Build("coupons", tenant.Id.ToString());
+
             var result = await cache.GetOrCreateAsync(
-                $"coupons-{tenant.Id}",
+                cacheKey,
                 async token => await handler.Handle(query, token),
                 cancellationToken: cancellationToken
             );

@@ -19,7 +19,7 @@ internal sealed class Find : IEndpoint
             CancellationToken cancellationToken) =>
         {
             var query = new FindStoreByDomainQuery(domain);
-            string cacheKey = $"store:by-domain:${domain}";
+            string cacheKey = CacheKeyBuilder.Build("stores", "by-domain", domain);
 
             var result = await cache.GetOrCreateAsync(
                 cacheKey,
@@ -37,7 +37,7 @@ internal sealed class Find : IEndpoint
             CancellationToken cancellationToken) =>
         {
             var query = new FindStoreBySlugQuery(slug);
-            string cacheKey = $"store:by-slug:${slug}";
+            string cacheKey = CacheKeyBuilder.Build("stores", "by-slug", slug);
 
             var result = await cache.GetOrCreateAsync(
                 cacheKey,

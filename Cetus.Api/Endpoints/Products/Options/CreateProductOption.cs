@@ -26,7 +26,9 @@ internal sealed class CreateProductOption : IEndpoint
 
             if (result.IsSuccess)
             {
-                await cache.RemoveAsync($"product-options-{tenant.Id}-{productId}", cancellationToken);
+                await cache.RemoveAsync(
+                    CacheKeyBuilder.Build("products", "options", tenant.Id.ToString(), productId.ToString()),
+                    cancellationToken);
             }
 
             return result.Match(Results.NoContent, CustomResults.Problem);

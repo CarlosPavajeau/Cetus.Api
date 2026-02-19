@@ -23,8 +23,10 @@ internal sealed class Search : IEndpoint
             string normalizedSearchTerm = searchTerm.Trim().ToLowerInvariant();
             var query = new SearchProductsQuery(normalizedSearchTerm);
 
+            string cacheKey = CacheKeyBuilder.Build("products", "search", tenant.Id.ToString(), normalizedSearchTerm);
+
             var result = await cache.GetOrCreateAsync(
-                $"{tenant.Id}-products-search-{normalizedSearchTerm}",
+                cacheKey,
                 async token => await handler.Handle(query, token),
                 new HybridCacheEntryOptions
                 {

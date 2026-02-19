@@ -19,8 +19,10 @@ internal sealed class TopSelling : IEndpoint
         {
             var query = new GetTopSellingProductsQuery();
 
+            string cacheKey = CacheKeyBuilder.Build("products", "top-selling", tenant.Id.ToString());
+
             var result = await cache.GetOrCreateAsync(
-                $"products-top-selling-${tenant.Id}",
+                cacheKey,
                 async token => await handler.Handle(query, token),
                 new HybridCacheEntryOptions
                 {

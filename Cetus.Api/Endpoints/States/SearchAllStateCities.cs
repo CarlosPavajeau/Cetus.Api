@@ -18,8 +18,10 @@ internal sealed class SearchAllStateCities : IEndpoint
         {
             var query = new SearchAllStateCitiesQuery(id);
 
+            string cacheKey = CacheKeyBuilder.Build("states", id.ToString(), "cities");
+
             var result = await cache.GetOrCreateAsync(
-                $"states-{id}-cities",
+                cacheKey,
                 async token => await handler.Handle(query, token),
                 cancellationToken: cancellationToken
             );

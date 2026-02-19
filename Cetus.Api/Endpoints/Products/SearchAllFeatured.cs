@@ -20,8 +20,10 @@ internal sealed class SearchAllFeatured : IEndpoint
         {
             var query = new SearchAllFeaturedProductsQuery();
 
+            string cacheKey = CacheKeyBuilder.Build("products", "featured", tenant.Id.ToString());
+
             var result = await cache.GetOrCreateAsync(
-                $"products-featured-${tenant.Id}",
+                cacheKey,
                 async token => await handler.Handle(query, token),
                 new HybridCacheEntryOptions
                 {

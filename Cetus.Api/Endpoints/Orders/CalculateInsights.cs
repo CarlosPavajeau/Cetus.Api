@@ -21,8 +21,10 @@ internal sealed class CalculateInsights : IEndpoint
         {
             var query = new CalculateOrdersInsightsQuery(month);
 
+            string cacheKey = CacheKeyBuilder.Build("orders", "insights", tenant.Id.ToString(), month);
+
             var result = await cache.GetOrCreateAsync(
-                $"orders-insights-{month}-${tenant.Id}",
+                cacheKey,
                 async token => await handler.Handle(query, token),
                 new HybridCacheEntryOptions
                 {

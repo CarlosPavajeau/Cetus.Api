@@ -1,3 +1,4 @@
+using System.Globalization;
 using Application.Abstractions.Data;
 using Application.Abstractions.Messaging;
 using Application.Products;
@@ -31,8 +32,25 @@ internal sealed class SearchForSale : IEndpoint
         {
             var query = new SearchAllProductsForSaleQuery(request.Page, request.PageSize, request.CategoryIds,
                 request.SearchTerm);
+
+            var queryParams = new List<KeyValuePair<string, string>>
+            {
+                new("page", query.Page.ToString(CultureInfo.InvariantCulture)),
+                new("pageSize", query.PageSize.ToString(CultureInfo.InvariantCulture)),
+            };
+
+            queryParams.AddRange(from categoryId in query.CategoryIds ?? []
+                select new KeyValuePair<string, string>("categoryIds", categoryId.ToString()));
+
+            if (!string.IsNullOrEmpty(query.SearchTerm))
+            {
+                queryParams.Add(new KeyValuePair<string, string>("searchTerm", query.SearchTerm));
+            }
+
+            string cacheKey = CacheKeyBuilder.BuildWithQuery("products", queryParams, "for-sale", tenant.Id.ToString());
+
             var result = await cache.GetOrCreateAsync(
-                $"products-for-sale-${tenant.Id}-{query.Page}-{query.PageSize}-{string.Join(",", query.CategoryIds ?? [])}-{query.SearchTerm}",
+                cacheKey,
                 async token => await handler.Handle(query, token),
                 cancellationToken: cancellationToken
             );

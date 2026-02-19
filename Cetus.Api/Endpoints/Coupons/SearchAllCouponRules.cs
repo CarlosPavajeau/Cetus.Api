@@ -19,8 +19,10 @@ internal sealed class SearchAllCouponRules : IEndpoint
         {
             var query = new SearchAllCouponRulesQuery(id);
 
+            string cacheKey = CacheKeyBuilder.Build("coupons", id.ToString(), "rules");
+
             var result = await cache.GetOrCreateAsync(
-                $"coupons-{id}-rules",
+                cacheKey,
                 async token => await handler.Handle(query, token),
                 cancellationToken: cancellationToken
             );

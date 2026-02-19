@@ -20,8 +20,10 @@ internal sealed class SearchAllPopular : IEndpoint
         {
             var query = new SearchAllPopularProductsQuery();
 
+            string cacheKey = CacheKeyBuilder.Build("products", "popular", tenant.Id.ToString());
+
             var result = await cache.GetOrCreateAsync(
-                $"products-popular-${tenant.Id}",
+                cacheKey,
                 async token => await handler.Handle(query, token),
                 new HybridCacheEntryOptions
                 {

@@ -19,11 +19,13 @@ internal sealed class Delete : IEndpoint
             var command = new DeleteProductCommand(id);
             var result = await handler.Handle(command, cancellationToken);
 
-            if (result.IsSuccess)
+            if (result.IsFailure)
             {
-                await cache.RemoveAsync($"product-{command.Id}", cancellationToken);
-                await cache.RemoveAsync("products-for-sale", cancellationToken);
+                return result.Match(Results.Ok, CustomResults.Problem);
             }
+
+            await cache.RemoveAsync(CacheKeyBuilder.Build("products", command.Id.ToString()), cancellationToken);
+            await cache.RemoveAsync(CacheKeyBuilder.Build("products", "for-sale"), cancellationToken);
 
             return result.Match(Results.Ok, CustomResults.Problem);
         }).WithTags(Tags.Products);

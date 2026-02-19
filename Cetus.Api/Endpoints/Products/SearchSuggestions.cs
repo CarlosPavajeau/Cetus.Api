@@ -19,7 +19,7 @@ internal sealed class SearchSuggestions : IEndpoint
             CancellationToken cancellationToken) =>
         {
             var query = new SearchProductSuggestionsQuery(productId);
-            string cacheKey = $"suggestions-{productId}";
+            string cacheKey = CacheKeyBuilder.Build("products", "suggestions", productId.ToString());
 
             var result = await cache.GetOrCreateAsync(
                 cacheKey,

@@ -36,8 +36,10 @@ internal sealed class DeliveryFees : IEndpoint
         {
             var query = new SearchAllDeliveryFeesQuery();
 
+            string cacheKey = CacheKeyBuilder.Build("orders", "delivery-fees", tenant.Id.ToString());
+
             var result = await cache.GetOrCreateAsync(
-                $"delivery-fees-${tenant.Id}",
+                cacheKey,
                 async token => await handler.Handle(query, token),
                 cancellationToken: cancellationToken
             );
@@ -54,8 +56,10 @@ internal sealed class DeliveryFees : IEndpoint
         {
             var query = new FindDeliveryFeeQuery(cityId);
 
+            string cacheKey = CacheKeyBuilder.Build("orders", "delivery-fees", tenant.Id.ToString(), cityId.ToString());
+
             var result = await cache.GetOrCreateAsync(
-                $"delivery-fee-{cityId}-${tenant.Id}",
+                cacheKey,
                 async token => await handler.Handle(query, token),
                 cancellationToken: cancellationToken
             );

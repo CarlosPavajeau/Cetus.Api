@@ -19,8 +19,10 @@ internal sealed class SearchAll : IEndpoint
             {
                 var query = new SearchAllCategoriesQuery();
 
+                string cacheKey = CacheKeyBuilder.Build("categories", context.Id.ToString());
+
                 var result = await cache.GetOrCreateAsync(
-                    $"categories-{context.Id}",
+                    cacheKey,
                     async token => await handler.Handle(query, token),
                     cancellationToken: cancellationToken
                 );

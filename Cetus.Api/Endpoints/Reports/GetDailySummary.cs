@@ -24,8 +24,10 @@ internal sealed class GetDailySummary : IEndpoint
             var effectiveDate = request.Date ?? DateTime.UtcNow;
             var effectiveQuery = new GetDailySummaryQuery(Date: effectiveDate);
 
+            string cacheKey = CacheKeyBuilder.Build("reports", "daily-summary", tenant.Id.ToString(), effectiveDate.ToString("yyyyMMdd"));
+
             var result = await cache.GetOrCreateAsync(
-                $"daily-summary-{effectiveDate:yyyyMMdd}-{tenant.Id}",
+                cacheKey,
                 async token => await handler.Handle(effectiveQuery, token),
                 new HybridCacheEntryOptions
                 {

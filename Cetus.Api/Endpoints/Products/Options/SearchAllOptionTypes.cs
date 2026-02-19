@@ -20,8 +20,10 @@ internal sealed class SearchAllOptionTypes : IEndpoint
         {
             var query = new SearchAllProductOptionTypesQuery();
 
+            string cacheKey = CacheKeyBuilder.Build("products", "option-types", tenant.Id.ToString());
+
             var result = await cache.GetOrCreateAsync(
-                $"product-option-types-{tenant.Id}",
+                cacheKey,
                 async token => await handler.Handle(query, token),
                 cancellationToken: cancellationToken
             );

@@ -21,8 +21,12 @@ internal sealed class SearchAllOrders : IEndpoint
             ITenantContext context,
             CancellationToken cancellationToken) =>
         {
-            string cacheKey =
-                $"customer:{customerId}:orders:t={context.Id}:p={query.Page}:ps={query.PageSize}";
+            var queryParams = new List<KeyValuePair<string, string>>
+            {
+                new("page", query.Page.ToString()),
+                new("pageSize", query.PageSize.ToString()),
+            };
+            string cacheKey = CacheKeyBuilder.BuildWithQuery("customers", queryParams, customerId.ToString(), "orders", context.Id.ToString());
 
             var result = await cache.GetOrCreateAsync(
                 cacheKey,

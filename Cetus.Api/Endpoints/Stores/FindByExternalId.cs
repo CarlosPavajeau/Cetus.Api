@@ -18,7 +18,7 @@ internal sealed class FindByExternalId : IEndpoint
             CancellationToken cancellationToken) =>
         {
             var query = new FindStoreByExternalId(externalId);
-            string cacheKey = $"store:by-external-id:${externalId}";
+            string cacheKey = CacheKeyBuilder.Build("stores", "by-external-id", externalId);
 
             var result = await cache.GetOrCreateAsync(
                 cacheKey,

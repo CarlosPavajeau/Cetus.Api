@@ -18,7 +18,7 @@ public class FindByPhone : IEndpoint
             CancellationToken cancellationToken) =>
         {
             string normalizedPhone = new([.. phone.Where(char.IsDigit)]);
-            string cacheKey = $"customer-by-phone-{normalizedPhone}";
+            string cacheKey = CacheKeyBuilder.Build("customers", "by-phone", normalizedPhone);
             var query = new FindCustomerByPhoneQuery(normalizedPhone);
 
             var result = await cache.GetOrCreateAsync(

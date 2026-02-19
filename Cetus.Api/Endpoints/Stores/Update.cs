@@ -33,7 +33,9 @@ internal sealed class Update : IEndpoint
 
             if (result.IsSuccess)
             {
-                await cache.RemoveAsync([$"store-id-{id}", $"store-id-{result.Value.Slug}"], cancellationToken);
+                await cache.RemoveAsync(
+                    [CacheKeyBuilder.Build("stores", id.ToString()), CacheKeyBuilder.Build("stores", result.Value.Slug)],
+                    cancellationToken);
             }
 
             return result.Match(Results.Ok, CustomResults.Problem);

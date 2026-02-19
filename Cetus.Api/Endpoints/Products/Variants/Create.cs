@@ -47,7 +47,9 @@ internal sealed class Create : IEndpoint
 
             if (result.IsSuccess)
             {
-                await cache.RemoveAsync($"product-variants-{tenant.Id}-{productId}", cancellationToken);
+                await cache.RemoveAsync(
+                    CacheKeyBuilder.Build("products", "variants", tenant.Id.ToString(), productId.ToString()),
+                    cancellationToken);
             }
 
             return result.Match(Results.Ok, CustomResults.Problem);

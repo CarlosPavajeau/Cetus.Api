@@ -18,8 +18,10 @@ internal sealed class FindCity : IEndpoint
         {
             var query = new FindCityQuery(id);
 
+            string cacheKey = CacheKeyBuilder.Build("states", "cities", id.ToString());
+
             var result = await cache.GetOrCreateAsync(
-                $"states-cities-{id}",
+                cacheKey,
                 async token => await handler.Handle(query, token),
                 new HybridCacheEntryOptions
                 {

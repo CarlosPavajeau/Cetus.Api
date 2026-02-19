@@ -26,7 +26,7 @@ internal sealed class Create : IEndpoint
 
             if (result.IsSuccess)
             {
-                await cache.RemoveAsync($"categories-{context.Id}", cancellationToken);
+                await cache.RemoveAsync(CacheKeyBuilder.Build("categories", context.Id.ToString()), cancellationToken);
             }
 
             return result.Match(Results.Ok, CustomResults.Problem);

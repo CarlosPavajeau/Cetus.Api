@@ -28,8 +28,15 @@ internal sealed class GetMonthlyProfitability : IEndpoint
         ) =>
         {
             var query = new GetMonthlyProfitabilityQuery(request.Preset, request.Year, request.Month, request.ExcludeCanceled, request.ExcludeRefunded);
-            string cacheKey = $"monthly-profitability:t={tenant.Id}:p={query.ResolvedPreset}:y={query.Year}:m={query.Month}" +
-                              $":ec={query.ExcludeCanceled}:ef={query.ExcludeRefunded}";
+            var queryParams = new List<KeyValuePair<string, string>>
+            {
+                new("excludeCanceled", query.ExcludeCanceled.ToString()),
+                new("excludeRefunded", query.ExcludeRefunded.ToString()),
+                new("month", query.Month?.ToString() ?? ""),
+                new("preset", query.ResolvedPreset?.ToString() ?? ""),
+                new("year", query.Year?.ToString() ?? ""),
+            };
+            string cacheKey = CacheKeyBuilder.BuildWithQuery("reports", queryParams, "monthly-profitability", tenant.Id.ToString());
 
             var result = await cache.GetOrCreateAsync(
                 cacheKey,

@@ -20,7 +20,7 @@ internal sealed class Summary : IEndpoint
             CancellationToken cancellationToken) =>
         {
             var query = new GetOrdersSummaryQuery(month);
-            string cacheKey = $"orders-summary-{month}-{tenant.Id}";
+            string cacheKey = CacheKeyBuilder.Build("orders", "summary", tenant.Id.ToString(), month);
 
             var result = await cache.GetOrCreateAsync(
                 cacheKey,

@@ -19,7 +19,7 @@ internal sealed class Find : IEndpoint
             HybridCache cache,
             CancellationToken cancellationToken) =>
         {
-            string cacheKey = $"customer:{id}:t={tenant.Id}";
+            string cacheKey = CacheKeyBuilder.Build("customers", id.ToString(), tenant.Id.ToString());
             var query = new FindCustomerQuery(id);
 
             var cached = await cache.GetOrCreateAsync<CustomerResponse?>(

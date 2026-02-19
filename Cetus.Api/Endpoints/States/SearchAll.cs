@@ -17,8 +17,10 @@ internal sealed class SearchAll : IEndpoint
         {
             var query = new SearchAllStatesQuery();
 
+            string cacheKey = CacheKeyBuilder.Build("states");
+
             var result = await cache.GetOrCreateAsync(
-                "states",
+                cacheKey,
                 async token => await handler.Handle(query, token),
                 cancellationToken: cancellationToken
             );

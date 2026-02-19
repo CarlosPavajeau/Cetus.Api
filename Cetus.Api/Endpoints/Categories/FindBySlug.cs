@@ -18,8 +18,10 @@ internal sealed class FindBySlug : IEndpoint
             {
                 var query = new FindCategoryBySlugQuery(slug);
 
+                string cacheKey = CacheKeyBuilder.Build("categories", "slug", slug);
+
                 var result = await cache.GetOrCreateAsync(
-                    $"categories-slug-{slug}",
+                    cacheKey,
                     async token => await handler.Handle(query, token),
                     new HybridCacheEntryOptions
                     {

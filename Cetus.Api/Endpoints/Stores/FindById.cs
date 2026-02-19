@@ -18,7 +18,7 @@ internal sealed class FindById : IEndpoint
             CancellationToken cancellationToken) =>
         {
             var query = new FindStoreByIdQuery(id);
-            string cacheKey = $"store-id-{id}";
+            string cacheKey = CacheKeyBuilder.Build("stores", id.ToString());
 
             var result = await cache.GetOrCreateAsync(
                 cacheKey,
