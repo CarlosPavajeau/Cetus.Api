@@ -2,6 +2,7 @@
     <ItemGroup>
         <PackageReference Include="AspNetCore.HealthChecks.NpgSql"/>
         <PackageReference Include="EFCore.NamingConventions"/>
+        <PackageReference Include="Microsoft.Extensions.Caching.StackExchangeRedis"/>
         <PackageReference Include="Microsoft.Extensions.Diagnostics.HealthChecks"/>
         <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL"/>
         <PackageReference Include="Npgsql.OpenTelemetry"/>
@@ -16,8 +17,10 @@
         <PackageReference Include="Quartz.AspNetCore"/>
         <PackageReference Include="Resend"/>
         <PackageReference Include="ZiggyCreatures.FusionCache"/>
+        <PackageReference Include="ZiggyCreatures.FusionCache.Backplane.StackExchangeRedis"/>
         <PackageReference Include="ZiggyCreatures.FusionCache.OpenTelemetry"/>
         <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer"/>
+        <PackageReference Include="ZiggyCreatures.FusionCache.Serialization.SystemTextJson"/>
     </ItemGroup>
 
     <ItemGroup>

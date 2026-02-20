@@ -28,6 +28,7 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Caching.StackExchangeRedis;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
@@ -43,7 +44,10 @@ using Quartz;
 using Quartz.AspNetCore;
 using Resend;
 using SharedKernel;
+using StackExchange.Redis;
 using ZiggyCreatures.Caching.Fusion;
+using ZiggyCreatures.Caching.Fusion.Backplane.StackExchangeRedis;
+using ZiggyCreatures.Caching.Fusion.Serialization.SystemTextJson;
 
 namespace Infrastructure;
 
@@ -66,7 +70,7 @@ public static class DependencyInjection
             .AddCors(configuration)
             .AddEmail()
             .AddRateLimit()
-            .AddCache()
+            .AddCache(configuration)
             .AddQuartz()
             .AddPayment(configuration);
     }
@@ -298,16 +302,34 @@ public static class DependencyInjection
         return services;
     }
 
-    private static IServiceCollection AddCache(this IServiceCollection services)
+    private static IServiceCollection AddCache(this IServiceCollection services, IConfiguration configuration)
     {
+        string connectionString = configuration.GetConnectionString("Redis")!;
+        var uri = new Uri(connectionString);
+        string password = Uri.UnescapeDataString(uri.UserInfo.Split(':')[1]);
+
+        var redisConfig = new ConfigurationOptions
+        {
+            EndPoints = { { uri.Host, uri.Port } },
+            Password = password,
+            Ssl = true,
+            SslHost = uri.Host,
+            AbortOnConnectFail = false
+        };
+
         services.AddFusionCache()
             .WithDefaultEntryOptions(new FusionCacheEntryOptions
             {
                 Duration = TimeSpan.FromMinutes(10),
                 EagerRefreshThreshold = 0.8f,
                 FactorySoftTimeout = TimeSpan.FromSeconds(1),
-                AllowTimedOutFactoryBackgroundCompletion = true
+                AllowTimedOutFactoryBackgroundCompletion = true,
+                AllowBackgroundBackplaneOperations = true
             })
+            .WithDistributedCache(_ =>
+                new RedisCache(new RedisCacheOptions { ConfigurationOptions = redisConfig }))
+            .WithSerializer(new FusionCacheSystemTextJsonSerializer())
+            .WithBackplane(new RedisBackplane(new RedisBackplaneOptions { ConfigurationOptions = redisConfig }))
             .AsHybridCache();
 
         return services;
