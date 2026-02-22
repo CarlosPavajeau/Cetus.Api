@@ -7,6 +7,7 @@ namespace Application.Products;
 public sealed record SimpleProductForSaleResponse(
     Guid Id,
     string Name,
+    string? Description,
     string Slug,
     string? ImageUrl,
     Guid CategoryId,
@@ -22,6 +23,7 @@ public sealed record SimpleProductForSaleResponse(
         new SimpleProductForSaleResponse(
             variant.ProductId,
             variant.Product!.Name,
+            variant.Product!.Description,
             variant.Product!.Slug,
             variant.Images.OrderBy(i => i.SortOrder).FirstOrDefault()!.ImageUrl,
             variant.Product!.CategoryId,
