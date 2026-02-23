@@ -46,6 +46,12 @@ public static class StoreErrors
             $"Store with Slug '{Slug}' is not connected to Mercado Pago"
         );
 
+    public static Error MercadoPagoTokenRefreshFailed(Guid storeId) =>
+        Error.Problem(
+            "Stores.MercadoPagoTokenRefreshFailed",
+            $"Failed to refresh MercadoPago access token for store with Id '{storeId}'"
+        );
+
     public static Error WompiPublicKeyNotFound(Guid storeId) =>
         Error.Problem(
             "Stores.WompiPublicKeyNotFound",

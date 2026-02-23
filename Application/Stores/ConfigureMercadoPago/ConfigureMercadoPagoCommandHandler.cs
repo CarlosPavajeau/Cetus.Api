@@ -8,7 +8,8 @@ namespace Application.Stores.ConfigureMercadoPago;
 
 internal sealed class ConfigureMercadoPagoCommandHandler(
     IApplicationDbContext db,
-    ITenantContext tenant)
+    ITenantContext tenant,
+    IDateTimeProvider dateTimeProvider)
     : ICommandHandler<ConfigureMercadoPagoCommand>
 {
     public async Task<Result> Handle(ConfigureMercadoPagoCommand command, CancellationToken cancellationToken)
@@ -24,7 +25,7 @@ internal sealed class ConfigureMercadoPagoCommandHandler(
 
         store.MercadoPagoAccessToken = command.AccessToken;
         store.MercadoPagoRefreshToken = command.RefreshToken;
-        store.MercadoPagoExpiresAt = DateTime.Today.AddSeconds(command.ExpiresIn).ToUniversalTime();
+        store.MercadoPagoExpiresAt = dateTimeProvider.UtcNow.AddSeconds(command.ExpiresIn);
 
         await db.SaveChangesAsync(cancellationToken);
 

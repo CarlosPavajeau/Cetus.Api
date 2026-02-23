@@ -128,6 +128,25 @@ public class MercadoPagoClient(IOptions<MercadoPagoSettings> options, ILogger<Me
         }
     }
 
+    public async Task<MercadoPagoTokenResponse?> RefreshAccessTokenAsync(string refreshToken,
+        CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            var oAuthClient = new OAuthClient();
+            var credential =
+                await oAuthClient.RefreshOAuthCredentialAsync(refreshToken, cancellationToken: cancellationToken);
+
+            return new MercadoPagoTokenResponse(credential.AccessToken, credential.RefreshToken,
+                credential.ExpiresIn ?? 0);
+        }
+        catch (Exception e)
+        {
+            logger.LogError(e, "Error refreshing MercadoPago access token");
+            return null;
+        }
+    }
+
     public PaymentMethod GetPaymentMethodFromMercadoPago(string mercadoPagoPaymentMethod)
     {
         return PaymentMethods.TryGetValue(mercadoPagoPaymentMethod, out var paymentMethod)

@@ -34,6 +34,4 @@ public class Store
     public bool IsConnectedToMercadoPago => !string.IsNullOrEmpty(MercadoPagoAccessToken) &&
                                             !string.IsNullOrEmpty(MercadoPagoRefreshToken);
 
-    public bool IsMercadoPagoTokenExpired =>
-        MercadoPagoExpiresAt.HasValue && MercadoPagoExpiresAt.Value <= DateTime.Today;
 }

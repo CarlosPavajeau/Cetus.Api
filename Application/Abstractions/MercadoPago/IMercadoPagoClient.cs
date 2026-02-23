@@ -18,5 +18,8 @@ public interface IMercadoPagoClient
     Task<PaymentRefund?> RefundPayment(long paymentId, string accessToken,
         CancellationToken cancellationToken = default);
 
+    Task<MercadoPagoTokenResponse?> RefreshAccessTokenAsync(string refreshToken,
+        CancellationToken cancellationToken = default);
+
     PaymentMethod GetPaymentMethodFromMercadoPago(string mercadoPagoPaymentMethod);
 }

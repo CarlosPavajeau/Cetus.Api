@@ -1,21 +1,20 @@
 using Application.Abstractions.Messaging;
-using Application.Orders.CreatePayment;
+using Application.PaymentProviders.MercadoPago;
 using Cetus.Api.Extensions;
 using Cetus.Api.Infrastructure;
-using Microsoft.AspNetCore.Mvc;
 
 namespace Cetus.Api.Endpoints.Orders;
 
-internal sealed class CreatePayment : IEndpoint
+internal sealed class CreateMercadoPagoPreference : IEndpoint
 {
     public void MapEndpoint(IEndpointRouteBuilder app)
     {
-        app.MapPost("orders/{id:guid}/payments", async (
-            [FromRoute] Guid id,
-            ICommandHandler<CreateOrderPaymentCommand, string> handler,
+        app.MapPost("orders/{orderId:guid}/payment-providers/mercado-pago/preference", async (
+            Guid orderId,
+            ICommandHandler<CreateMercadoPagoPreferenceCommand, string> handler,
             CancellationToken cancellationToken) =>
         {
-            var command = new CreateOrderPaymentCommand(id);
+            var command = new CreateMercadoPagoPreferenceCommand(orderId);
 
             var result = await handler.Handle(command, cancellationToken);
 

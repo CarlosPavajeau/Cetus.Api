@@ -9,38 +9,40 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 using SharedKernel;
 
-namespace Application.Orders.CreatePayment;
+namespace Application.PaymentProviders.MercadoPago;
 
-internal sealed class CreateOrderPaymentCommandHandler(
+internal sealed class CreateMercadoPagoPreferenceCommandHandler(
     IApplicationDbContext db,
     IMercadoPagoClient mercadoPagoClient,
-    IOptions<AppSettings> options
-) : ICommandHandler<CreateOrderPaymentCommand, string>
+    IOptions<AppSettings> options,
+    IDateTimeProvider dateTimeProvider
+) : ICommandHandler<CreateMercadoPagoPreferenceCommand, string>
 {
     private readonly AppSettings _appSettings = options.Value;
 
-    public async Task<Result<string>> Handle(CreateOrderPaymentCommand command, CancellationToken cancellationToken)
+    public async Task<Result<string>> Handle(CreateMercadoPagoPreferenceCommand command,
+        CancellationToken cancellationToken)
     {
         var order = await db.Orders
             .AsNoTracking()
             .Include(o => o.Items)
             .Include(o => o.Customer)
-            .Where(o => o.Id == command.Id)
+            .Where(o => o.Id == command.OrderId)
             .FirstOrDefaultAsync(cancellationToken);
 
         if (order is null)
         {
-            return Result.Failure<string>(OrderErrors.NotFound(command.Id));
+            return Result.Failure<string>(OrderErrors.NotFound(command.OrderId));
         }
 
         if (!order.CanTransitionTo(OrderStatus.PaymentConfirmed))
         {
             return Result.Failure<string>(
-                OrderErrors.InvalidStatusTransition(order.Status, OrderStatus.PaymentConfirmed));
+                OrderErrors.InvalidStatusTransition(order.Status, OrderStatus.PaymentConfirmed)
+            );
         }
 
         var store = await db.Stores
-            .AsNoTracking()
             .Where(s => s.Id == order.StoreId)
             .FirstOrDefaultAsync(cancellationToken);
 
@@ -49,9 +51,31 @@ internal sealed class CreateOrderPaymentCommandHandler(
             return Result.Failure<string>(StoreErrors.NotFoundById(order.StoreId));
         }
 
-        if (!store.IsConnectedToMercadoPago)
+        if (string.IsNullOrEmpty(store.MercadoPagoAccessToken))
         {
             return Result.Failure<string>(StoreErrors.NotConnectedToMercadoPago(store.Slug));
+        }
+
+        const int tokenExpirationBufferMinutes = 5;
+        string accessToken = store.MercadoPagoAccessToken!;
+
+        if (store.MercadoPagoExpiresAt.HasValue &&
+            store.MercadoPagoExpiresAt.Value <= dateTimeProvider.UtcNow.AddMinutes(tokenExpirationBufferMinutes))
+        {
+            var tokenResponse = await mercadoPagoClient.RefreshAccessTokenAsync(
+                store.MercadoPagoRefreshToken!, cancellationToken);
+
+            if (tokenResponse is null)
+            {
+                return Result.Failure<string>(StoreErrors.MercadoPagoTokenRefreshFailed(order.StoreId));
+            }
+
+            store.MercadoPagoAccessToken = tokenResponse.AccessToken;
+            store.MercadoPagoRefreshToken = tokenResponse.RefreshToken;
+            store.MercadoPagoExpiresAt = dateTimeProvider.UtcNow.AddSeconds(tokenResponse.ExpiresIn);
+            accessToken = tokenResponse.AccessToken;
+
+            await db.SaveChangesAsync(cancellationToken);
         }
 
         string cdnUrl = _appSettings.CdnUrl;
@@ -92,13 +116,13 @@ internal sealed class CreateOrderPaymentCommandHandler(
 
         var preference = await mercadoPagoClient.CreatePreference(
             createPreferenceRequest,
-            store.MercadoPagoAccessToken!,
+            accessToken,
             cancellationToken
         );
 
         if (preference is null)
         {
-            return Result.Failure<string>(OrderErrors.PaymentCreationFailed(command.Id));
+            return Result.Failure<string>(OrderErrors.PaymentCreationFailed(command.OrderId));
         }
 
         return Result.Success(preference.InitPoint);
