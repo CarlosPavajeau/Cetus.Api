@@ -54,7 +54,7 @@ internal sealed class CreateOrderPaymentCommandHandler(
             return Result.Failure<string>(StoreErrors.NotConnectedToMercadoPago(store.Slug));
         }
 
-        string? cdnUrl = _appSettings.CdnUrl;
+        string cdnUrl = _appSettings.CdnUrl;
         var createPreferenceRequest = new PreferenceRequest
         {
             ExternalReference = order.Id.ToString(),
@@ -63,15 +63,18 @@ internal sealed class CreateOrderPaymentCommandHandler(
                 Name = order.Customer!.Name,
                 Email = order.Customer.Email
             },
-            Items = order.Items.Select(item => new PreferenceItemRequest
-            {
-                Id = item.Id.ToString(),
-                Title = item.ProductName,
-                Description = item.ProductName,
-                PictureUrl = $"{cdnUrl}/{item.ImageUrl}",
-                Quantity = item.Quantity,
-                UnitPrice = item.Price
-            }).ToList(),
+            Items =
+            [
+                .. order.Items.Select(item => new PreferenceItemRequest
+                {
+                    Id = item.Id.ToString(),
+                    Title = item.ProductName,
+                    Description = item.ProductName,
+                    PictureUrl = $"{cdnUrl}/{item.ImageUrl}",
+                    Quantity = item.Quantity,
+                    UnitPrice = item.Price
+                })
+            ],
             MarketplaceFee = CalculateFee(order.Subtotal)
         };
 
@@ -87,9 +90,11 @@ internal sealed class CreateOrderPaymentCommandHandler(
             };
         }
 
-        var preference =
-            await mercadoPagoClient.CreatePreference(createPreferenceRequest, store.MercadoPagoAccessToken!,
-                cancellationToken);
+        var preference = await mercadoPagoClient.CreatePreference(
+            createPreferenceRequest,
+            store.MercadoPagoAccessToken!,
+            cancellationToken
+        );
 
         if (preference is null)
         {
