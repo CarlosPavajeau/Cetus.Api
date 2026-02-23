@@ -25,8 +25,8 @@ internal sealed class FindById : IEndpoint
                 async token => await handler.Handle(query, token),
                 new HybridCacheEntryOptions
                 {
-                    Expiration = TimeSpan.FromHours(5),
-                    LocalCacheExpiration = TimeSpan.FromHours(5)
+                    Expiration = TimeSpan.FromMinutes(15),
+                    LocalCacheExpiration = TimeSpan.FromMinutes(5)
                 },
                 cancellationToken: cancellationToken
             );
