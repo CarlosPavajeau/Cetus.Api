@@ -78,6 +78,18 @@ if (app.Environment.IsDevelopment())
 app.MapHealthChecks("health", new HealthCheckOptions
 {
     ResponseWriter = UIResponseWriter.WriteHealthCheckUIResponse
+}).AddEndpointFilter(async (context, next) =>
+{
+    var configuration = context.HttpContext.RequestServices.GetRequiredService<IConfiguration>();
+    string? apiKey = configuration["App:HealthChecksApiKey"];
+
+    if (!context.HttpContext.Request.Headers.TryGetValue("X-Api-Key", out var requestApiKey) ||
+        requestApiKey != apiKey)
+    {
+        return Results.Unauthorized();
+    }
+
+    return await next(context);
 });
 
 app.UseRequestContextLogging();
