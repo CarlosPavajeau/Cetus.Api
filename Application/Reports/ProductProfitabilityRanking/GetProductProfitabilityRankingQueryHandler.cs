@@ -118,10 +118,10 @@ internal sealed class GetProductProfitabilityRankingQueryHandler(IApplicationDbC
         string normalizedSortBy = sortBy.Trim().ToUpperInvariant();
         var orderedQuery = (normalizedSortBy, ascending) switch
         {
-            ("MARGIN", true) => query.OrderBy(x => x.Margin),
-            ("MARGIN", false) => query.OrderByDescending(x => x.Margin),
-            ("PROFIT", true) => query.OrderBy(x => x.Profit),
-            _ => query.OrderByDescending(x => x.Profit)
+            ("MARGIN", true) => query.OrderBy(x => x.Revenue == 0m ? 0m : (x.Revenue - x.Costs) / x.Revenue),
+            ("MARGIN", false) => query.OrderByDescending(x => x.Revenue == 0m ? 0m : (x.Revenue - x.Costs) / x.Revenue),
+            ("PROFIT", true) => query.OrderBy(x => x.Revenue - x.Costs),
+            _ => query.OrderByDescending(x => x.Revenue - x.Costs)
         };
 
         return orderedQuery.ThenByDescending(x => x.UnitsSold);
