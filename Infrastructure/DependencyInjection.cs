@@ -304,20 +304,7 @@ public static class DependencyInjection
 
     private static IServiceCollection AddCache(this IServiceCollection services, IConfiguration configuration)
     {
-        string connectionString = configuration.GetConnectionString("Redis")!;
-        var uri = new Uri(connectionString);
-        string password = Uri.UnescapeDataString(uri.UserInfo.Split(':')[1]);
-
-        var redisConfig = new ConfigurationOptions
-        {
-            EndPoints = { { uri.Host, uri.Port } },
-            Password = password,
-            Ssl = true,
-            SslHost = uri.Host,
-            AbortOnConnectFail = false
-        };
-
-        services.AddFusionCache()
+        var cache = services.AddFusionCache()
             .WithDefaultEntryOptions(new FusionCacheEntryOptions
             {
                 Duration = TimeSpan.FromMinutes(10),
@@ -326,13 +313,62 @@ public static class DependencyInjection
                 AllowTimedOutFactoryBackgroundCompletion = true,
                 AllowBackgroundBackplaneOperations = true
             })
-            .WithDistributedCache(_ =>
-                new RedisCache(new RedisCacheOptions { ConfigurationOptions = redisConfig }))
-            .WithSerializer(new FusionCacheSystemTextJsonSerializer())
+            .WithSerializer(new FusionCacheSystemTextJsonSerializer());
+
+        string? connectionString = configuration.GetConnectionString("Redis");
+        if (!TryBuildRedisOptions(connectionString, out var redisConfig))
+        {
+            cache.AsHybridCache();
+            return services;
+        }
+
+        cache
+            .WithDistributedCache(_ => new RedisCache(new RedisCacheOptions { ConfigurationOptions = redisConfig }))
             .WithBackplane(new RedisBackplane(new RedisBackplaneOptions { ConfigurationOptions = redisConfig }))
             .AsHybridCache();
 
         return services;
+    }
+
+    private static bool TryBuildRedisOptions(string? connectionString, out ConfigurationOptions redisConfig)
+    {
+        redisConfig = new ConfigurationOptions();
+
+        if (string.IsNullOrWhiteSpace(connectionString))
+        {
+            return false;
+        }
+
+        if (!Uri.TryCreate(connectionString, UriKind.Absolute, out var uri))
+        {
+            return false;
+        }
+
+        if (string.IsNullOrWhiteSpace(uri.Host) || uri.Port <= 0)
+        {
+            return false;
+        }
+
+        string? password = null;
+        if (!string.IsNullOrWhiteSpace(uri.UserInfo))
+        {
+            string[] userInfoParts = uri.UserInfo.Split(':', 2);
+            if (userInfoParts.Length == 2 && !string.IsNullOrWhiteSpace(userInfoParts[1]))
+            {
+                password = Uri.UnescapeDataString(userInfoParts[1]);
+            }
+        }
+
+        redisConfig = new ConfigurationOptions
+        {
+            EndPoints = { { uri.Host, uri.Port } },
+            Password = password,
+            Ssl = uri.Scheme.Equals("rediss", StringComparison.OrdinalIgnoreCase),
+            SslHost = uri.Host,
+            AbortOnConnectFail = false
+        };
+
+        return true;
     }
 
     private static IServiceCollection AddQuartz(this IServiceCollection services)
