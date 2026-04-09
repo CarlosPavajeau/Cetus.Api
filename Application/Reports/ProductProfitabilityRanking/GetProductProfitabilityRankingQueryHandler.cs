@@ -40,23 +40,45 @@ internal sealed class GetProductProfitabilityRankingQueryHandler(IApplicationDbC
 
         var grouped = productRows
             .GroupBy(x => new { x.ProductId, x.ProductName, x.CategoryId, x.CategoryName })
-            .Select(g => new ProductAggregationRow(
+            .Select(g => new
+            {
                 g.Key.ProductId,
-                g.Key.ProductName,
+                Product = g.Key.ProductName,
                 g.Key.CategoryId,
-                g.Key.CategoryName,
-                g.Sum(x => x.UnitsSold),
-                g.Sum(x => x.Revenue),
-                g.Sum(x => x.Costs)
-            ));
+                Category = g.Key.CategoryName,
+                UnitsSold = g.Sum(x => x.UnitsSold),
+                Revenue = g.Sum(x => x.Revenue),
+                Costs = g.Sum(x => x.Costs)
+            });
 
-        grouped = ApplySorting(grouped, query.ResolvedSortBy, query.ResolvedSortDirection);
+        bool ascending = string.Equals(query.ResolvedSortDirection, "asc", StringComparison.OrdinalIgnoreCase);
+        bool sortByMargin = string.Equals(query.ResolvedSortBy, "margin", StringComparison.OrdinalIgnoreCase);
+
+        grouped = (sortByMargin, ascending) switch
+        {
+            (true, true) => grouped
+                .OrderBy(x => x.Revenue == 0m ? 0m : (x.Revenue - x.Costs) / x.Revenue)
+                .ThenByDescending(x => x.UnitsSold),
+            (true, false) => grouped
+                .OrderByDescending(x => x.Revenue == 0m ? 0m : (x.Revenue - x.Costs) / x.Revenue)
+                .ThenByDescending(x => x.UnitsSold),
+            (false, true) => grouped
+                .OrderBy(x => x.Revenue - x.Costs)
+                .ThenByDescending(x => x.UnitsSold),
+            _ => grouped
+                .OrderByDescending(x => x.Revenue - x.Costs)
+                .ThenByDescending(x => x.UnitsSold)
+        };
 
         var data = await grouped.ToListAsync(cancellationToken);
         var items = data.Select(row =>
         {
-            bool isStarProduct = row.Margin >= query.StarMarginThreshold && row.UnitsSold >= query.StarUnitsThreshold;
-            bool isProblematic = row.Profit <= 0 || row.Margin <= query.ProblematicMarginThreshold;
+            decimal profit = row.Revenue - row.Costs;
+            decimal margin = row.Revenue > 0m
+                ? Math.Round(profit / row.Revenue, 4)
+                : 0m;
+            bool isStarProduct = margin >= query.StarMarginThreshold && row.UnitsSold >= query.StarUnitsThreshold;
+            bool isProblematic = profit <= 0m || margin <= query.ProblematicMarginThreshold;
 
             return new ProductProfitabilityItem(
                 ProductId: row.ProductId,
@@ -66,8 +88,8 @@ internal sealed class GetProductProfitabilityRankingQueryHandler(IApplicationDbC
                 UnitsSold: row.UnitsSold,
                 Revenue: row.Revenue,
                 Costs: row.Costs,
-                Profit: row.Profit,
-                MarginPercentage: row.Margin,
+                Profit: profit,
+                MarginPercentage: margin,
                 IsStarProduct: isStarProduct,
                 IsProblematic: isProblematic
             );
@@ -107,40 +129,5 @@ internal sealed class GetProductProfitabilityRankingQueryHandler(IApplicationDbC
         }
 
         return ordersQuery;
-    }
-
-    private static IQueryable<ProductAggregationRow> ApplySorting(
-        IQueryable<ProductAggregationRow> query,
-        string sortBy,
-        string sortDirection)
-    {
-        bool ascending = string.Equals(sortDirection, "asc", StringComparison.OrdinalIgnoreCase);
-        string normalizedSortBy = sortBy.Trim().ToUpperInvariant();
-        var orderedQuery = (normalizedSortBy, ascending) switch
-        {
-            ("MARGIN", true) => query.OrderBy(x => x.Revenue == 0m ? 0m : (x.Revenue - x.Costs) / x.Revenue),
-            ("MARGIN", false) => query.OrderByDescending(x => x.Revenue == 0m ? 0m : (x.Revenue - x.Costs) / x.Revenue),
-            ("PROFIT", true) => query.OrderBy(x => x.Revenue - x.Costs),
-            _ => query.OrderByDescending(x => x.Revenue - x.Costs)
-        };
-
-        return orderedQuery.ThenByDescending(x => x.UnitsSold);
-    }
-
-    private sealed record ProductAggregationRow(
-        Guid ProductId,
-        string Product,
-        Guid CategoryId,
-        string Category,
-        int UnitsSold,
-        decimal Revenue,
-        decimal Costs
-    )
-    {
-        public decimal Profit => Revenue - Costs;
-
-        public decimal Margin => Revenue > 0
-            ? (Revenue - Costs) / Revenue
-            : 0m;
     }
 }
