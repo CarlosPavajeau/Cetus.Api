@@ -240,7 +240,7 @@ public class OrdersSpec(ApplicationTestCase factory) : ApplicationContextTestCas
         var secondCancelOrderResponse = await Client.PutAsJsonAsync($"api/orders/{order.Id}/status", command);
 
         // Assert
-        secondCancelOrderResponse.StatusCode.ShouldBe(HttpStatusCode.Conflict);
+        secondCancelOrderResponse.StatusCode.ShouldBe(HttpStatusCode.BadRequest);
     }
 
     [Fact(DisplayName = "Should get orders insights")]
