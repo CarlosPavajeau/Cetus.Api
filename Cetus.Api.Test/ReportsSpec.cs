@@ -1,6 +1,7 @@
 using System.Net.Http.Json;
 using Application.Orders;
 using Application.Orders.Create;
+using Application.Reports.ProductProfitabilityRanking;
 using Application.Reports.DailySummary;
 using Application.Reports.MonthlyProfitability;
 using Bogus;
@@ -153,5 +154,26 @@ public class ReportsSpec(ApplicationTestCase factory) : ApplicationContextTestCa
         // Assert
         report.ShouldNotBeNull();
         report.ProductsWithoutCost.ShouldNotBeEmpty();
+    }
+
+    [Fact(DisplayName = "Should get product profitability ranking report")]
+    public async Task ShouldGetProductProfitabilityRankingReport()
+    {
+        // Arrange
+        var product = await ProductHelper.CreateProductWithVariant(Client, 40.0m);
+        var newOrder = GenerateCreateOrderCommand(product, quantity: 3);
+
+        var createResponse = await Client.PostAsJsonAsync("api/orders", newOrder);
+        createResponse.EnsureSuccessStatusCode();
+
+        // Act
+        var response = await Client.GetAsync("api/reports/product-profitability-ranking");
+        response.EnsureSuccessStatusCode();
+        var report = await response.DeserializeAsync<IReadOnlyList<ProductProfitabilityItem>>();
+
+        // Assert
+        report.ShouldNotBeNull();
+        report.ShouldNotBeEmpty();
+        report.ShouldContain(item => item.ProductId == product.Id);
     }
 }

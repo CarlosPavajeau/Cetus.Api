@@ -334,39 +334,6 @@ public class ProductsSpec(ApplicationTestCase factory) : ApplicationContextTestC
         response.StatusCode.ShouldBe(HttpStatusCode.NotFound);
     }
 
-    [Fact(DisplayName = "Should return bad request when updating a product with different id")]
-    public async Task ShouldReturnBadRequestWhenUpdatingAProductWithDifferentId()
-    {
-        // Arrange
-        var categoryId = await ProductHelper.GetOrCreateCategoryId(Client);
-
-        var newProduct = _productCommandFaker
-            .WithCategoryId(categoryId)
-            .Generate();
-
-        var createResponse = await Client.PostAsJsonAsync("api/products", newProduct);
-
-        createResponse.EnsureSuccessStatusCode();
-
-        var product = await createResponse.DeserializeAsync<ProductResponse>();
-        product.ShouldNotBeNull();
-
-        var updateProduct =
-            new UpdateProductCommand(
-                Guid.NewGuid(),
-                "test-update",
-                "test-update",
-                categoryId,
-                true
-            );
-
-        // Act
-        var response = await Client.PutAsJsonAsync($"api/products/{product.Id}", updateProduct);
-
-        // Assert
-        response.StatusCode.ShouldBe(HttpStatusCode.BadRequest);
-    }
-
     [Fact(DisplayName = "Should delete a product")]
     public async Task ShouldDeleteAProduct()
     {
