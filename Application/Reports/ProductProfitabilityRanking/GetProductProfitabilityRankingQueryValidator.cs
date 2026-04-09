@@ -30,6 +30,10 @@ internal sealed class GetProductProfitabilityRankingQueryValidator : AbstractVal
             .InclusiveBetween(0m, 1m)
             .WithMessage("El umbral de margen problematico debe estar entre 0 y 1.");
 
+        RuleFor(q => q)
+            .Must(q => q.StarMarginThreshold > q.ProblematicMarginThreshold)
+            .WithMessage("El umbral de margen estrella debe ser mayor que el umbral de margen problematico.");
+
         RuleFor(q => q.StarUnitsThreshold)
             .GreaterThanOrEqualTo(1)
             .WithMessage("El umbral de unidades estrella debe ser mayor o igual a 1.");
