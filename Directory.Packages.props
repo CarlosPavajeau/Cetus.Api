@@ -4,7 +4,7 @@
   </PropertyGroup>
   <ItemGroup>
     <PackageVersion Include="Microsoft.Extensions.Caching.StackExchangeRedis" Version="10.0.7" />
-    <PackageVersion Include="SonarAnalyzer.CSharp" Version="10.23.0.137933" />
+    <PackageVersion Include="SonarAnalyzer.CSharp" Version="10.27.0.140913" />
     <!-- Application -->
     <PackageVersion Include="Scrutor" Version="7.0.0" />
     <PackageVersion Include="FluentValidation.DependencyInjectionExtensions" Version="12.1.1" />
